@@ -1,0 +1,52 @@
+{
+    "name": "aminwebtech-vite-react",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "server": "node server/server.js",
+        "dev:server": "nodemon server/server.js",
+        "analytics:server": "node server-analytics-improved.js",
+        "analytics:dev": "nodemon server-analytics-improved.js",
+        "analytics:test": "node test-analytics-endpoints.js",
+        "build": "vite build",
+        "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "@emotion/react": "^11.14.0",
+        "@emotion/styled": "^11.14.1",
+        "@mui/icons-material": "^7.3.6",
+        "@mui/material": "^7.3.6",
+        "@tanstack/react-query": "^5.90.16",
+        "axios": "^1.13.2",
+        "cors": "^2.8.5",
+        "dotenv": "^17.2.3",
+        "express": "^5.2.1",
+        "lucide-react": "^0.562.0",
+        "mongodb": "^7.0.0",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "react-ga4": "^2.1.0",
+        "react-hook-form": "^7.70.0",
+        "react-icons": "^5.5.0",
+        "react-router": "^7.11.0",
+        "recharts": "^3.6.0"
+    },
+    "devDependencies": {
+        "@types/react": "^18.2.66",
+        "@types/react-dom": "^18.2.22",
+        "@vitejs/plugin-react": "^4.2.1",
+        "autoprefixer": "^10.4.19",
+        "daisyui": "^4.6.0",
+        "eslint": "^8.57.0",
+        "eslint-plugin-react": "^7.34.1",
+        "eslint-plugin-react-hooks": "^4.6.0",
+        "eslint-plugin-react-refresh": "^0.4.6",
+        "nodemon": "^3.1.11",
+        "postcss": "^8.4.38",
+        "tailwindcss": "^3.4.1",
+        "vite": "^5.2.0"
+    }
+}
