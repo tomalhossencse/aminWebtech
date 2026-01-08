@@ -18,7 +18,11 @@ import {
   Rss,
   Users,
   Star,
-  Mail
+  Mail,
+  TrendingUp,
+  Activity,
+  Eye,
+  Calendar
 } from 'lucide-react';
 import RecentActivities from './RecentActivities';
 import RecentContacts from './RecentContacts';
@@ -54,52 +58,75 @@ const DashboardHome = () => {
     {
       title: 'Total Services',
       value: '5',
+      change: '+12%',
+      changeType: 'increase',
       icon: Code,
       color: 'bg-blue-500',
-      shadowColor: 'shadow-blue-500/30',
-      progress: 100
+      progress: 85
     },
     {
       title: 'Active Projects',
       value: '2',
+      change: '+8%',
+      changeType: 'increase',
       icon: GitBranch,
-      color: 'bg-emerald-500',
-      shadowColor: 'shadow-emerald-500/30',
-      progress: 100
+      color: 'bg-green-500',
+      progress: 70
     },
     {
       title: 'Blog Posts',
       value: '1',
+      change: 'New',
+      changeType: 'new',
       icon: Rss,
-      color: 'bg-amber-500',
-      shadowColor: 'shadow-amber-500/30',
-      progress: 100
+      color: 'bg-yellow-500',
+      progress: 30
     },
     {
       title: 'Team Members',
       value: '4',
+      change: '+1',
+      changeType: 'increase',
       icon: Users,
       color: 'bg-purple-500',
-      shadowColor: 'shadow-purple-500/30',
-      progress: 100
+      progress: 90
     },
     {
       title: 'Testimonials',
       value: '1',
+      change: 'Stable',
+      changeType: 'stable',
       icon: Star,
-      color: 'bg-red-500',
-      shadowColor: 'shadow-red-500/30',
-      progress: 100
+      color: 'bg-pink-500',
+      progress: 60
     },
     {
       title: 'New Contacts',
-      value: '0',
+      value: '3',
+      change: '+3',
+      changeType: 'increase',
       icon: Mail,
       color: 'bg-indigo-500',
-      shadowColor: 'shadow-indigo-500/30',
-      progress: 0
+      progress: 45
     }
   ];
+
+  const getChangeColor = (type) => {
+    switch (type) {
+      case 'increase': return 'text-green-600 dark:text-green-400';
+      case 'decrease': return 'text-red-600 dark:text-red-400';
+      case 'new': return 'text-yellow-600 dark:text-yellow-400';
+      default: return 'text-gray-600 dark:text-gray-400';
+    }
+  };
+
+  const getChangeIcon = (type) => {
+    switch (type) {
+      case 'increase': return <TrendingUp className="w-3 h-3" />;
+      case 'decrease': return <TrendingUp className="w-3 h-3 rotate-180" />;
+      default: return <Activity className="w-3 h-3" />;
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-2 sm:px-3 lg:px-4 py-4">
@@ -118,18 +145,24 @@ const DashboardHome = () => {
                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{stat.title}</p>
                 <h3 className="text-3xl font-bold text-gray-800 dark:text-white mt-1">{stat.value}</h3>
               </div>
-              <div className={`h-10 w-10 rounded ${stat.color} flex items-center justify-center text-white shadow-lg ${stat.shadowColor}`}>
+              <div className={`h-10 w-10 rounded-lg ${stat.color} flex items-center justify-center text-white shadow-lg`}>
                 <stat.icon className="w-5 h-5" />
               </div>
             </div>
             <div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mb-2">
                 <div 
-                  className={`${stat.color.replace('bg-', 'bg-')} h-1.5 rounded-full transition-all duration-500`}
+                  className={`${stat.color} h-1.5 rounded-full transition-all duration-500`}
                   style={{ width: `${stat.progress}%` }}
                 ></div>
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{stat.progress}% completed</p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-gray-500 dark:text-gray-400">{stat.progress}% completed</p>
+                <div className={`flex items-center text-xs ${getChangeColor(stat.changeType)}`}>
+                  {getChangeIcon(stat.changeType)}
+                  <span className="ml-1">{stat.change}</span>
+                </div>
+              </div>
             </div>
           </div>
         ))}

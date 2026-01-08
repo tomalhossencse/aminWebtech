@@ -4,11 +4,16 @@ import "./index.css";
 import { RouterProvider } from "react-router";
 import { router } from "./Router/Router.jsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import ToastProvider from "./Context/ToastContext.jsx";
+
 const queryClient = new QueryClient();
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router}></RouterProvider>
+      <ToastProvider>
+        <RouterProvider router={router}></RouterProvider>
+      </ToastProvider>
     </QueryClientProvider>
   </StrictMode>
 );

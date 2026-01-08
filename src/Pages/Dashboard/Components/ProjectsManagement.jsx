@@ -578,953 +578,955 @@ const ProjectsManagement = () => {
           )}
         </div>
       )}
-
       {/* Add Project Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Add New Project</h2>
-              <button
-                onClick={() => {
-                  setIsAddModalOpen(false);
-                  resetForm();
-                }}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            
-            <form onSubmit={handleSubmit} className="p-6 space-y-6">
-              {/* Project Title and Slug */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Project Title *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => handleInputChange('title', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="E-Commerce Platform"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Slug
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.slug}
-                    onChange={(e) => handleInputChange('slug', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="e-commerce-platform"
-                  />
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Auto-generated from title if left empty</p>
-                </div>
-              </div>
+        <div className="modal modal-open" style={{ zIndex: 1000 }}>
+          <div className="modal-box w-11/12 max-w-4xl h-[95vh] max-h-[95vh] p-0 overflow-hidden rounded-lg shadow-2xl border border-base-300/50 backdrop-blur-sm">
+            {/* Scrollable Content Container */}
+            <div className="overflow-y-auto h-full scrollbar-hide" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+              <style>{`
+                .scrollbar-hide::-webkit-scrollbar {
+                  display: none;
+                }
+                .scrollbar-hide {
+                  -ms-overflow-style: none;
+                  scrollbar-width: none;
+                }
+              `}</style>
 
-              {/* Client Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Client Name *
-                </label>
-                <input
-                  type="text"
-                  value={formData.clientName}
-                  onChange={(e) => handleInputChange('clientName', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Client Company"
-                  required
-                />
-              </div>
-
-              {/* Description */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Description *
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                  placeholder="Project description..."
-                  required
-                />
-              </div>
-
-              {/* Category and Project URL */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Category *
-                  </label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => handleInputChange('category', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  >
-                    <option value="">Select Category</option>
-                    <option value="E-Commerce">E-Commerce</option>
-                    <option value="Mobile App">Mobile App</option>
-                    <option value="Web Development">Web Development</option>
-                    <option value="UI/UX Design">UI/UX Design</option>
-                    <option value="SaaS">SaaS</option>
-                    <option value="Portfolio">Portfolio</option>
-                  </select>
+              {/* Professional Header with Gradient */}
+              <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b border-base-300/50 px-8 py-6 flex justify-between items-center backdrop-blur-sm">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center">
+                    <span className="material-icons text-primary text-2xl">work</span>
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-base-content">Add New Project</h3>
+                    <p className="text-sm text-base-content/60 mt-1">
+                      Create a new portfolio project showcase
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Project URL
-                  </label>
-                  <input
-                    type="url"
-                    value={formData.projectUrl}
-                    onChange={(e) => handleInputChange('projectUrl', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="https://example.com"
-                  />
-                </div>
-              </div>
-
-              {/* Cover Image URL */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Cover Image URL
-                </label>
-                <input
-                  type="url"
-                  value={formData.coverImageUrl}
-                  onChange={(e) => handleInputChange('coverImageUrl', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="https://example.com/cover-image.jpg"
-                />
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">This image will be used as project thumbnail</p>
-              </div>
-
-              {/* Start Date and End Date */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Start Date
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.startDate}
-                    onChange={(e) => handleInputChange('startDate', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    End Date
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.endDate}
-                    onChange={(e) => handleInputChange('endDate', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-              </div>
-
-              {/* Technologies Used */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Technologies Used
-                </label>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={newTechnology}
-                    onChange={(e) => setNewTechnology(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTechnology())}
-                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Add technology (e.g., React, Node.js)"
-                  />
-                  <button
-                    type="button"
-                    onClick={addTechnology}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {formData.technologies.map((tech, index) => (
-                    <span
-                      key={index}
-                      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
-                    >
-                      {tech.name}
-                      <button
-                        type="button"
-                        onClick={() => removeTechnology(index)}
-                        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Key Features */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Key Features
-                </label>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={newFeature}
-                    onChange={(e) => setNewFeature(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addFeature())}
-                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Add key feature"
-                  />
-                  <button
-                    type="button"
-                    onClick={addFeature}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-                <div className="space-y-1">
-                  {formData.keyFeatures.map((feature, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-md"
-                    >
-                      <span className="text-sm text-gray-700 dark:text-gray-300">{feature.name}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeFeature(index)}
-                        className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Gallery Images */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Gallery Images
-                </label>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="url"
-                    value={newGalleryImage}
-                    onChange={(e) => setNewGalleryImage(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addGalleryImage())}
-                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Image URL"
-                  />
-                  <button
-                    type="button"
-                    onClick={addGalleryImage}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-                <div className="space-y-1">
-                  {formData.galleryImages.map((image, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-md"
-                    >
-                      <span className="text-sm text-gray-700 dark:text-gray-300 truncate">{image}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeGalleryImage(index)}
-                        className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Display Order and Checkboxes */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Display Order
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.displayOrder}
-                    onChange={(e) => handleInputChange('displayOrder', parseInt(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    min="0"
-                    placeholder="0"
-                  />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="featured"
-                    checked={formData.isFeatured}
-                    onChange={(e) => handleInputChange('isFeatured', e.target.checked)}
-                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                  />
-                  <label htmlFor="featured" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Featured Project
-                  </label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="active"
-                    checked={formData.isActive}
-                    onChange={(e) => handleInputChange('isActive', e.target.checked)}
-                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                  />
-                  <label htmlFor="active" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Active
-                  </label>
-                </div>
-              </div>
-
-              {/* The Challenge */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  The Challenge
-                </label>
-                <textarea
-                  value={formData.challenge}
-                  onChange={(e) => handleInputChange('challenge', e.target.value)}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                  placeholder="What challenges did the client face?"
-                />
-              </div>
-
-              {/* Our Solution */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Our Solution
-                </label>
-                <textarea
-                  value={formData.solution}
-                  onChange={(e) => handleInputChange('solution', e.target.value)}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                  placeholder="How did we solve the challenges?"
-                />
-              </div>
-
-              {/* The Result */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  The Result
-                </label>
-                <textarea
-                  value={formData.result}
-                  onChange={(e) => handleInputChange('result', e.target.value)}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                  placeholder="What were the outcomes and results?"
-                />
-              </div>
-
-              {/* Form Actions */}
-              <div className="flex gap-3 justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
                 <button
-                  type="button"
                   onClick={() => {
                     setIsAddModalOpen(false);
                     resetForm();
                   }}
-                  disabled={createProjectMutation.isPending}
-                  className="px-6 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50"
+                  className="btn btn-sm btn-circle btn-ghost hover:bg-error/10 hover:text-error transition-all duration-200 text-base-content/70"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={createProjectMutation.isPending}
-                  className="px-6 py-2 border border-transparent text-sm font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50 flex items-center gap-2"
-                >
-                  {createProjectMutation.isPending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Creating...
-                    </>
-                  ) : (
-                    'Create Project'
-                  )}
+                  <X className="w-5 h-5" />
                 </button>
               </div>
-            </form>
+
+              {/* Professional Form Content */}
+              <div className="p-8 bg-gradient-to-b from-base-100 to-base-200/30">
+                <form onSubmit={handleSubmit} className="space-y-8">
+                  {/* Basic Information Section */}
+                  <div className="card bg-base-100/80 backdrop-blur-sm border border-base-300/50 shadow-lg rounded-lg">
+                    <div className="card-body p-6">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-8 h-8 bg-info/20 rounded-lg flex items-center justify-center">
+                          <span className="material-icons text-info text-lg">info</span>
+                        </div>
+                        <h4 className="text-lg font-semibold text-base-content">Basic Information</h4>
+                      </div>
+
+                      {/* Project Title and Slug */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div className="form-control">
+                          <label className="label">
+                            <span className="label-text font-medium text-base-content flex items-center gap-2">
+                              <span className="material-icons text-sm text-primary">title</span>
+                              Project Title <span className="text-error">*</span>
+                            </span>
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.title}
+                            onChange={(e) => handleInputChange('title', e.target.value)}
+                            className="input input-bordered w-full text-base-content bg-base-100 focus:bg-base-100 focus:border-primary transition-all duration-200"
+                            placeholder="E-Commerce Platform"
+                            required
+                          />
+                        </div>
+                        <div className="form-control">
+                          <label className="label">
+                            <span className="label-text font-medium text-base-content flex items-center gap-2">
+                              <span className="material-icons text-sm text-primary">link</span>
+                              Slug
+                            </span>
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.slug}
+                            onChange={(e) => handleInputChange('slug', e.target.value)}
+                            className="input input-bordered w-full text-base-content bg-base-100 focus:bg-base-100 focus:border-primary transition-all duration-200"
+                            placeholder="e-commerce-platform"
+                          />
+                          <label className="label">
+                            <span className="label-text-alt text-base-content/60 flex items-center gap-1">
+                              <span className="material-icons text-xs">auto_awesome</span>
+                              Auto-generated from title if left empty
+                            </span>
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Client Name */}
+                      <div className="form-control mb-6">
+                        <label className="label">
+                          <span className="label-text font-medium text-base-content flex items-center gap-2">
+                            <span className="material-icons text-sm text-primary">business</span>
+                            Client Name <span className="text-error">*</span>
+                          </span>
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.clientName}
+                          onChange={(e) => handleInputChange('clientName', e.target.value)}
+                          className="input input-bordered w-full text-base-content bg-base-100 focus:bg-base-100 focus:border-primary transition-all duration-200"
+                          placeholder="Client Company"
+                          required
+                        />
+                      </div>
+
+                      {/* Description */}
+                      <div className="form-control">
+                        <label className="label">
+                          <span className="label-text font-medium text-base-content flex items-center gap-2">
+                            <span className="material-icons text-sm text-primary">description</span>
+                            Description <span className="text-error">*</span>
+                          </span>
+                        </label>
+                        <textarea
+                          value={formData.description}
+                          onChange={(e) => handleInputChange('description', e.target.value)}
+                          rows={4}
+                          className="textarea textarea-bordered w-full text-base-content bg-base-100 focus:bg-base-100 focus:border-primary transition-all duration-200 resize-none"
+                          placeholder="Project description..."
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Category and Project URL Section */}
+                  <div className="card bg-base-100/80 backdrop-blur-sm border border-base-300/50 shadow-lg rounded-lg">
+                    <div className="card-body p-6">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-8 h-8 bg-warning/20 rounded-lg flex items-center justify-center">
+                          <span className="material-icons text-warning text-lg">category</span>
+                        </div>
+                        <h4 className="text-lg font-semibold text-base-content">Category & Links</h4>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="form-control">
+                          <label className="label">
+                            <span className="label-text font-medium text-base-content flex items-center gap-2">
+                              <span className="material-icons text-sm text-primary">folder</span>
+                              Category <span className="text-error">*</span>
+                            </span>
+                          </label>
+                          <select
+                            value={formData.category}
+                            onChange={(e) => handleInputChange('category', e.target.value)}
+                            className="select select-bordered w-full text-base-content bg-base-100 focus:bg-base-100 focus:border-primary transition-all duration-200"
+                            required
+                          >
+                            <option value="">Select Category</option>
+                            <option value="E-Commerce">E-Commerce</option>
+                            <option value="Mobile App">Mobile App</option>
+                            <option value="Web Development">Web Development</option>
+                            <option value="UI/UX Design">UI/UX Design</option>
+                            <option value="SaaS">SaaS</option>
+                            <option value="Portfolio">Portfolio</option>
+                          </select>
+                        </div>
+                        <div className="form-control">
+                          <label className="label">
+                            <span className="label-text font-medium text-base-content flex items-center gap-2">
+                              <span className="material-icons text-sm text-primary">link</span>
+                              Project URL
+                            </span>
+                          </label>
+                          <input
+                            type="url"
+                            value={formData.projectUrl}
+                            onChange={(e) => handleInputChange('projectUrl', e.target.value)}
+                            className="input input-bordered w-full text-base-content bg-base-100 focus:bg-base-100 focus:border-primary transition-all duration-200"
+                            placeholder="https://example.com"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Cover Image URL */}
+                      <div className="form-control mt-6">
+                        <label className="label">
+                          <span className="label-text font-medium text-base-content flex items-center gap-2">
+                            <span className="material-icons text-sm text-primary">image</span>
+                            Cover Image URL
+                          </span>
+                        </label>
+                        <input
+                          type="url"
+                          value={formData.coverImageUrl}
+                          onChange={(e) => handleInputChange('coverImageUrl', e.target.value)}
+                          className="input input-bordered w-full text-base-content bg-base-100 focus:bg-base-100 focus:border-primary transition-all duration-200"
+                          placeholder="https://example.com/cover-image.jpg"
+                        />
+                        <label className="label">
+                          <span className="label-text-alt text-base-content/60">This image will be used as project thumbnail</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Dates Section */}
+                  <div className="card bg-base-100/80 backdrop-blur-sm border border-base-300/50 shadow-lg rounded-lg">
+                    <div className="card-body p-6">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-8 h-8 bg-success/20 rounded-lg flex items-center justify-center">
+                          <span className="material-icons text-success text-lg">schedule</span>
+                        </div>
+                        <h4 className="text-lg font-semibold text-base-content">Project Timeline</h4>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="form-control">
+                          <label className="label">
+                            <span className="label-text font-medium text-base-content flex items-center gap-2">
+                              <span className="material-icons text-sm text-primary">event</span>
+                              Start Date
+                            </span>
+                          </label>
+                          <input
+                            type="date"
+                            value={formData.startDate}
+                            onChange={(e) => handleInputChange('startDate', e.target.value)}
+                            className="input input-bordered w-full text-base-content bg-base-100 focus:bg-base-100 focus:border-primary transition-all duration-200"
+                          />
+                        </div>
+                        <div className="form-control">
+                          <label className="label">
+                            <span className="label-text font-medium text-base-content flex items-center gap-2">
+                              <span className="material-icons text-sm text-primary">event_available</span>
+                              End Date
+                            </span>
+                          </label>
+                          <input
+                            type="date"
+                            value={formData.endDate}
+                            onChange={(e) => handleInputChange('endDate', e.target.value)}
+                            className="input input-bordered w-full text-base-content bg-base-100 focus:bg-base-100 focus:border-primary transition-all duration-200"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Technologies Section */}
+                  <div className="card bg-base-100/80 backdrop-blur-sm border border-base-300/50 shadow-lg rounded-lg">
+                    <div className="card-body p-6">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-8 h-8 bg-accent/20 rounded-lg flex items-center justify-center">
+                          <span className="material-icons text-accent text-lg">code</span>
+                        </div>
+                        <h4 className="text-lg font-semibold text-base-content">Technologies Used</h4>
+                      </div>
+
+                      <div className="form-control">
+                        <div className="flex gap-2 mb-4">
+                          <input
+                            type="text"
+                            value={newTechnology}
+                            onChange={(e) => setNewTechnology(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTechnology())}
+                            className="input input-bordered flex-1 text-base-content bg-base-100 focus:bg-base-100 focus:border-primary transition-all duration-200"
+                            placeholder="Add technology (e.g., React, Node.js)"
+                          />
+                          <button
+                            type="button"
+                            onClick={addTechnology}
+                            className="btn btn-primary shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                          >
+                            <span className="material-icons text-sm mr-1">add</span>
+                            Add
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {formData.technologies.map((tech, index) => (
+                            <span
+                              key={index}
+                              className="badge badge-primary badge-lg gap-2 shadow-sm hover:shadow-md transition-all duration-200"
+                            >
+                              {tech.name}
+                              <button
+                                type="button"
+                                onClick={() => removeTechnology(index)}
+                                className="btn btn-xs btn-circle btn-ghost hover:btn-error"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Key Features Section */}
+                  <div className="card bg-base-100/80 backdrop-blur-sm border border-base-300/50 shadow-lg rounded-lg">
+                    <div className="card-body p-6">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-8 h-8 bg-secondary/20 rounded-lg flex items-center justify-center">
+                          <span className="material-icons text-secondary text-lg">star</span>
+                        </div>
+                        <h4 className="text-lg font-semibold text-base-content">Key Features</h4>
+                      </div>
+
+                      <div className="form-control">
+                        <div className="flex gap-2 mb-4">
+                          <input
+                            type="text"
+                            value={newFeature}
+                            onChange={(e) => setNewFeature(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addFeature())}
+                            className="input input-bordered flex-1 text-base-content bg-base-100 focus:bg-base-100 focus:border-primary transition-all duration-200"
+                            placeholder="Add key feature"
+                          />
+                          <button
+                            type="button"
+                            onClick={addFeature}
+                            className="btn btn-primary shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                          >
+                            <span className="material-icons text-sm mr-1">add</span>
+                            Add
+                          </button>
+                        </div>
+                        <div className="space-y-2">
+                          {formData.keyFeatures.map((feature, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center justify-between p-3 bg-base-200/50 rounded-lg border border-base-300/30"
+                            >
+                              <span className="text-sm text-base-content">{feature.name}</span>
+                              <button
+                                type="button"
+                                onClick={() => removeFeature(index)}
+                                className="btn btn-xs btn-circle btn-ghost hover:btn-error"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Gallery Images Section */}
+                  <div className="card bg-base-100/80 backdrop-blur-sm border border-base-300/50 shadow-lg rounded-lg">
+                    <div className="card-body p-6">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-8 h-8 bg-neutral/20 rounded-lg flex items-center justify-center">
+                          <span className="material-icons text-neutral text-lg">photo_library</span>
+                        </div>
+                        <h4 className="text-lg font-semibold text-base-content">Gallery Images</h4>
+                      </div>
+
+                      <div className="form-control">
+                        <div className="flex gap-2 mb-4">
+                          <input
+                            type="url"
+                            value={newGalleryImage}
+                            onChange={(e) => setNewGalleryImage(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addGalleryImage())}
+                            className="input input-bordered flex-1 text-base-content bg-base-100 focus:bg-base-100 focus:border-primary transition-all duration-200"
+                            placeholder="Image URL"
+                          />
+                          <button
+                            type="button"
+                            onClick={addGalleryImage}
+                            className="btn btn-primary shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                          >
+                            <span className="material-icons text-sm mr-1">add</span>
+                            Add
+                          </button>
+                        </div>
+                        <div className="space-y-2">
+                          {formData.galleryImages.map((image, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center justify-between p-3 bg-base-200/50 rounded-lg border border-base-300/30"
+                            >
+                              <span className="text-sm text-base-content truncate flex-1 mr-2">{image}</span>
+                              <button
+                                type="button"
+                                onClick={() => removeGalleryImage(index)}
+                                className="btn btn-xs btn-circle btn-ghost hover:btn-error"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Settings Section */}
+                  <div className="card bg-base-100/80 backdrop-blur-sm border border-base-300/50 shadow-lg rounded-lg">
+                    <div className="card-body p-6">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-8 h-8 bg-info/20 rounded-lg flex items-center justify-center">
+                          <span className="material-icons text-info text-lg">settings</span>
+                        </div>
+                        <h4 className="text-lg font-semibold text-base-content">Project Settings</h4>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div className="form-control">
+                          <label className="label">
+                            <span className="label-text font-medium text-base-content flex items-center gap-2">
+                              <span className="material-icons text-sm text-primary">sort</span>
+                              Display Order
+                            </span>
+                          </label>
+                          <input
+                            type="number"
+                            value={formData.displayOrder}
+                            onChange={(e) => handleInputChange('displayOrder', parseInt(e.target.value) || 0)}
+                            className="input input-bordered w-full text-base-content bg-base-100 focus:bg-base-100 focus:border-primary transition-all duration-200"
+                            min="0"
+                            placeholder="0"
+                          />
+                        </div>
+                        <div className="form-control">
+                          <label className="label cursor-pointer justify-start gap-4">
+                            <input
+                              type="checkbox"
+                              checked={formData.isFeatured}
+                              onChange={(e) => handleInputChange('isFeatured', e.target.checked)}
+                              className="checkbox checkbox-primary checkbox-lg"
+                            />
+                            <div className="flex items-center gap-2">
+                              <span className="material-icons text-primary">star</span>
+                              <span className="label-text font-medium text-base-content">Featured Project</span>
+                            </div>
+                          </label>
+                        </div>
+                        <div className="form-control">
+                          <label className="label cursor-pointer justify-start gap-4">
+                            <input
+                              type="checkbox"
+                              checked={formData.isActive}
+                              onChange={(e) => handleInputChange('isActive', e.target.checked)}
+                              className="checkbox checkbox-success checkbox-lg"
+                            />
+                            <div className="flex items-center gap-2">
+                              <span className="material-icons text-success">check_circle</span>
+                              <span className="label-text font-medium text-base-content">Active</span>
+                            </div>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Project Details Section */}
+                  <div className="card bg-base-100/80 backdrop-blur-sm border border-base-300/50 shadow-lg rounded-lg">
+                    <div className="card-body p-6">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-8 h-8 bg-warning/20 rounded-lg flex items-center justify-center">
+                          <span className="material-icons text-warning text-lg">article</span>
+                        </div>
+                        <h4 className="text-lg font-semibold text-base-content">Project Details</h4>
+                      </div>
+
+                      <div className="space-y-6">
+                        {/* The Challenge */}
+                        <div className="form-control">
+                          <label className="label">
+                            <span className="label-text font-medium text-base-content flex items-center gap-2">
+                              <span className="material-icons text-sm text-primary">help</span>
+                              The Challenge
+                            </span>
+                          </label>
+                          <textarea
+                            value={formData.challenge}
+                            onChange={(e) => handleInputChange('challenge', e.target.value)}
+                            rows={4}
+                            className="textarea textarea-bordered w-full text-base-content bg-base-100 focus:bg-base-100 focus:border-primary transition-all duration-200 resize-none"
+                            placeholder="What challenges did the client face?"
+                          />
+                        </div>
+
+                        {/* Our Solution */}
+                        <div className="form-control">
+                          <label className="label">
+                            <span className="label-text font-medium text-base-content flex items-center gap-2">
+                              <span className="material-icons text-sm text-primary">lightbulb</span>
+                              Our Solution
+                            </span>
+                          </label>
+                          <textarea
+                            value={formData.solution}
+                            onChange={(e) => handleInputChange('solution', e.target.value)}
+                            rows={4}
+                            className="textarea textarea-bordered w-full text-base-content bg-base-100 focus:bg-base-100 focus:border-primary transition-all duration-200 resize-none"
+                            placeholder="How did we solve the challenges?"
+                          />
+                        </div>
+
+                        {/* The Result */}
+                        <div className="form-control">
+                          <label className="label">
+                            <span className="label-text font-medium text-base-content flex items-center gap-2">
+                              <span className="material-icons text-sm text-primary">trending_up</span>
+                              The Result
+                            </span>
+                          </label>
+                          <textarea
+                            value={formData.result}
+                            onChange={(e) => handleInputChange('result', e.target.value)}
+                            rows={4}
+                            className="textarea textarea-bordered w-full text-base-content bg-base-100 focus:bg-base-100 focus:border-primary transition-all duration-200 resize-none"
+                            placeholder="What were the outcomes and results?"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </form>
+              </div>
+
+              {/* Professional Footer with Gradient */}
+              <div className="px-8 py-6 bg-gradient-to-r from-base-200/80 to-base-300/50 border-t border-base-300/50 flex justify-between items-center backdrop-blur-sm">
+                <div className="text-sm text-base-content/60">
+                  <span className="material-icons text-sm mr-1">info</span>
+                  All fields marked with * are required
+                </div>
+                <div className="flex gap-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsAddModalOpen(false);
+                      resetForm();
+                    }}
+                    disabled={createProjectMutation.isPending}
+                    className="btn btn-outline btn-neutral hover:btn-neutral transition-all duration-200 hover:scale-105"
+                  >
+                    <span className="material-icons text-sm mr-2">close</span>
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={createProjectMutation.isPending}
+                    className="btn btn-primary shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {createProjectMutation.isPending ? (
+                      <>
+                        <span className="loading loading-spinner loading-sm"></span>
+                        Creating...
+                      </>
+                    ) : (
+                      <>
+                        <span className="material-icons text-sm">add_circle</span>
+                        Create Project
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
+
+          {/* Enhanced Modal backdrop */}
+          <form method="dialog" className="modal-backdrop bg-black/50 backdrop-blur-sm">
+            <button onClick={() => {
+              setIsAddModalOpen(false);
+              resetForm();
+            }}>close</button>
+          </form>
         </div>
       )}
-
-      {/* Edit Project Modal */}
+      {/* Edit Project Modal - Similar structure to Add Modal */}
       {isEditModalOpen && editingProject && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Edit Project</h2>
-              <button
-                onClick={() => {
-                  setIsEditModalOpen(false);
-                  setEditingProject(null);
-                  resetForm();
-                }}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            
-            <form onSubmit={handleSubmit} className="p-6 space-y-6">
-              {/* Project Title and Slug */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Project Title *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => handleInputChange('title', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="E-Commerce Platform"
-                    required
-                  />
+        <div className="modal modal-open" style={{ zIndex: 1000 }}>
+          <div className="modal-box w-11/12 max-w-4xl h-[95vh] max-h-[95vh] p-0 overflow-hidden rounded-lg shadow-2xl border border-base-300/50 backdrop-blur-sm">
+            <div className="overflow-y-auto h-full scrollbar-hide" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+              <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b border-base-300/50 px-8 py-6 flex justify-between items-center backdrop-blur-sm">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center">
+                    <span className="material-icons text-primary text-2xl">edit</span>
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-base-content">Edit Project</h3>
+                    <p className="text-sm text-base-content/60 mt-1">Update project information and settings</p>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Slug
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.slug}
-                    onChange={(e) => handleInputChange('slug', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="e-commerce-platform"
-                  />
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Auto-generated from title if left empty</p>
-                </div>
-              </div>
-
-              {/* Client Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Client Name *
-                </label>
-                <input
-                  type="text"
-                  value={formData.clientName}
-                  onChange={(e) => handleInputChange('clientName', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Client Company"
-                  required
-                />
-              </div>
-
-              {/* Description */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Description *
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                  placeholder="Project description..."
-                  required
-                />
-              </div>
-
-              {/* Category and Project URL */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Category *
-                  </label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => handleInputChange('category', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  >
-                    <option value="">Select Category</option>
-                    <option value="E-Commerce">E-Commerce</option>
-                    <option value="Mobile App">Mobile App</option>
-                    <option value="Web Development">Web Development</option>
-                    <option value="UI/UX Design">UI/UX Design</option>
-                    <option value="SaaS">SaaS</option>
-                    <option value="Portfolio">Portfolio</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Project URL
-                  </label>
-                  <input
-                    type="url"
-                    value={formData.projectUrl}
-                    onChange={(e) => handleInputChange('projectUrl', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="https://example.com"
-                  />
-                </div>
-              </div>
-
-              {/* Cover Image URL */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Cover Image URL
-                </label>
-                <input
-                  type="url"
-                  value={formData.coverImageUrl}
-                  onChange={(e) => handleInputChange('coverImageUrl', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="https://example.com/cover-image.jpg"
-                />
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">This image will be used as project thumbnail</p>
-              </div>
-
-              {/* Start Date and End Date */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Start Date
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.startDate}
-                    onChange={(e) => handleInputChange('startDate', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    End Date
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.endDate}
-                    onChange={(e) => handleInputChange('endDate', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-              </div>
-
-              {/* Technologies Used */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Technologies Used
-                </label>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={newTechnology}
-                    onChange={(e) => setNewTechnology(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTechnology())}
-                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Add technology (e.g., React, Node.js)"
-                  />
-                  <button
-                    type="button"
-                    onClick={addTechnology}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {formData.technologies.map((tech, index) => (
-                    <span
-                      key={index}
-                      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
-                    >
-                      {tech.name}
-                      <button
-                        type="button"
-                        onClick={() => removeTechnology(index)}
-                        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Key Features */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Key Features
-                </label>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={newFeature}
-                    onChange={(e) => setNewFeature(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addFeature())}
-                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Add key feature"
-                  />
-                  <button
-                    type="button"
-                    onClick={addFeature}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-                <div className="space-y-1">
-                  {formData.keyFeatures.map((feature, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-md"
-                    >
-                      <span className="text-sm text-gray-700 dark:text-gray-300">{feature.name}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeFeature(index)}
-                        className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Gallery Images */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Gallery Images
-                </label>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="url"
-                    value={newGalleryImage}
-                    onChange={(e) => setNewGalleryImage(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addGalleryImage())}
-                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Image URL"
-                  />
-                  <button
-                    type="button"
-                    onClick={addGalleryImage}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-                <div className="space-y-1">
-                  {formData.galleryImages.map((image, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-md"
-                    >
-                      <span className="text-sm text-gray-700 dark:text-gray-300 truncate">{image}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeGalleryImage(index)}
-                        className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Display Order and Checkboxes */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Display Order
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.displayOrder}
-                    onChange={(e) => handleInputChange('displayOrder', parseInt(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    min="0"
-                    placeholder="0"
-                  />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="edit-featured"
-                    checked={formData.isFeatured}
-                    onChange={(e) => handleInputChange('isFeatured', e.target.checked)}
-                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                  />
-                  <label htmlFor="edit-featured" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Featured Project
-                  </label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="edit-active"
-                    checked={formData.isActive}
-                    onChange={(e) => handleInputChange('isActive', e.target.checked)}
-                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                  />
-                  <label htmlFor="edit-active" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Active
-                  </label>
-                </div>
-              </div>
-
-              {/* The Challenge */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  The Challenge
-                </label>
-                <textarea
-                  value={formData.challenge}
-                  onChange={(e) => handleInputChange('challenge', e.target.value)}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                  placeholder="What challenges did the client face?"
-                />
-              </div>
-
-              {/* Our Solution */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Our Solution
-                </label>
-                <textarea
-                  value={formData.solution}
-                  onChange={(e) => handleInputChange('solution', e.target.value)}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                  placeholder="How did we solve the challenges?"
-                />
-              </div>
-
-              {/* The Result */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  The Result
-                </label>
-                <textarea
-                  value={formData.result}
-                  onChange={(e) => handleInputChange('result', e.target.value)}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                  placeholder="What were the outcomes and results?"
-                />
-              </div>
-
-              {/* Form Actions */}
-              <div className="flex gap-3 justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
                 <button
-                  type="button"
                   onClick={() => {
                     setIsEditModalOpen(false);
                     setEditingProject(null);
                     resetForm();
                   }}
-                  disabled={updateProjectMutation.isPending}
-                  className="px-6 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50"
+                  className="btn btn-sm btn-circle btn-ghost hover:bg-error/10 hover:text-error transition-all duration-200 text-base-content/70"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={updateProjectMutation.isPending}
-                  className="px-6 py-2 border border-transparent text-sm font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50 flex items-center gap-2"
-                >
-                  {updateProjectMutation.isPending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Updating...
-                    </>
-                  ) : (
-                    'Update Project'
-                  )}
+                  <X className="w-5 h-5" />
                 </button>
               </div>
-            </form>
+
+              <div className="p-8 bg-gradient-to-b from-base-100 to-base-200/30">
+                <form onSubmit={handleSubmit} className="space-y-8">
+                  {/* Same form structure as Add Modal but with edit context */}
+                  <div className="card bg-base-100/80 backdrop-blur-sm border border-base-300/50 shadow-lg rounded-lg">
+                    <div className="card-body p-6">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-8 h-8 bg-info/20 rounded-lg flex items-center justify-center">
+                          <span className="material-icons text-info text-lg">info</span>
+                        </div>
+                        <h4 className="text-lg font-semibold text-base-content">Basic Information</h4>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div className="form-control">
+                          <label className="label">
+                            <span className="label-text font-medium text-base-content flex items-center gap-2">
+                              <span className="material-icons text-sm text-primary">title</span>
+                              Project Title <span className="text-error">*</span>
+                            </span>
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.title}
+                            onChange={(e) => handleInputChange('title', e.target.value)}
+                            className="input input-bordered w-full text-base-content bg-base-100 focus:bg-base-100 focus:border-primary transition-all duration-200"
+                            placeholder="E-Commerce Platform"
+                            required
+                          />
+                        </div>
+                        <div className="form-control">
+                          <label className="label">
+                            <span className="label-text font-medium text-base-content flex items-center gap-2">
+                              <span className="material-icons text-sm text-primary">link</span>
+                              Slug
+                            </span>
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.slug}
+                            onChange={(e) => handleInputChange('slug', e.target.value)}
+                            className="input input-bordered w-full text-base-content bg-base-100 focus:bg-base-100 focus:border-primary transition-all duration-200"
+                            placeholder="e-commerce-platform"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="form-control mb-6">
+                        <label className="label">
+                          <span className="label-text font-medium text-base-content flex items-center gap-2">
+                            <span className="material-icons text-sm text-primary">business</span>
+                            Client Name <span className="text-error">*</span>
+                          </span>
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.clientName}
+                          onChange={(e) => handleInputChange('clientName', e.target.value)}
+                          className="input input-bordered w-full text-base-content bg-base-100 focus:bg-base-100 focus:border-primary transition-all duration-200"
+                          placeholder="Client Company"
+                          required
+                        />
+                      </div>
+
+                      <div className="form-control">
+                        <label className="label">
+                          <span className="label-text font-medium text-base-content flex items-center gap-2">
+                            <span className="material-icons text-sm text-primary">description</span>
+                            Description <span className="text-error">*</span>
+                          </span>
+                        </label>
+                        <textarea
+                          value={formData.description}
+                          onChange={(e) => handleInputChange('description', e.target.value)}
+                          rows={4}
+                          className="textarea textarea-bordered w-full text-base-content bg-base-100 focus:bg-base-100 focus:border-primary transition-all duration-200 resize-none"
+                          placeholder="Project description..."
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Category Section */}
+                  <div className="card bg-base-100/80 backdrop-blur-sm border border-base-300/50 shadow-lg rounded-lg">
+                    <div className="card-body p-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="form-control">
+                          <label className="label">
+                            <span className="label-text font-medium text-base-content">Category *</span>
+                          </label>
+                          <select
+                            value={formData.category}
+                            onChange={(e) => handleInputChange('category', e.target.value)}
+                            className="select select-bordered w-full text-base-content bg-base-100"
+                            required
+                          >
+                            <option value="">Select Category</option>
+                            <option value="E-Commerce">E-Commerce</option>
+                            <option value="Mobile App">Mobile App</option>
+                            <option value="Web Development">Web Development</option>
+                            <option value="UI/UX Design">UI/UX Design</option>
+                            <option value="SaaS">SaaS</option>
+                            <option value="Portfolio">Portfolio</option>
+                          </select>
+                        </div>
+                        <div className="form-control">
+                          <label className="label">
+                            <span className="label-text font-medium text-base-content">Project URL</span>
+                          </label>
+                          <input
+                            type="url"
+                            value={formData.projectUrl}
+                            onChange={(e) => handleInputChange('projectUrl', e.target.value)}
+                            className="input input-bordered w-full text-base-content bg-base-100"
+                            placeholder="https://example.com"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </form>
+              </div>
+
+              <div className="px-8 py-6 bg-gradient-to-r from-base-200/80 to-base-300/50 border-t border-base-300/50 flex justify-between items-center backdrop-blur-sm">
+                <div className="text-sm text-base-content/60">
+                  <span className="material-icons text-sm mr-1">info</span>
+                  All fields marked with * are required
+                </div>
+                <div className="flex gap-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsEditModalOpen(false);
+                      setEditingProject(null);
+                      resetForm();
+                    }}
+                    disabled={updateProjectMutation.isPending}
+                    className="btn btn-outline btn-neutral hover:btn-neutral transition-all duration-200 hover:scale-105"
+                  >
+                    <span className="material-icons text-sm mr-2">close</span>
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={updateProjectMutation.isPending}
+                    className="btn btn-primary shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {updateProjectMutation.isPending ? (
+                      <>
+                        <span className="loading loading-spinner loading-sm"></span>
+                        Updating...
+                      </>
+                    ) : (
+                      <>
+                        <span className="material-icons text-sm">update</span>
+                        Update Project
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
+
+          <form method="dialog" className="modal-backdrop bg-black/50 backdrop-blur-sm">
+            <button onClick={() => {
+              setIsEditModalOpen(false);
+              setEditingProject(null);
+              resetForm();
+            }}>close</button>
+          </form>
         </div>
       )}
 
       {/* Project Details Modal */}
       {isModalOpen && selectedProject && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Project Details</h2>
-              <button
-                onClick={closeModal}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            
-            <div className="p-6 space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  {selectedProject.title}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  {selectedProject.description}
-                </p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Slug</label>
-                  <p className="text-gray-900 dark:text-white">{selectedProject.slug}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Client</label>
-                  <p className="text-gray-900 dark:text-white">{selectedProject.clientName}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Category</label>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryBadge(selectedProject.category)}`}>
-                    {selectedProject.category}
-                  </span>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Status</label>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(selectedProject.isActive ? 'Active' : 'Inactive')}`}>
-                    {selectedProject.isActive ? 'Active' : 'Inactive'}
-                  </span>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Created Date</label>
-                  <p className="text-gray-900 dark:text-white">{formatDate(selectedProject.createdAt)}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Live Demo</label>
-                  <p className="text-gray-900 dark:text-white">
-                    {selectedProject.projectUrl ? 'Available' : 'Not Available'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Technologies */}
-              {selectedProject.technologies && selectedProject.technologies.length > 0 && (
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 block">Technologies</label>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedProject.technologies.map((tech, index) => (
-                      <span
-                        key={index}
-                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
-                      >
-                        {tech.name}
-                      </span>
-                    ))}
+        <div className="modal modal-open" style={{ zIndex: 1000 }}>
+          <div className="modal-box w-11/12 max-w-2xl max-h-[90vh] p-0 overflow-hidden rounded-lg shadow-2xl border border-base-300/50 backdrop-blur-sm">
+            <div className="overflow-y-auto h-full scrollbar-hide">
+              <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b border-base-300/50 px-8 py-6 flex justify-between items-center backdrop-blur-sm">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center">
+                    <span className="material-icons text-primary text-2xl">visibility</span>
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-base-content">Project Details</h3>
+                    <p className="text-sm text-base-content/60 mt-1">View project information</p>
                   </div>
                 </div>
-              )}
-
-              {/* Key Features */}
-              {selectedProject.keyFeatures && selectedProject.keyFeatures.length > 0 && (
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 block">Key Features</label>
-                  <ul className="list-disc list-inside space-y-1">
-                    {selectedProject.keyFeatures.map((feature, index) => (
-                      <li key={index} className="text-sm text-gray-700 dark:text-gray-300">
-                        {feature.name}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              
-              <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-                {selectedProject.projectUrl && (
-                  <button
-                    onClick={() => handleAction('demo', selectedProject._id)}
-                    className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition-colors"
-                  >
-                    <Globe className="w-4 h-4" />
-                    View Demo
-                  </button>
-                )}
                 <button
-                  onClick={() => handleAction('delete', selectedProject._id)}
-                  className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+                  onClick={closeModal}
+                  className="btn btn-sm btn-circle btn-ghost hover:bg-error/10 hover:text-error transition-all duration-200 text-base-content/70"
                 >
-                  <Trash2 className="w-4 h-4" />
-                  Delete
+                  <X className="w-5 h-5" />
                 </button>
+              </div>
+              
+              <div className="p-8 bg-gradient-to-b from-base-100 to-base-200/30 space-y-6">
+                <div className="card bg-base-100/80 backdrop-blur-sm border border-base-300/50 shadow-lg rounded-lg">
+                  <div className="card-body p-6">
+                    <h3 className="text-lg font-semibold text-base-content mb-4">{selectedProject.title}</h3>
+                    <p className="text-base-content/70 mb-6">{selectedProject.description}</p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium text-base-content/60">Slug</label>
+                        <p className="text-base-content">{selectedProject.slug}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-base-content/60">Client</label>
+                        <p className="text-base-content">{selectedProject.clientName}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-base-content/60">Category</label>
+                        <span className={`badge badge-lg ${getCategoryBadge(selectedProject.category)}`}>
+                          {selectedProject.category}
+                        </span>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-base-content/60">Status</label>
+                        <span className={`badge badge-lg ${getStatusBadge(selectedProject.isActive ? 'Active' : 'Inactive')}`}>
+                          {selectedProject.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-base-content/60">Created Date</label>
+                        <p className="text-base-content">{formatDate(selectedProject.createdAt)}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-base-content/60">Live Demo</label>
+                        <p className="text-base-content">
+                          {selectedProject.projectUrl ? 'Available' : 'Not Available'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {selectedProject.technologies && selectedProject.technologies.length > 0 && (
+                      <div className="mt-6">
+                        <label className="text-sm font-medium text-base-content/60 mb-2 block">Technologies</label>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedProject.technologies.map((tech, index) => (
+                            <span key={index} className="badge badge-primary badge-lg">
+                              {tech.name}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedProject.keyFeatures && selectedProject.keyFeatures.length > 0 && (
+                      <div className="mt-6">
+                        <label className="text-sm font-medium text-base-content/60 mb-2 block">Key Features</label>
+                        <ul className="list-disc list-inside space-y-1">
+                          {selectedProject.keyFeatures.map((feature, index) => (
+                            <li key={index} className="text-sm text-base-content/70">
+                              {feature.name}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    
+                    <div className="flex gap-3 pt-6 border-t border-base-300/50">
+                      {selectedProject.projectUrl && (
+                        <button
+                          onClick={() => handleAction('demo', selectedProject._id)}
+                          className="btn btn-success shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                        >
+                          <Globe className="w-4 h-4 mr-2" />
+                          View Demo
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleAction('delete', selectedProject._id)}
+                        className="btn btn-error shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+
+          <form method="dialog" className="modal-backdrop bg-black/50 backdrop-blur-sm">
+            <button onClick={closeModal}>close</button>
+          </form>
         </div>
       )}
 
       {/* Delete Confirmation Modal */}
       {deleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-md w-full">
-            <div className="p-6">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="flex-shrink-0">
-                  <AlertTriangle className="w-8 h-8 text-red-500" />
+        <div className="modal modal-open" style={{ zIndex: 1000 }}>
+          <div className="modal-box max-w-md p-0 overflow-hidden rounded-lg shadow-2xl border border-base-300/50 backdrop-blur-sm">
+            <div className="bg-gradient-to-r from-error/10 via-error/5 to-transparent border-b border-base-300/50 px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-error/20 rounded-lg flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-error" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Delete Project
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Are you sure you want to delete "{deleteConfirm.title}"? This action cannot be undone.
-                  </p>
+                  <h3 className="text-lg font-bold text-base-content">Delete Project</h3>
+                  <p className="text-sm text-base-content/60">This action cannot be undone</p>
                 </div>
               </div>
+            </div>
+            
+            <div className="p-6 bg-gradient-to-b from-base-100 to-base-200/30">
+              <p className="text-base-content/80 mb-6">
+                Are you sure you want to delete "<span className="font-semibold">{deleteConfirm.title}</span>"? 
+                This will permanently remove the project and all associated data.
+              </p>
               
               <div className="flex gap-3 justify-end">
                 <button
                   onClick={() => setDeleteConfirm(null)}
                   disabled={deleteProjectMutation.isPending}
-                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50"
+                  className="btn btn-outline btn-neutral hover:btn-neutral transition-all duration-200 hover:scale-105"
                 >
+                  <span className="material-icons text-sm mr-2">close</span>
                   Cancel
                 </button>
                 <button
                   onClick={handleDeleteConfirm}
                   disabled={deleteProjectMutation.isPending}
-                  className="px-4 py-2 border border-transparent text-sm font-medium rounded shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors disabled:opacity-50 flex items-center gap-2"
+                  className="btn btn-error shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 disabled:opacity-50"
                 >
                   {deleteProjectMutation.isPending ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span className="loading loading-spinner loading-sm mr-2"></span>
                       Deleting...
                     </>
                   ) : (
                     <>
-                      <Trash2 className="w-4 h-4" />
-                      Delete
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete Project
                     </>
                   )}
                 </button>
               </div>
             </div>
           </div>
+
+          <form method="dialog" className="modal-backdrop bg-black/50 backdrop-blur-sm">
+            <button onClick={() => setDeleteConfirm(null)}>close</button>
+          </form>
         </div>
       )}
     </div>
