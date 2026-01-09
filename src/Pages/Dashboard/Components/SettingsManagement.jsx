@@ -10,6 +10,7 @@ import {
   Trash2,
   RefreshCw
 } from 'lucide-react';
+import useFileUpload from '../../../hooks/useFileUpload';
 
 const SettingsManagement = () => {
   const [activeTab, setActiveTab] = useState('general');
@@ -30,6 +31,10 @@ const SettingsManagement = () => {
   });
   const [metaKeywords, setMetaKeywords] = useState('');
   const [googleAnalyticsId, setGoogleAnalyticsId] = useState('');
+  const [logoUrl, setLogoUrl] = useState('');
+  const [faviconUrl, setFaviconUrl] = useState('');
+
+  const { uploading, selectAndUploadFile } = useFileUpload();
 
   const tabs = [
     { id: 'general', label: 'General', icon: Settings },
@@ -68,9 +73,24 @@ const SettingsManagement = () => {
     }));
   };
 
-  const handleFileUpload = (type) => {
-    console.log(`Upload ${type}`);
-    // Implement file upload logic here
+  const handleFileUpload = async (type) => {
+    const maxSize = type === 'favicon' ? 1 * 1024 * 1024 : 5 * 1024 * 1024; // 1MB for favicon, 5MB for logo
+    
+    const result = await selectAndUploadFile({
+      accept: 'image/*',
+      maxSize: maxSize,
+      allowedTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml']
+    });
+
+    if (result) {
+      if (type === 'logo') {
+        setLogoUrl(result.url);
+        console.log('Logo uploaded:', result);
+      } else if (type === 'favicon') {
+        setFaviconUrl(result.url);
+        console.log('Favicon uploaded:', result);
+      }
+    }
   };
 
   const handleDangerAction = (action) => {
@@ -149,30 +169,58 @@ const SettingsManagement = () => {
                 <div>
                   <span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Logo</span>
                   <div
-                    onClick={() => handleFileUpload('logo')}
-                    className="mt-1 flex justify-center items-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-md w-48 h-32 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer group"
+                    onClick={() => !uploading && handleFileUpload('logo')}
+                    className={`mt-1 flex justify-center items-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-md w-48 h-32 transition-colors ${
+                      uploading ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer'
+                    } group`}
                   >
-                    <div className="space-y-1 text-center">
-                      <Image className="mx-auto h-8 w-8 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-400" />
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        Click to upload logo
+                    {logoUrl ? (
+                      <img 
+                        src={logoUrl} 
+                        alt="Logo" 
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    ) : (
+                      <div className="space-y-1 text-center">
+                        {uploading ? (
+                          <div className="w-8 h-8 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                        ) : (
+                          <Image className="mx-auto h-8 w-8 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-400" />
+                        )}
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          {uploading ? 'Uploading...' : 'Click to upload logo'}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
                 
                 <div>
                   <span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Favicon</span>
                   <div
-                    onClick={() => handleFileUpload('favicon')}
-                    className="mt-1 flex justify-center items-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-md w-24 h-24 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer group"
+                    onClick={() => !uploading && handleFileUpload('favicon')}
+                    className={`mt-1 flex justify-center items-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-md w-24 h-24 transition-colors ${
+                      uploading ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer'
+                    } group`}
                   >
-                    <div className="space-y-1 text-center">
-                      <Image className="mx-auto h-6 w-6 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-400" />
-                      <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                        Upload favicon
+                    {faviconUrl ? (
+                      <img 
+                        src={faviconUrl} 
+                        alt="Favicon" 
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    ) : (
+                      <div className="space-y-1 text-center">
+                        {uploading ? (
+                          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                        ) : (
+                          <Image className="mx-auto h-6 w-6 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-400" />
+                        )}
+                        <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                          {uploading ? 'Uploading...' : 'Upload favicon'}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               </div>

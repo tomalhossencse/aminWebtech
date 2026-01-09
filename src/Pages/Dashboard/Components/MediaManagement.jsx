@@ -10,63 +10,25 @@ import {
   Video,
   Music
 } from 'lucide-react';
+import useFileUpload from '../../../hooks/useFileUpload';
+import useMediaAPI from '../../../hooks/useMediaAPI';
 
 const MediaManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('All Types');
   const [selectedFiles, setSelectedFiles] = useState([]);
 
-  // Sample media files data
-  const mediaFiles = [
-    {
-      id: 1,
-      name: 'WhatsApp Image 2026-01-04 at 5.45.01 PM',
-      type: 'Image',
-      size: '0.1 MB',
-      url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCW9tsizm1WJNY4dIShZRcauThCvfor9cD_oBasenVnrsutpWfccL_d6tVxKF-MUkXcIAI6Gz-pandOvSrJJayMeZjB-_6DoTocXNtRIv7EIBNR4P-pj_umlOYv_Uq7xJQNf-MStZF06rFHkp_eCFbgqkrejeudmh2AtzMXE8crYywGei5rkXUZGATI9vxvjnjDPhW761ATER25HiRGe6EZXSbn2n80DHex6T2h7IVNJsxFvqHuJ77JPqTgMdMRa3HDtvO_eIsDMBM',
-      alt: 'Abstract blue purple wave background'
-    },
-    {
-      id: 2,
-      name: 'WhatsApp Image 2026-01-04 at 5.45.02 PM',
-      type: 'Image',
-      size: '0.1 MB',
-      url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAEl2hZbGarZrondXL7JrQMBs3DNXSsuVaqvetOvYIQ6EEaIezsZyucGdj5c6mhAgV64z0qO2uzH50Po4Of6Iu-t0865yQFIBjWXkz1Hxi9B0UX1HyZae5-2AcFVW0kXq2YEyKSp1-mDr1Dj6bD8PGHSUzLcnm2VTuqOiq0SAOAKYpxwmXR0PGbKDrNKl9-s9WikdqKt7UYh19gZ7rsm-iLYv8UArvBT1ghXssdBeLj35s76K5G0pFBs85jIvEZb6x01YqRw3-LgQM',
-      alt: 'Office desk with computer showing development'
-    },
-    {
-      id: 3,
-      name: 'WhatsApp Image 2026-01-04 at 5.45.03 PM',
-      type: 'Image',
-      size: '0.1 MB',
-      url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCOVyCn3d7BOiUyVECiZlUoGGeY_DF92x87ZSqcmTVp7Wk-JvcifeRdvhHpMOwZSX-qVYInKZ1sYQfsiWh3pF8fzcwDyKzgBvz6mkbpfE98_PEtat9IK_iLwoqoVmx3yqZCkYUswJJWTEwlOc_MffEh05Fqg5noeHDH0eV6TBMAZABytVxUSCifs360MLwTKXJKhjgL-UEu8Z29JB_rXWJw-cyJGkEKk_Bat22N_mv6EONxkYorX8S8z0nNkwZ0Zo5sqI7ZqebRvxU',
-      alt: 'Yellow web hosting promotional graphic'
-    },
-    {
-      id: 4,
-      name: 'WhatsApp Image 2026-01-04 at 5.45.04 PM',
-      type: 'Image',
-      size: '0.1 MB',
-      url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCRLyaiZ3fmRH4w8RsEmz674SWMemNTt4FQtcNAl7tlok-IbMnkPOs7IFvc2uLYjCaItJOxqHDmMehHUEBToM4Yc0_dEPlVq1f7m9f7drhHyN0qhmnlAz2iHFhn-WTRJyCJ7l6Ev95sKsERe6axVQZrUZEMJ-YWWW2niXgJWzJCykfThovW_vLQ_4LUcFxo_T41UKIPQUXriiAj17ndDWHRZrfUyHjizXjDS-fpd4Oo_f-FySrgsWN7qQazf9o2is9qjbsjIw8k9PI',
-      alt: 'Abstract colorful swirl graphic'
-    },
-    {
-      id: 5,
-      name: 'Project Documentation.pdf',
-      type: 'Document',
-      size: '2.3 MB',
-      url: null,
-      alt: 'PDF Document'
-    },
-    {
-      id: 6,
-      name: 'Demo Video.mp4',
-      type: 'Video',
-      size: '15.7 MB',
-      url: null,
-      alt: 'Video File'
-    }
-  ];
+  const { uploading, uploadProgress, selectAndUploadFile } = useFileUpload();
+  const { 
+    media, 
+    stats, 
+    loading: mediaLoading, 
+    error: mediaError,
+    deleteMedia,
+    deleteMultipleMedia,
+    refetchMedia,
+    formatFileSize
+  } = useMediaAPI();
 
   const uploadGuidelines = [
     {
@@ -91,8 +53,10 @@ const MediaManagement = () => {
     }
   ];
 
-  const filteredFiles = mediaFiles.filter(file => {
-    const matchesSearch = file.name.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredFiles = media.filter(file => {
+    const matchesSearch = file.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         file.originalName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         file.alt.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterType === 'All Types' || file.type === filterType;
     return matchesSearch && matchesFilter;
   });
@@ -109,19 +73,43 @@ const MediaManagement = () => {
     if (selectedFiles.length === filteredFiles.length) {
       setSelectedFiles([]);
     } else {
-      setSelectedFiles(filteredFiles.map(file => file.id));
+      setSelectedFiles(filteredFiles.map(file => file._id));
     }
   };
 
-  const handleDeleteSelected = () => {
-    console.log('Delete selected files:', selectedFiles);
-    setSelectedFiles([]);
-    // Implement delete logic here
+  const handleDeleteSelected = async () => {
+    if (selectedFiles.length === 0) return;
+    
+    try {
+      if (selectedFiles.length === 1) {
+        await deleteMedia(selectedFiles[0]);
+      } else {
+        await deleteMultipleMedia(selectedFiles);
+      }
+      setSelectedFiles([]);
+    } catch (error) {
+      console.error('Error deleting files:', error);
+    }
   };
 
-  const handleUpload = () => {
-    console.log('Upload files');
-    // Implement upload logic here
+  const handleUpload = async () => {
+    const results = await selectAndUploadFile({
+      multiple: true,
+      accept: 'image/*,video/*,application/pdf,.doc,.docx',
+      maxSize: 10 * 1024 * 1024, // 10MB
+      allowedTypes: [
+        'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+        'video/mp4', 'video/webm',
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ]
+    });
+
+    if (results && results.length > 0) {
+      // Files are automatically added to the media list via React Query
+      console.log('Files uploaded successfully:', results);
+    }
   };
 
   const getFileIcon = (type) => {
@@ -140,10 +128,12 @@ const MediaManagement = () => {
   };
 
   const renderFilePreview = (file) => {
-    if (file.type === 'Image' && file.url) {
+    const displayUrl = file.tempUrl || file.url;
+    
+    if (file.type === 'Image' && displayUrl) {
       return (
         <img
-          src={file.url}
+          src={displayUrl}
           alt={file.alt}
           className="h-full w-full object-cover object-center group-hover:opacity-90 transition-opacity"
         />
@@ -171,7 +161,7 @@ const MediaManagement = () => {
         <div className="flex items-center gap-3">
           <button
             onClick={handleDeleteSelected}
-            disabled={selectedFiles.length === 0}
+            disabled={selectedFiles.length === 0 || mediaLoading}
             className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-100 rounded-lg hover:bg-red-100 transition-colors dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Trash2 className="w-4 h-4" />
@@ -179,10 +169,37 @@ const MediaManagement = () => {
           </button>
           <button
             onClick={handleUpload}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm transition-colors"
+            disabled={uploading || mediaLoading}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Upload className="w-4 h-4" />
-            Upload Files
+            {uploading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Uploading... {Math.round(uploadProgress)}%
+              </>
+            ) : (
+              <>
+                <Upload className="w-4 h-4" />
+                Upload Files
+              </>
+            )}
+          </button>
+          <button
+            onClick={refetchMedia}
+            disabled={mediaLoading || uploading}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {mediaLoading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                Loading...
+              </>
+            ) : (
+              <>
+                <Upload className="w-4 h-4" />
+                Refresh
+              </>
+            )}
           </button>
         </div>
       </header>
@@ -243,15 +260,15 @@ const MediaManagement = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredFiles.map((file) => (
-            <div key={file.id} className="group relative flex flex-col">
+            <div key={file._id} className="group relative flex flex-col">
               <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
                 {renderFilePreview(file)}
                 
                 <div className="absolute top-3 right-3">
                   <input
                     type="checkbox"
-                    checked={selectedFiles.includes(file.id)}
-                    onChange={() => handleFileSelect(file.id)}
+                    checked={selectedFiles.includes(file._id)}
+                    onChange={() => handleFileSelect(file._id)}
                     className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
                   />
                 </div>
@@ -266,7 +283,7 @@ const MediaManagement = () => {
                 </h3>
                 <div className="flex justify-between items-center mt-1 text-xs text-gray-500 dark:text-gray-400">
                   <span>{file.type}</span>
-                  <span>{file.size}</span>
+                  <span>{formatFileSize(file.size)}</span>
                 </div>
               </div>
             </div>
@@ -274,7 +291,7 @@ const MediaManagement = () => {
         </div>
 
         {/* Empty State */}
-        {filteredFiles.length === 0 && (
+        {!mediaLoading && !uploading && filteredFiles.length === 0 && (
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
               <ImageIcon className="w-8 h-8 text-gray-400" />
@@ -286,6 +303,40 @@ const MediaManagement = () => {
                 : 'Upload your first media file to get started.'
               }
             </p>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {(mediaLoading || uploading) && filteredFiles.length === 0 && (
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-8 h-8 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              {uploading ? 'Uploading files...' : 'Loading media files...'}
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400">
+              {uploading ? `Progress: ${Math.round(uploadProgress)}%` : 'Please wait while we fetch your media files.'}
+            </p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {mediaError && (
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <ImageIcon className="w-8 h-8 text-red-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Error loading media files</h3>
+            <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-4">
+              {mediaError}
+            </p>
+            <button
+              onClick={refetchMedia}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Try Again
+            </button>
           </div>
         )}
       </div>

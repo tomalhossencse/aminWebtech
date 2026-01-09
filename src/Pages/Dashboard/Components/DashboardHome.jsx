@@ -26,10 +26,14 @@ import {
 } from 'lucide-react';
 import RecentActivities from './RecentActivities';
 import RecentContacts from './RecentContacts';
+import useDashboardAPI from '../../../hooks/useDashboardAPI';
 
 const DashboardHome = () => {
   const { isDarkMode } = useOutletContext();
   const [isChartsReady, setIsChartsReady] = useState(false);
+  
+  // Get dashboard data from API
+  const { dashboardData, loading: dashboardLoading, error: dashboardError } = useDashboardAPI();
 
   // Ensure charts render properly
   useEffect(() => {
@@ -39,77 +43,66 @@ const DashboardHome = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Chart data
-  const contentData = [
-    { name: 'Services', value: 5, color: '#3b82f6' },
-    { name: 'Projects', value: 2, color: '#10b981' },
-    { name: 'Blog Posts', value: 1, color: '#f59e0b' },
-    { name: 'Team', value: 4, color: '#8b5cf6' },
-    { name: 'Testimonials', value: 1, color: '#ef4444' },
-    { name: 'Media', value: 4, color: '#6366f1' }
-  ];
+  // Extract data from API response
+  const { stats, contentData, pieData } = dashboardData || {};
 
-  const pieData = [
-    { name: 'Active', value: 90, color: '#10b981' },
-    { name: 'Inactive', value: 10, color: '#ef4444' }
-  ];
-
-  const stats = [
+  // Create stats array for display
+  const statsArray = stats ? [
     {
       title: 'Total Services',
-      value: '5',
-      change: '+12%',
-      changeType: 'increase',
+      value: stats.services?.total?.toString() || '0',
+      change: stats.services?.change || 'Stable',
+      changeType: stats.services?.changeType || 'stable',
       icon: Code,
       color: 'bg-blue-500',
-      progress: 85
+      progress: stats.services?.progress || 0
     },
     {
       title: 'Active Projects',
-      value: '2',
-      change: '+8%',
-      changeType: 'increase',
+      value: stats.projects?.total?.toString() || '0',
+      change: stats.projects?.change || 'Stable',
+      changeType: stats.projects?.changeType || 'stable',
       icon: GitBranch,
       color: 'bg-green-500',
-      progress: 70
+      progress: stats.projects?.progress || 0
     },
     {
       title: 'Blog Posts',
-      value: '1',
-      change: 'New',
-      changeType: 'new',
+      value: stats.blogs?.total?.toString() || '0',
+      change: stats.blogs?.change || 'None',
+      changeType: stats.blogs?.changeType || 'stable',
       icon: Rss,
       color: 'bg-yellow-500',
-      progress: 30
+      progress: stats.blogs?.progress || 0
     },
     {
       title: 'Team Members',
-      value: '4',
-      change: '+1',
-      changeType: 'increase',
+      value: stats.teamMembers?.total?.toString() || '0',
+      change: stats.teamMembers?.change || 'Stable',
+      changeType: stats.teamMembers?.changeType || 'stable',
       icon: Users,
       color: 'bg-purple-500',
-      progress: 90
+      progress: stats.teamMembers?.progress || 0
     },
     {
       title: 'Testimonials',
-      value: '1',
-      change: 'Stable',
-      changeType: 'stable',
+      value: stats.testimonials?.total?.toString() || '0',
+      change: stats.testimonials?.change || 'Stable',
+      changeType: stats.testimonials?.changeType || 'stable',
       icon: Star,
       color: 'bg-pink-500',
-      progress: 60
+      progress: stats.testimonials?.progress || 0
     },
     {
       title: 'New Contacts',
-      value: '3',
-      change: '+3',
-      changeType: 'increase',
+      value: stats.contacts?.new?.toString() || '0',
+      change: stats.contacts?.change || 'Stable',
+      changeType: stats.contacts?.changeType || 'stable',
       icon: Mail,
       color: 'bg-indigo-500',
-      progress: 45
+      progress: stats.contacts?.progress || 0
     }
-  ];
+  ] : [];
 
   const getChangeColor = (type) => {
     switch (type) {
@@ -134,11 +127,25 @@ const DashboardHome = () => {
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
         <p className="text-gray-500 dark:text-gray-400 mt-1">Welcome back! Here's what's happening with your site.</p>
+        
+        {/* Loading indicator */}
+        {dashboardLoading && (
+          <div className="mt-2 text-sm text-blue-600 dark:text-blue-400">
+            Loading dashboard data...
+          </div>
+        )}
+        
+        {/* Error indicator */}
+        {dashboardError && (
+          <div className="mt-2 text-sm text-red-600 dark:text-red-400">
+            Using cached data - {dashboardError}
+          </div>
+        )}
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-6 gap-4 mb-6">
-        {stats.map((stat, index) => (
+        {statsArray.map((stat, index) => (
           <div key={index} className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-5 border border-gray-100 dark:border-gray-700 flex flex-col justify-between h-40">
             <div className="flex justify-between items-start">
               <div>
@@ -174,7 +181,7 @@ const DashboardHome = () => {
         <div className="xl:col-span-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4 border border-gray-100 dark:border-gray-700">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-6">Content Overview</h3>
           <div className="w-full h-80 min-h-[320px]">
-            {isChartsReady ? (
+            {isChartsReady && contentData ? (
               <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={320}>
                 <BarChart data={contentData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
@@ -226,7 +233,7 @@ const DashboardHome = () => {
           </div>
           
           <div className="w-48 h-48 min-w-[192px] min-h-[192px]">
-            {isChartsReady ? (
+            {isChartsReady && pieData ? (
               <ResponsiveContainer width="100%" height="100%" minWidth={192} minHeight={192}>
                 <PieChart margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                   <Pie
