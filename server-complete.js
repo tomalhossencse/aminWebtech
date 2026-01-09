@@ -33,6 +33,7 @@ async function run() {
     const testimonialsCollection = db.collection("testimonials");
     const contactsCollection = db.collection("contacts");
     const repliesCollection = db.collection("replies");
+    const mediaCollection = db.collection("media");
     
     // Analytics Collections
     const analyticsCollection = db.collection("analytics");
@@ -1638,6 +1639,273 @@ async function run() {
       } catch (error) {
         res.status(500).send({ error: "Authentication failed" });
       }
+    });
+
+    // ----------------Media Management API -----------------
+    
+    // GET all media files with pagination and filters
+    app.get("/api/media", async (req, res) => {
+      try {
+        console.log("📁 GET /api/media - Request received");
+        
+        const { 
+          page = 1, 
+          limit = 20, 
+          search = "", 
+          type = "",
+          sortBy = "createdAt",
+          sortOrder = "desc"
+        } = req.query;
+        
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        
+        // Build filter query
+        let filter = {};
+        
+        if (search) {
+          filter.$or = [
+            { name: { $regex: search, $options: "i" } },
+            { originalName: { $regex: search, $options: "i" } },
+            { alt: { $regex: search, $options: "i" } }
+          ];
+        }
+        
+        if (type && type !== "All Types") {
+          filter.type = type;
+        }
+        
+        // Build sort query
+        const sort = {};
+        sort[sortBy] = sortOrder === "desc" ? -1 : 1;
+        
+        console.log("Media filter:", filter);
+        console.log("Media sort:", sort);
+        
+        const [media, total] = await Promise.all([
+          mediaCollection
+            .find(filter)
+            .sort(sort)
+            .skip(skip)
+            .limit(parseInt(limit))
+            .toArray(),
+          mediaCollection.countDocuments(filter)
+        ]);
+        
+        // Calculate stats
+        const stats = await mediaCollection.aggregate([
+          {
+            $group: {
+              _id: "$type",
+              count: { $sum: 1 },
+              totalSize: { $sum: "$size" }
+            }
+          }
+        ]).toArray();
+        
+        const statsObj = {
+          total: total,
+          images: 0,
+          documents: 0,
+          videos: 0,
+          audio: 0,
+          totalSize: 0
+        };
+        
+        stats.forEach(stat => {
+          statsObj.totalSize += stat.totalSize;
+          switch(stat._id) {
+            case 'Image':
+              statsObj.images = stat.count;
+              break;
+            case 'Document':
+              statsObj.documents = stat.count;
+              break;
+            case 'Video':
+              statsObj.videos = stat.count;
+              break;
+            case 'Audio':
+              statsObj.audio = stat.count;
+              break;
+          }
+        });
+        
+        console.log("✅ Media fetched successfully:", { total, mediaCount: media.length });
+        
+        res.send({
+          media,
+          stats: statsObj,
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          totalPages: Math.ceil(total / parseInt(limit))
+        });
+        
+      } catch (error) {
+        console.error("❌ Get media error:", error);
+        res.status(500).send({ error: "Failed to fetch media files" });
+      }
+    });
+
+    // POST upload media file
+    app.post("/api/media", async (req, res) => {
+      try {
+        console.log("📤 POST /api/media - Upload request received");
+        
+        const { 
+          name,
+          originalName,
+          type,
+          size,
+          url,
+          alt,
+          mimeType,
+          width,
+          height
+        } = req.body;
+        
+        // Validate required fields
+        if (!name || !type || !size) {
+          return res.status(400).send({ 
+            error: "Missing required fields: name, type, size" 
+          });
+        }
+        
+        const mediaData = {
+          name: name.trim(),
+          originalName: originalName || name,
+          type,
+          size: parseInt(size),
+          url: url || null,
+          alt: alt || "",
+          mimeType: mimeType || "",
+          width: width ? parseInt(width) : null,
+          height: height ? parseInt(height) : null,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        
+        console.log("Creating media file:", mediaData);
+        
+        const result = await mediaCollection.insertOne(mediaData);
+        
+        console.log("✅ Media file created:", result.insertedId);
+        
+        res.status(201).send({
+          _id: result.insertedId,
+          ...mediaData,
+          message: "Media file uploaded successfully"
+        });
+        
+      } catch (error) {
+        console.error("❌ Upload media error:", error);
+        res.status(500).send({ error: "Failed to upload media file" });
+      }
+    });
+
+    // PUT update media file
+    app.put("/api/media/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
+        const updateData = { ...req.body };
+        delete updateData._id;
+        updateData.updatedAt = new Date();
+        
+        console.log("📝 Updating media file:", id, updateData);
+        
+        const result = await mediaCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: updateData }
+        );
+        
+        if (result.matchedCount === 0) {
+          return res.status(404).send({ error: "Media file not found" });
+        }
+        
+        console.log("✅ Media file updated:", id);
+        res.send({ message: "Media file updated successfully" });
+        
+      } catch (error) {
+        console.error("❌ Update media error:", error);
+        res.status(500).send({ error: "Failed to update media file" });
+      }
+    });
+
+    // DELETE single media file
+    app.delete("/api/media/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
+        
+        console.log("🗑️ Deleting media file:", id);
+        
+        const result = await mediaCollection.deleteOne({ _id: new ObjectId(id) });
+        
+        if (result.deletedCount === 0) {
+          return res.status(404).send({ error: "Media file not found" });
+        }
+        
+        console.log("✅ Media file deleted:", id);
+        res.send({ message: "Media file deleted successfully" });
+        
+      } catch (error) {
+        console.error("❌ Delete media error:", error);
+        res.status(500).send({ error: "Failed to delete media file" });
+      }
+    });
+
+    // DELETE multiple media files
+    app.delete("/api/media", async (req, res) => {
+      try {
+        const { ids } = req.body;
+        
+        if (!ids || !Array.isArray(ids) || ids.length === 0) {
+          return res.status(400).send({ error: "Invalid or empty ids array" });
+        }
+        
+        console.log("🗑️ Deleting multiple media files:", ids);
+        
+        const objectIds = ids.map(id => new ObjectId(id));
+        const result = await mediaCollection.deleteMany({ 
+          _id: { $in: objectIds } 
+        });
+        
+        console.log("✅ Media files deleted:", result.deletedCount);
+        
+        res.send({ 
+          message: `${result.deletedCount} media files deleted successfully`,
+          deletedCount: result.deletedCount
+        });
+        
+      } catch (error) {
+        console.error("❌ Delete multiple media error:", error);
+        res.status(500).send({ error: "Failed to delete media files" });
+      }
+    });
+
+    // GET media file by ID
+    app.get("/api/media/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
+        
+        console.log("📁 Getting media file:", id);
+        
+        const media = await mediaCollection.findOne({ _id: new ObjectId(id) });
+        
+        if (!media) {
+          return res.status(404).send({ error: "Media file not found" });
+        }
+        
+        console.log("✅ Media file found:", media.name);
+        res.send(media);
+        
+      } catch (error) {
+        console.error("❌ Get media by ID error:", error);
+        res.status(500).send({ error: "Failed to fetch media file" });
+      }
+    });
+
+    // Test endpoint for media
+    app.get("/api/media/test", (req, res) => {
+      res.send({ message: "Media API is working!", timestamp: new Date() });
     });
 
   } finally {
