@@ -466,8 +466,8 @@ const TeamManagement = () => {
 
       {/* Add/Edit Team Member Modal */}
       {(isAddModalOpen || isEditModalOpen) && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-2xl w-full max-w-2xl h-[95vh] flex flex-col border border-gray-200 dark:border-gray-700">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-2xl w-full max-w-2xl h-[95vh] flex flex-col border border-gray-200 dark:border-gray-700 mx-2 sm:mx-4">
             
             {/* Fixed Header */}
             <div className="bg-gradient-to-r from-blue-500/10 via-blue-500/5 to-transparent border-b border-gray-200 dark:border-gray-700 px-8 py-6 flex justify-between items-center backdrop-blur-sm flex-shrink-0">
@@ -794,12 +794,12 @@ const TeamManagement = () => {
             </div>
 
             {/* Fixed Footer */}
-            <div className="px-8 py-6 bg-gradient-to-r from-gray-100/80 to-gray-200/50 dark:from-slate-700/80 dark:to-slate-800/50 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center backdrop-blur-sm flex-shrink-0">
-              <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                <Users className="w-4 h-4" />
+            <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 bg-gradient-to-r from-gray-100/80 to-gray-200/50 dark:from-slate-700/80 dark:to-slate-800/50 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-center gap-4 backdrop-blur-sm flex-shrink-0">
+              <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2 text-center sm:text-left order-2 sm:order-1">
+                <Users className="w-3 h-3 sm:w-4 sm:h-4" />
                 All fields marked with * are required
               </div>
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <button
                   type="button"
                   onClick={() => {
@@ -808,7 +808,7 @@ const TeamManagement = () => {
                     resetForm();
                   }}
                   disabled={isSubmitting}
-                  className="px-6 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 hover:scale-105 disabled:opacity-50"
+                  className="w-full sm:w-auto px-6 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 hover:scale-105 disabled:opacity-50 order-2 sm:order-1"
                 >
                   <X className="w-4 h-4 mr-2 inline" />
                   Cancel
@@ -817,7 +817,7 @@ const TeamManagement = () => {
                   type="button"
                   onClick={handleSubmit}
                   disabled={isSubmitting}
-                  className="px-6 py-2 border border-transparent text-sm font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 hover:scale-105 disabled:opacity-50 flex items-center gap-2 shadow-lg hover:shadow-xl"
+                  className="w-full sm:w-auto px-6 py-2 border border-transparent text-sm font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 hover:scale-105 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl order-1 sm:order-2"
                 >
                   {isSubmitting ? (
                     <>

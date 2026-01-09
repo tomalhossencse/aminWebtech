@@ -490,7 +490,7 @@ const BlogManagement = () => {
       {/* Add/Edit Blog Post Modal */}
       {(isAddModalOpen || isEditModalOpen) && (
         <div className="modal modal-open" style={{ zIndex: 1000 }}>
-          <div className="modal-box w-11/12 max-w-4xl h-[95vh] max-h-[95vh] p-0 overflow-hidden rounded-lg shadow-2xl border border-base-300/50 backdrop-blur-sm">
+          <div className="modal-box w-full sm:w-11/12 md:w-10/12 lg:w-8/12 max-w-4xl h-[95vh] max-h-[95vh] p-0 overflow-hidden rounded-lg shadow-2xl border border-base-300/50 backdrop-blur-sm mx-2 sm:mx-4">
             {/* Scrollable Content Container */}
             <div className="overflow-y-auto h-full scrollbar-hide" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
               <style>{`
@@ -1042,12 +1042,12 @@ Code block
               </div>
 
               {/* Professional Footer with Gradient */}
-              <div className="px-8 py-6 bg-gradient-to-r from-base-200/80 to-base-300/50 border-t border-base-300/50 flex justify-between items-center backdrop-blur-sm">
-                <div className="text-sm text-base-content/60">
-                  <span className="material-icons text-sm mr-1">info</span>
+              <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 bg-gradient-to-r from-base-200/80 to-base-300/50 border-t border-base-300/50 flex flex-col sm:flex-row justify-between items-center gap-4 backdrop-blur-sm">
+                <div className="text-xs sm:text-sm text-base-content/60 text-center sm:text-left order-2 sm:order-1">
+                  <span className="material-icons text-xs sm:text-sm mr-1">info</span>
                   All fields marked with * are required
                 </div>
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                   <button
                     type="button"
                     onClick={() => {
@@ -1056,7 +1056,7 @@ Code block
                       resetForm();
                     }}
                     disabled={isSubmitting}
-                    className="btn btn-outline btn-neutral hover:btn-neutral transition-all duration-200 hover:scale-105"
+                    className="btn btn-outline btn-neutral hover:btn-neutral transition-all duration-200 hover:scale-105 w-full sm:w-auto order-2 sm:order-1"
                   >
                     <span className="material-icons text-sm mr-2">close</span>
                     Cancel
@@ -1065,19 +1065,21 @@ Code block
                     type="button"
                     onClick={handleSubmit}
                     disabled={isSubmitting}
-                    className="btn btn-primary shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 disabled:opacity-50 flex items-center gap-2"
+                    className="btn btn-primary shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 disabled:opacity-50 flex items-center justify-center gap-2 w-full sm:w-auto order-1 sm:order-2"
                   >
                     {isSubmitting ? (
                       <>
                         <span className="loading loading-spinner loading-sm"></span>
-                        {editingBlog ? 'Updating Post...' : 'Creating Post...'}
+                        <span className="hidden sm:inline">{editingBlog ? 'Updating Post...' : 'Creating Post...'}</span>
+                        <span className="sm:hidden">{editingBlog ? 'Updating...' : 'Creating...'}</span>
                       </>
                     ) : (
                       <>
                         <span className="material-icons text-sm">
                           {editingBlog ? 'update' : 'add_circle'}
                         </span>
-                        {editingBlog ? 'Update Post' : 'Create Post'}
+                        <span className="hidden sm:inline">{editingBlog ? 'Update Post' : 'Create Post'}</span>
+                        <span className="sm:hidden">{editingBlog ? 'Update' : 'Create'}</span>
                       </>
                     )}
                   </button>

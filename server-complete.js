@@ -30,11 +30,135 @@ async function run() {
     const projectsCollection = db.collection("projects");
     const blogsCollection = db.collection("blogs");
     const teamMembersCollection = db.collection("teamMembers");
+    const testimonialsCollection = db.collection("testimonials");
+    const contactsCollection = db.collection("contacts");
+    const repliesCollection = db.collection("replies");
     
     // Analytics Collections
     const analyticsCollection = db.collection("analytics");
     const visitorsCollection = db.collection("visitors");
     const pageViewsCollection = db.collection("pageViews");
+
+    // Seed testimonials data if collection is empty
+    const testimonialsCount = await testimonialsCollection.countDocuments();
+    if (testimonialsCount === 0) {
+      const sampleTestimonials = [
+        {
+          name: 'Sarah Johnson',
+          company: 'Global Tech Solutions',
+          position: 'CTO',
+          rating: 5,
+          testimonial: 'Professional team with great attention to detail. Their expertise in web development exceeded our expectations. Will definitely work with them again on future projects.',
+          featured: true,
+          active: true,
+          displayOrder: 1,
+          date: '2024-12-24',
+          createdAt: new Date('2024-12-24'),
+          updatedAt: new Date('2024-12-24')
+        },
+        {
+          name: 'David Chen',
+          company: 'Innovate Inc',
+          position: 'Product Manager',
+          rating: 4,
+          testimonial: 'The platform they built is intuitive and easy to use. The support team was very helpful throughout the development process. Great communication and timely delivery.',
+          featured: false,
+          active: true,
+          displayOrder: 2,
+          date: '2024-12-20',
+          createdAt: new Date('2024-12-20'),
+          updatedAt: new Date('2024-12-20')
+        },
+        {
+          name: 'Emily Rodriguez',
+          company: 'StartupXYZ',
+          position: 'Founder & CEO',
+          rating: 5,
+          testimonial: 'Exceeded our expectations in every way. The team delivered a high-quality solution that perfectly matched our requirements. Highly recommend their services to anyone looking for professional web development.',
+          featured: true,
+          active: true,
+          displayOrder: 3,
+          date: '2024-12-18',
+          createdAt: new Date('2024-12-18'),
+          updatedAt: new Date('2024-12-18')
+        },
+        {
+          name: 'Michael Thompson',
+          company: 'TechCorp Ltd',
+          position: 'Lead Developer',
+          rating: 5,
+          testimonial: 'Outstanding work quality and timely delivery. The code is clean, well-documented, and follows best practices. Great communication throughout the project lifecycle.',
+          featured: false,
+          active: true,
+          displayOrder: 4,
+          date: '2024-12-15',
+          createdAt: new Date('2024-12-15'),
+          updatedAt: new Date('2024-12-15')
+        },
+        {
+          name: 'Lisa Wang',
+          company: 'Digital Dynamics',
+          position: 'Marketing Director',
+          rating: 4,
+          testimonial: 'Professional service and excellent results. The website they created has significantly improved our online presence and user engagement. Very satisfied with the outcome.',
+          featured: false,
+          active: true,
+          displayOrder: 5,
+          date: '2024-12-10',
+          createdAt: new Date('2024-12-10'),
+          updatedAt: new Date('2024-12-10')
+        }
+      ];
+      
+      await testimonialsCollection.insertMany(sampleTestimonials);
+      console.log('✅ Sample testimonials data seeded successfully');
+    }
+
+    // Seed contacts data if collection is empty (for testing)
+    const contactsCount = await contactsCollection.countDocuments();
+    if (contactsCount === 0) {
+      const sampleContacts = [
+        {
+          name: 'Akash Rahman',
+          email: 'akash@gmail.com',
+          phone: '01814726978',
+          subject: 'Need a website',
+          message: 'Hello, I am looking for a professional website for my business. Can you help me with this project?',
+          status: 'read',
+          createdAt: new Date('2024-12-29'),
+          updatedAt: new Date('2024-12-29'),
+          readAt: new Date('2024-12-29'),
+          repliedAt: null
+        },
+        {
+          name: 'Sarah Johnson',
+          email: 'sarah@example.com',
+          phone: '01712345678',
+          subject: 'Project Inquiry',
+          message: 'I would like to discuss a new project for my startup. We need a complete web solution with modern design.',
+          status: 'new',
+          createdAt: new Date('2024-12-28'),
+          updatedAt: new Date('2024-12-28'),
+          readAt: null,
+          repliedAt: null
+        },
+        {
+          name: 'Mike Chen',
+          email: 'mike@company.com',
+          phone: '01987654321',
+          subject: 'Support Request',
+          message: 'Having issues with the current system. The dashboard is not loading properly and we need urgent assistance.',
+          status: 'replied',
+          createdAt: new Date('2024-12-27'),
+          updatedAt: new Date('2024-12-27'),
+          readAt: new Date('2024-12-27'),
+          repliedAt: new Date('2024-12-27')
+        }
+      ];
+      
+      await contactsCollection.insertMany(sampleContacts);
+      console.log('✅ Sample contacts data seeded successfully');
+    }
 
     // -----------------------user apis---------------
     // GET user
@@ -513,6 +637,622 @@ async function run() {
       } catch (error) {
         console.error("Delete team member error:", error);
         res.status(500).send({ error: "Failed to delete team member" });
+      }
+    });
+
+    // ----------------Testimonials Related API -----------------
+    // GET testimonials with pagination and filters
+    app.get("/api/testimonials", async (req, res) => {
+      try {
+        const { 
+          page = 1, 
+          limit = 10, 
+          search = "", 
+          featured = "",
+          active = ""
+        } = req.query;
+        
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        
+        // Build filter query
+        let filter = {};
+        
+        if (search) {
+          filter.$or = [
+            { name: { $regex: search, $options: "i" } },
+            { company: { $regex: search, $options: "i" } },
+            { position: { $regex: search, $options: "i" } },
+            { testimonial: { $regex: search, $options: "i" } }
+          ];
+        }
+        
+        if (featured && featured !== "all") {
+          filter.featured = featured === "true";
+        }
+        
+        if (active && active !== "all") {
+          filter.active = active === "true";
+        }
+        
+        // Get testimonials with pagination
+        const testimonials = await testimonialsCollection
+          .find(filter)
+          .sort({ displayOrder: 1, createdAt: -1 })
+          .skip(skip)
+          .limit(parseInt(limit))
+          .toArray();
+        
+        // Get total count for pagination
+        const total = await testimonialsCollection.countDocuments(filter);
+        
+        res.send({
+          testimonials,
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          totalPages: Math.ceil(total / parseInt(limit))
+        });
+      } catch (error) {
+        console.error("Get testimonials error:", error);
+        res.status(500).send({ error: "Failed to fetch testimonials" });
+      }
+    });
+
+    // GET all testimonials (for frontend display)
+    app.get("/testimonials", async (req, res) => {
+      try {
+        const { featured = "", active = "true" } = req.query;
+        
+        let filter = {};
+        
+        if (featured && featured !== "all") {
+          filter.featured = featured === "true";
+        }
+        
+        if (active && active !== "all") {
+          filter.active = active === "true";
+        }
+        
+        const testimonials = await testimonialsCollection
+          .find(filter)
+          .sort({ displayOrder: 1, createdAt: -1 })
+          .toArray();
+        
+        res.send(testimonials);
+      } catch (error) {
+        console.error("Get testimonials error:", error);
+        res.status(500).send({ error: "Failed to fetch testimonials" });
+      }
+    });
+
+    // GET single testimonial by ID
+    app.get("/api/testimonials/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
+        const testimonial = await testimonialsCollection.findOne({ _id: new ObjectId(id) });
+        
+        if (!testimonial) {
+          return res.status(404).send({ error: "Testimonial not found" });
+        }
+        
+        res.send(testimonial);
+      } catch (error) {
+        console.error("Get testimonial error:", error);
+        res.status(500).send({ error: "Failed to fetch testimonial" });
+      }
+    });
+
+    // POST create new testimonial
+    app.post("/api/testimonials", async (req, res) => {
+      try {
+        const testimonial = {
+          ...req.body,
+          rating: parseInt(req.body.rating) || 5,
+          displayOrder: parseInt(req.body.displayOrder) || 0,
+          featured: req.body.featured || false,
+          active: req.body.active !== undefined ? req.body.active : true,
+          date: new Date().toISOString().split('T')[0],
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        
+        const result = await testimonialsCollection.insertOne(testimonial);
+        
+        // Return the created testimonial with the new ID
+        const createdTestimonial = await testimonialsCollection.findOne({ _id: result.insertedId });
+        res.send(createdTestimonial);
+      } catch (error) {
+        console.error("Create testimonial error:", error);
+        res.status(500).send({ error: "Failed to create testimonial" });
+      }
+    });
+
+    // PUT update testimonial
+    app.put("/api/testimonials/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
+        const updateData = {
+          ...req.body,
+          rating: parseInt(req.body.rating) || 5,
+          displayOrder: parseInt(req.body.displayOrder) || 0,
+          updatedAt: new Date()
+        };
+        
+        const result = await testimonialsCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: updateData }
+        );
+        
+        if (result.matchedCount === 0) {
+          return res.status(404).send({ error: "Testimonial not found" });
+        }
+        
+        // Return the updated testimonial
+        const updatedTestimonial = await testimonialsCollection.findOne({ _id: new ObjectId(id) });
+        res.send(updatedTestimonial);
+      } catch (error) {
+        console.error("Update testimonial error:", error);
+        res.status(500).send({ error: "Failed to update testimonial" });
+      }
+    });
+
+    // DELETE testimonial
+    app.delete("/api/testimonials/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
+        const result = await testimonialsCollection.deleteOne({ _id: new ObjectId(id) });
+        
+        if (result.deletedCount === 0) {
+          return res.status(404).send({ error: "Testimonial not found" });
+        }
+        
+        res.send({ message: "Testimonial deleted successfully" });
+      } catch (error) {
+        console.error("Delete testimonial error:", error);
+        res.status(500).send({ error: "Failed to delete testimonial" });
+      }
+    });
+
+    // PUT toggle testimonial featured status
+    app.put("/api/testimonials/:id/featured", async (req, res) => {
+      try {
+        const { id } = req.params;
+        const { featured } = req.body;
+        
+        const result = await testimonialsCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { 
+            $set: { 
+              featured: featured,
+              updatedAt: new Date()
+            }
+          }
+        );
+        
+        if (result.matchedCount === 0) {
+          return res.status(404).send({ error: "Testimonial not found" });
+        }
+        
+        res.send({ message: "Testimonial featured status updated successfully" });
+      } catch (error) {
+        console.error("Update testimonial featured status error:", error);
+        res.status(500).send({ error: "Failed to update testimonial featured status" });
+      }
+    });
+
+    // PUT toggle testimonial active status
+    app.put("/api/testimonials/:id/active", async (req, res) => {
+      try {
+        const { id } = req.params;
+        const { active } = req.body;
+        
+        const result = await testimonialsCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { 
+            $set: { 
+              active: active,
+              updatedAt: new Date()
+            }
+          }
+        );
+        
+        if (result.matchedCount === 0) {
+          return res.status(404).send({ error: "Testimonial not found" });
+        }
+        
+        res.send({ message: "Testimonial active status updated successfully" });
+      } catch (error) {
+        console.error("Update testimonial active status error:", error);
+        res.status(500).send({ error: "Failed to update testimonial active status" });
+      }
+    });
+
+    // Test endpoint for contacts
+    app.get("/api/contacts/test", (req, res) => {
+      res.send({ message: "Contacts API is working!", timestamp: new Date() });
+    });
+
+    // ----------------Contacts Related API -----------------
+    // GET contacts with pagination and filters
+    app.get("/api/contacts", async (req, res) => {
+      try {
+        console.log("📞 GET /api/contacts - Request received");
+        
+        const { 
+          page = 1, 
+          limit = 10, 
+          search = "", 
+          status = ""
+        } = req.query;
+        
+        console.log("Query params:", { page, limit, search, status });
+        
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        
+        // Build filter query
+        let filter = {};
+        
+        if (search) {
+          filter.$or = [
+            { name: { $regex: search, $options: "i" } },
+            { email: { $regex: search, $options: "i" } },
+            { subject: { $regex: search, $options: "i" } },
+            { message: { $regex: search, $options: "i" } }
+          ];
+        }
+        
+        if (status && status !== "all") {
+          filter.status = status;
+        }
+        
+        console.log("Filter:", filter);
+        
+        // Check if collection exists and has data
+        const collectionExists = await contactsCollection.countDocuments();
+        console.log("Contacts collection document count:", collectionExists);
+        
+        // Get contacts with pagination
+        const contacts = await contactsCollection
+          .find(filter)
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(parseInt(limit))
+          .toArray();
+        
+        console.log("Found contacts:", contacts.length);
+        
+        // Get total count for pagination
+        const total = await contactsCollection.countDocuments(filter);
+        
+        // Get stats
+        const stats = {
+          total: await contactsCollection.countDocuments(),
+          new: await contactsCollection.countDocuments({ status: 'new' }),
+          read: await contactsCollection.countDocuments({ status: 'read' }),
+          replied: await contactsCollection.countDocuments({ status: 'replied' }),
+          spam: await contactsCollection.countDocuments({ status: 'spam' })
+        };
+        
+        console.log("Stats:", stats);
+        
+        const response = {
+          contacts,
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          totalPages: Math.ceil(total / parseInt(limit)),
+          stats
+        };
+        
+        console.log("✅ Sending response:", response);
+        res.send(response);
+      } catch (error) {
+        console.error("❌ Get contacts error:", error);
+        console.error("Error stack:", error.stack);
+        res.status(500).send({ 
+          error: "Failed to fetch contacts", 
+          details: error.message,
+          stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
+      }
+    });
+
+    // GET single contact by ID
+    app.get("/api/contacts/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
+        const contact = await contactsCollection.findOne({ _id: new ObjectId(id) });
+        
+        if (!contact) {
+          return res.status(404).send({ error: "Contact not found" });
+        }
+        
+        res.send(contact);
+      } catch (error) {
+        console.error("Get contact error:", error);
+        res.status(500).send({ error: "Failed to fetch contact" });
+      }
+    });
+
+    // POST create new contact (from contact form)
+    app.post("/api/contacts", async (req, res) => {
+      try {
+        console.log("📝 POST /api/contacts - Request received");
+        console.log("Request body:", req.body);
+        
+        const contact = {
+          ...req.body,
+          status: 'new',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          readAt: null,
+          repliedAt: null
+        };
+        
+        console.log("Contact to insert:", contact);
+        
+        const result = await contactsCollection.insertOne(contact);
+        console.log("Insert result:", result);
+        
+        // Return the created contact with the new ID
+        const createdContact = await contactsCollection.findOne({ _id: result.insertedId });
+        console.log("✅ Created contact:", createdContact);
+        
+        res.send(createdContact);
+      } catch (error) {
+        console.error("❌ Create contact error:", error);
+        console.error("Error stack:", error.stack);
+        res.status(500).send({ 
+          error: "Failed to create contact", 
+          details: error.message,
+          stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
+      }
+    });
+
+    // PUT update contact status
+    app.put("/api/contacts/:id/status", async (req, res) => {
+      try {
+        const { id } = req.params;
+        const { status } = req.body;
+        
+        const updateData = {
+          status: status,
+          updatedAt: new Date()
+        };
+        
+        // Add timestamp for specific status changes
+        if (status === 'read' && !await contactsCollection.findOne({ _id: new ObjectId(id), readAt: { $exists: true } })) {
+          updateData.readAt = new Date();
+        }
+        if (status === 'replied') {
+          updateData.repliedAt = new Date();
+        }
+        
+        const result = await contactsCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: updateData }
+        );
+        
+        if (result.matchedCount === 0) {
+          return res.status(404).send({ error: "Contact not found" });
+        }
+        
+        // Return the updated contact
+        const updatedContact = await contactsCollection.findOne({ _id: new ObjectId(id) });
+        res.send(updatedContact);
+      } catch (error) {
+        console.error("Update contact status error:", error);
+        res.status(500).send({ error: "Failed to update contact status" });
+      }
+    });
+
+    // DELETE contact
+    app.delete("/api/contacts/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
+        const result = await contactsCollection.deleteOne({ _id: new ObjectId(id) });
+        
+        if (result.deletedCount === 0) {
+          return res.status(404).send({ error: "Contact not found" });
+        }
+        
+        res.send({ message: "Contact deleted successfully" });
+      } catch (error) {
+        console.error("Delete contact error:", error);
+        res.status(500).send({ error: "Failed to delete contact" });
+      }
+    });
+
+    // GET contact stats
+    app.get("/api/contacts/stats", async (req, res) => {
+      try {
+        const stats = {
+          total: await contactsCollection.countDocuments(),
+          new: await contactsCollection.countDocuments({ status: 'new' }),
+          read: await contactsCollection.countDocuments({ status: 'read' }),
+          replied: await contactsCollection.countDocuments({ status: 'replied' }),
+          spam: await contactsCollection.countDocuments({ status: 'spam' })
+        };
+        
+        res.send(stats);
+      } catch (error) {
+        console.error("Get contact stats error:", error);
+        res.status(500).send({ error: "Failed to fetch contact stats" });
+      }
+    });
+
+    // POST reply to contact
+    app.post("/api/contacts/:id/reply", async (req, res) => {
+      try {
+        console.log("📧 POST /api/contacts/:id/reply - Request received");
+        const { id } = req.params;
+        const { message, adminEmail = "admin@aminwebtech.com", trackingId } = req.body;
+        
+        console.log("Reply data:", { id, message, adminEmail, trackingId });
+        
+        // Get the contact first
+        const contact = await contactsCollection.findOne({ _id: new ObjectId(id) });
+        
+        if (!contact) {
+          return res.status(404).send({ error: "Contact not found" });
+        }
+        
+        // Create reply record
+        const replyData = {
+          contactId: id,
+          adminEmail,
+          replyMessage: message,
+          sentAt: new Date(),
+          recipientEmail: contact.email,
+          recipientName: contact.name,
+          originalSubject: contact.subject,
+          trackingId: trackingId || `TRACK_${id}_${Date.now()}`,
+          method: trackingId ? 'email_client' : 'quick_reply',
+          status: 'sent'
+        };
+        
+        // Store the reply in replies collection
+        await repliesCollection.insertOne(replyData);
+        
+        // Update the contact status to 'replied' and add reply timestamp
+        await contactsCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { 
+            $set: { 
+              status: 'replied',
+              repliedAt: new Date(),
+              lastReply: {
+                message,
+                sentAt: new Date(),
+                adminEmail,
+                trackingId: replyData.trackingId,
+                method: replyData.method
+              },
+              updatedAt: new Date()
+            }
+          }
+        );
+        
+        console.log("✅ Reply tracked and contact updated");
+        
+        res.send({
+          success: true,
+          message: "Reply tracked successfully",
+          trackingId: replyData.trackingId,
+          replyData: {
+            ...replyData,
+            // Don't send sensitive data back
+            adminEmail: undefined
+          }
+        });
+      } catch (error) {
+        console.error("❌ Reply to contact error:", error);
+        console.error("Error stack:", error.stack);
+        res.status(500).send({ 
+          error: "Failed to track reply", 
+          details: error.message,
+          stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
+      }
+    });
+
+    // POST webhook for email replies (for future email service integration)
+    app.post("/api/contacts/email-webhook", async (req, res) => {
+      try {
+        console.log("📨 Email webhook received:", req.body);
+        
+        const { 
+          from, 
+          to, 
+          subject, 
+          text, 
+          html, 
+          messageId,
+          inReplyTo,
+          references 
+        } = req.body;
+        
+        // Extract tracking ID from subject
+        const trackingMatch = subject.match(/\[TRACK_([a-f0-9]+)_(\d+)\]/);
+        
+        if (trackingMatch) {
+          const contactId = trackingMatch[1];
+          const timestamp = trackingMatch[2];
+          
+          console.log("📧 Processing email reply for contact:", contactId);
+          
+          // Find the contact
+          const contact = await contactsCollection.findOne({ _id: new ObjectId(contactId) });
+          
+          if (contact) {
+            // Create reply record for received email
+            const emailReplyData = {
+              contactId,
+              fromEmail: from,
+              toEmail: to,
+              subject,
+              message: text || html,
+              receivedAt: new Date(),
+              messageId,
+              inReplyTo,
+              references,
+              trackingId: `TRACK_${contactId}_${timestamp}`,
+              method: 'email_received',
+              status: 'received'
+            };
+            
+            // Store the received email reply
+            await repliesCollection.insertOne(emailReplyData);
+            
+            // Update contact with received reply info
+            await contactsCollection.updateOne(
+              { _id: new ObjectId(contactId) },
+              { 
+                $set: { 
+                  status: 'replied',
+                  lastEmailReply: {
+                    from,
+                    subject,
+                    receivedAt: new Date(),
+                    messageId
+                  },
+                  updatedAt: new Date()
+                }
+              }
+            );
+            
+            console.log("✅ Email reply processed and stored");
+            
+            res.send({ success: true, message: "Email reply processed" });
+          } else {
+            console.log("❌ Contact not found for tracking ID");
+            res.status(404).send({ error: "Contact not found" });
+          }
+        } else {
+          console.log("❌ No tracking ID found in email subject");
+          res.status(400).send({ error: "No tracking ID found" });
+        }
+      } catch (error) {
+        console.error("❌ Email webhook error:", error);
+        res.status(500).send({ error: "Failed to process email webhook" });
+      }
+    });
+
+    // GET replies for a contact
+    app.get("/api/contacts/:id/replies", async (req, res) => {
+      try {
+        const { id } = req.params;
+        
+        const replies = await repliesCollection
+          .find({ contactId: id })
+          .sort({ sentAt: -1, receivedAt: -1 })
+          .toArray();
+        
+        res.send(replies);
+      } catch (error) {
+        console.error("Get replies error:", error);
+        res.status(500).send({ error: "Failed to fetch replies" });
       }
     });
 

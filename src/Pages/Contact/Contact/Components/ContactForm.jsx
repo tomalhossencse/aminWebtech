@@ -1,6 +1,11 @@
 import { useState } from 'react';
+import useContactsAPI from '../../../../hooks/useContactsAPI';
+import { useToast } from '../../../../Context/ToastContext';
 
 const ContactForm = () => {
+  const { createContact } = useContactsAPI();
+  const { success, error: showError } = useToast();
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -23,11 +28,12 @@ const ContactForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setSubmitStatus(null);
     
-    // Simulate form submission
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await createContact(formData);
       setSubmitStatus('success');
+      success('Message sent successfully! We\'ll get back to you soon.');
       setFormData({
         name: '',
         email: '',
@@ -36,7 +42,9 @@ const ContactForm = () => {
         message: ''
       });
     } catch (error) {
+      console.error('Contact form submission error:', error);
       setSubmitStatus('error');
+      showError('Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
       setTimeout(() => setSubmitStatus(null), 5000);

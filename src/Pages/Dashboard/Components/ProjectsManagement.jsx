@@ -1107,7 +1107,7 @@ const ProjectsManagement = () => {
                   <span className="material-icons text-sm mr-1">info</span>
                   All fields marked with * are required
                 </div>
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                   <button
                     type="button"
                     onClick={() => {
@@ -1115,7 +1115,7 @@ const ProjectsManagement = () => {
                       resetForm();
                     }}
                     disabled={createProjectMutation.isPending}
-                    className="btn btn-outline btn-neutral hover:btn-neutral transition-all duration-200 hover:scale-105"
+                    className="btn btn-outline btn-neutral hover:btn-neutral transition-all duration-200 hover:scale-105 w-full sm:w-auto order-2 sm:order-1"
                   >
                     <span className="material-icons text-sm mr-2">close</span>
                     Cancel
@@ -1124,17 +1124,19 @@ const ProjectsManagement = () => {
                     type="button"
                     onClick={handleSubmit}
                     disabled={createProjectMutation.isPending}
-                    className="btn btn-primary shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 disabled:opacity-50 flex items-center gap-2"
+                    className="btn btn-primary shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 disabled:opacity-50 flex items-center justify-center gap-2 w-full sm:w-auto order-1 sm:order-2"
                   >
                     {createProjectMutation.isPending ? (
                       <>
                         <span className="loading loading-spinner loading-sm"></span>
-                        Creating...
+                        <span className="hidden sm:inline">Creating...</span>
+                        <span className="sm:hidden">Creating...</span>
                       </>
                     ) : (
                       <>
                         <span className="material-icons text-sm">add_circle</span>
-                        Create Project
+                        <span className="hidden sm:inline">Create Project</span>
+                        <span className="sm:hidden">Create</span>
                       </>
                     )}
                   </button>
@@ -1307,7 +1309,7 @@ const ProjectsManagement = () => {
                   <span className="material-icons text-sm mr-1">info</span>
                   All fields marked with * are required
                 </div>
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                   <button
                     type="button"
                     onClick={() => {
@@ -1316,7 +1318,7 @@ const ProjectsManagement = () => {
                       resetForm();
                     }}
                     disabled={updateProjectMutation.isPending}
-                    className="btn btn-outline btn-neutral hover:btn-neutral transition-all duration-200 hover:scale-105"
+                    className="btn btn-outline btn-neutral hover:btn-neutral transition-all duration-200 hover:scale-105 w-full sm:w-auto order-2 sm:order-1"
                   >
                     <span className="material-icons text-sm mr-2">close</span>
                     Cancel
@@ -1325,17 +1327,19 @@ const ProjectsManagement = () => {
                     type="button"
                     onClick={handleSubmit}
                     disabled={updateProjectMutation.isPending}
-                    className="btn btn-primary shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 disabled:opacity-50 flex items-center gap-2"
+                    className="btn btn-primary shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 disabled:opacity-50 flex items-center justify-center gap-2 w-full sm:w-auto order-1 sm:order-2"
                   >
                     {updateProjectMutation.isPending ? (
                       <>
                         <span className="loading loading-spinner loading-sm"></span>
-                        Updating...
+                        <span className="hidden sm:inline">Updating...</span>
+                        <span className="sm:hidden">Updating...</span>
                       </>
                     ) : (
                       <>
                         <span className="material-icons text-sm">update</span>
-                        Update Project
+                        <span className="hidden sm:inline">Update Project</span>
+                        <span className="sm:hidden">Update</span>
                       </>
                     )}
                   </button>

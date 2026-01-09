@@ -205,7 +205,7 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit }) => {
         className={`modal ${isOpen ? "modal-open" : ""}`}
         style={{ zIndex: 1000 }}
       >
-        <div className="modal-box w-8/12 max-w-3xl h-[95vh] max-h-[95vh] p-0 overflow-hidden rounded-lg shadow-2xl border border-base-300/50 backdrop-blur-sm">
+        <div className="modal-box w-full sm:w-11/12 md:w-10/12 lg:w-8/12 max-w-3xl h-[95vh] max-h-[95vh] p-0 overflow-hidden rounded-lg shadow-2xl border border-base-300/50 backdrop-blur-sm mx-2 sm:mx-4">
           {/* Scrollable Content Container */}
           <div
             className="overflow-y-auto h-full scrollbar-hide"
@@ -225,48 +225,48 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit }) => {
             `}</style>
 
             {/* Professional Header with Gradient */}
-            <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b border-base-300/50 px-8 py-6 flex justify-between items-center backdrop-blur-sm">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center">
-                  <span className="material-icons text-primary text-2xl">
+            <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b border-base-300/50 px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 backdrop-blur-sm">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary/20 rounded-lg flex items-center justify-center">
+                  <span className="material-icons text-primary text-xl sm:text-2xl">
                     add_business
                   </span>
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-base-content">
+                  <h3 className="text-xl sm:text-2xl font-bold text-base-content">
                     Add New Service
                   </h3>
-                  <p className="text-sm text-base-content/60 mt-1">
+                  <p className="text-xs sm:text-sm text-base-content/60 mt-1">
                     Create a new service offering for your business
                   </p>
                 </div>
               </div>
               <button
                 onClick={onClose}
-                className="btn btn-sm btn-circle btn-ghost hover:bg-error/10 hover:text-error transition-all duration-200 text-base-content/70"
+                className="btn btn-sm btn-circle btn-ghost hover:bg-error/10 hover:text-error transition-all duration-200 text-base-content/70 self-end sm:self-auto"
               >
-                <span className="material-icons text-xl">close</span>
+                <span className="material-icons text-lg sm:text-xl">close</span>
               </button>
             </div>
 
             {/* Professional Form Content */}
-            <div className="p-8 bg-gradient-to-b from-base-100 to-base-200/30">
-              <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-8">
+            <div className="p-4 sm:p-6 lg:p-8 bg-gradient-to-b from-base-100 to-base-200/30">
+              <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-6 sm:space-y-8">
                 {/* Basic Information Section */}
                 <div className="card bg-base-100/80 backdrop-blur-sm border border-base-300/50 shadow-lg rounded-lg">
-                  <div className="card-body p-6">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-8 h-8 bg-info/20 rounded-lg flex items-center justify-center">
-                        <span className="material-icons text-info text-lg">
+                  <div className="card-body p-4 sm:p-6">
+                    <div className="flex items-center gap-3 mb-4 sm:mb-6">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 bg-info/20 rounded-lg flex items-center justify-center">
+                        <span className="material-icons text-info text-sm sm:text-lg">
                           info
                         </span>
                       </div>
-                      <h4 className="text-lg font-semibold text-base-content">
+                      <h4 className="text-base sm:text-lg font-semibold text-base-content">
                         Basic Information
                       </h4>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                       <div className="form-control">
                         <label className="label">
                           <span className="label-text font-medium text-base-content flex items-center gap-2">
@@ -373,7 +373,7 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit }) => {
                             Service Icon <span className="text-error">*</span>
                           </span>
                         </label>
-                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3">
                           {serviceIcons.map((item) => (
                             <button
                               key={item.icon}
@@ -381,13 +381,13 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit }) => {
                               onClick={() =>
                                 setValue("selectedIcon", item.icon)
                               }
-                              className={`btn btn-outline aspect-square h-auto p-2 flex-col justify-center items-center transition-all duration-200 hover:scale-105 min-h-[80px] ${
+                              className={`btn btn-outline aspect-square h-auto p-1 sm:p-2 flex-col justify-center items-center transition-all duration-200 hover:scale-105 min-h-[60px] sm:min-h-[80px] ${
                                 selectedIcon === item.icon
                                   ? "btn-primary shadow-lg scale-105"
                                   : "hover:btn-primary hover:shadow-md"
                               }`}
                             >
-                              <span className="material-icons-outlined text-xl mb-1 flex-shrink-0">
+                              <span className="material-icons-outlined text-lg sm:text-xl mb-1 flex-shrink-0">
                                 {item.icon}
                               </span>
                               <span className="text-xs font-medium leading-tight text-center break-words overflow-hidden line-clamp-2 max-w-full">
@@ -1010,17 +1010,17 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit }) => {
             </div>
 
             {/* Professional Footer with Gradient */}
-            <div className="px-8 py-6 bg-gradient-to-r from-base-200/80 to-base-300/50 border-t border-base-300/50 flex justify-between items-center backdrop-blur-sm">
-              <div className="text-sm text-base-content/60">
-                <span className="material-icons text-sm mr-1">info</span>
+            <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 bg-gradient-to-r from-base-200/80 to-base-300/50 border-t border-base-300/50 flex flex-col sm:flex-row justify-between items-center gap-4 backdrop-blur-sm">
+              <div className="text-xs sm:text-sm text-base-content/60 text-center sm:text-left">
+                <span className="material-icons text-xs sm:text-sm mr-1">info</span>
                 All fields marked with * are required
               </div>
-              <div className="flex gap-4">
+              <div className="flex gap-3 sm:gap-4 w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={onClose}
                   disabled={isSubmitting}
-                  className="btn btn-outline btn-neutral hover:btn-neutral transition-all duration-200 hover:scale-105"
+                  className="btn btn-outline btn-neutral hover:btn-neutral transition-all duration-200 hover:scale-105 flex-1 sm:flex-none"
                 >
                   <span className="material-icons text-sm mr-2">close</span>
                   Cancel
@@ -1029,7 +1029,7 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit }) => {
                   type="button"
                   onClick={handleSubmit(onSubmitForm)}
                   disabled={isSubmitting || createServiceMutation.isPending}
-                  className="btn btn-primary shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 disabled:opacity-50"
+                  className="btn btn-primary shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 disabled:opacity-50 flex-1 sm:flex-none"
                 >
                   {(isSubmitting || createServiceMutation.isPending) && (
                     <span className="loading loading-spinner loading-sm mr-2"></span>
@@ -1037,7 +1037,12 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit }) => {
                   <span className="material-icons text-sm mr-2">
                     {(isSubmitting || createServiceMutation.isPending) ? "hourglass_empty" : "add_business"}
                   </span>
-                  {(isSubmitting || createServiceMutation.isPending) ? "Creating..." : "Create Service"}
+                  <span className="hidden sm:inline">
+                    {(isSubmitting || createServiceMutation.isPending) ? "Creating..." : "Create Service"}
+                  </span>
+                  <span className="sm:hidden">
+                    {(isSubmitting || createServiceMutation.isPending) ? "Creating..." : "Create"}
+                  </span>
                 </button>
               </div>
             </div>

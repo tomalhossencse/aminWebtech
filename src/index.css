@@ -2203,3 +2203,270 @@ html {
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
+
+/* Mobile-Responsive Modal Utilities */
+@media (max-width: 640px) {
+    .modal-box {
+        margin: 0.5rem;
+        width: calc(100% - 1rem);
+        max-width: calc(100% - 1rem);
+    }
+
+    .modal-responsive {
+        padding: 1rem;
+    }
+
+    .modal-responsive .modal-header {
+        padding: 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .modal-responsive .modal-body {
+        padding: 1rem;
+    }
+
+    .modal-responsive .modal-footer {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .modal-responsive .btn {
+        width: 100%;
+    }
+}
+
+/* Mobile Form Improvements */
+@media (max-width: 640px) {
+    .form-grid-responsive {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .form-section-responsive {
+        padding: 1rem;
+    }
+
+    .form-section-responsive .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .button-group-responsive {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .button-group-responsive .btn {
+        width: 100%;
+    }
+}
+
+/* Mobile Icon Grid */
+@media (max-width: 640px) {
+    .icon-grid-mobile {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+    }
+
+    .icon-grid-mobile .btn {
+        min-height: 60px;
+        padding: 0.5rem;
+    }
+
+    .icon-grid-mobile .btn span {
+        font-size: 0.75rem;
+    }
+}
+
+/* Mobile Table Improvements */
+@media (max-width: 768px) {
+    .table-responsive {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    .table-responsive table {
+        min-width: 600px;
+    }
+
+    .mobile-card-view {
+        display: block;
+    }
+
+    .mobile-card-view .table {
+        display: none;
+    }
+
+    .mobile-card {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e5e7eb;
+    }
+
+    .dark .mobile-card {
+        background: #1e293b;
+        border-color: #374151;
+    }
+}
+
+/* Mobile Dashboard Improvements */
+@media (max-width: 768px) {
+    .dashboard-mobile {
+        padding: 0.5rem;
+    }
+
+    .dashboard-header-mobile {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .dashboard-stats-mobile {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .dashboard-card-mobile {
+        padding: 1rem;
+    }
+}
+
+/* Mobile Navigation Improvements */
+@media (max-width: 768px) {
+    .nav-mobile {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        border-top: 1px solid #e5e7eb;
+        padding: 0.5rem;
+        z-index: 50;
+    }
+
+    .dark .nav-mobile {
+        background: #1e293b;
+        border-color: #374151;
+    }
+
+    .nav-mobile .nav-item {
+        flex: 1;
+        text-align: center;
+        padding: 0.5rem;
+        border-radius: 0.375rem;
+    }
+}
+
+/* Mobile Touch Improvements */
+@media (max-width: 768px) {
+    .touch-target {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    .btn-mobile {
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        min-height: 44px;
+    }
+
+    .input-mobile {
+        padding: 0.75rem;
+        font-size: 1rem;
+        min-height: 44px;
+    }
+}
+
+/* Mobile Spacing Utilities */
+.p-mobile {
+    padding: 1rem;
+}
+
+.px-mobile {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.py-mobile {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.m-mobile {
+    margin: 1rem;
+}
+
+.mx-mobile {
+    margin-left: 1rem;
+    margin-right: 1rem;
+}
+
+.my-mobile {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+@media (min-width: 640px) {
+    .p-mobile {
+        padding: 1.5rem;
+    }
+
+    .px-mobile {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+
+    .py-mobile {
+        padding-top: 1.5rem;
+        padding-bottom: 1.5rem;
+    }
+
+    .m-mobile {
+        margin: 1.5rem;
+    }
+
+    .mx-mobile {
+        margin-left: 1.5rem;
+        margin-right: 1.5rem;
+    }
+
+    .my-mobile {
+        margin-top: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+}
+
+/* Mobile Text Utilities */
+.text-mobile-sm {
+    font-size: 0.875rem;
+}
+
+.text-mobile-base {
+    font-size: 1rem;
+}
+
+.text-mobile-lg {
+    font-size: 1.125rem;
+}
+
+@media (min-width: 640px) {
+    .text-mobile-sm {
+        font-size: 1rem;
+    }
+
+    .text-mobile-base {
+        font-size: 1.125rem;
+    }
+
+    .text-mobile-lg {
+        font-size: 1.25rem;
+    }
+}

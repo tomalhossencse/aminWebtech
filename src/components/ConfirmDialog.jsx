@@ -40,38 +40,38 @@ const ConfirmDialog = ({
   const styles = getTypeStyles();
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9998]">
-      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-md w-full">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-[9998]">
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-md w-full mx-2 sm:mx-4">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center">
-            <AlertTriangle className={`w-6 h-6 mr-3 ${styles.icon}`} />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            <AlertTriangle className={`w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 ${styles.icon}`} />
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
               {title}
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
         
-        <div className="p-6">
-          <p className="text-gray-600 dark:text-gray-300 mb-6">
+        <div className="p-4 sm:p-6">
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-4 sm:mb-6">
             {message}
           </p>
           
-          <div className="flex gap-3 justify-end">
+          <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
             <button
               onClick={onClose}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+              className="w-full sm:w-auto px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
             >
               {cancelText}
             </button>
             <button
               onClick={onConfirm}
-              className={`px-4 py-2 border border-transparent text-sm font-medium rounded shadow-sm text-white ${styles.confirmBtn} focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors`}
+              className={`w-full sm:w-auto px-4 py-2 border border-transparent text-sm font-medium rounded shadow-sm text-white ${styles.confirmBtn} focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors`}
             >
               {confirmText}
             </button>
