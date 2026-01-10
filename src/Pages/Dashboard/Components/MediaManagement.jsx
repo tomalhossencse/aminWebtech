@@ -8,7 +8,10 @@ import {
   Image as ImageIcon,
   FileText,
   Video,
-  Music
+  Music,
+  ExternalLink,
+  CheckCircle,
+  AlertCircle
 } from 'lucide-react';
 import useFileUpload from '../../../hooks/useFileUpload';
 import useMediaAPI from '../../../hooks/useMediaAPI';
@@ -18,7 +21,7 @@ const MediaManagement = () => {
   const [filterType, setFilterType] = useState('All Types');
   const [selectedFiles, setSelectedFiles] = useState([]);
 
-  const { uploading, uploadProgress, selectAndUploadFile } = useFileUpload();
+  const { uploading, uploadProgress, selectAndUploadFile, getImgBBStatus } = useFileUpload();
   const { 
     media, 
     stats, 
@@ -30,11 +33,14 @@ const MediaManagement = () => {
     formatFileSize
   } = useMediaAPI();
 
+  // Get ImgBB status
+  const imgbbStatus = getImgBBStatus();
+
   const uploadGuidelines = [
     {
       number: 1,
       text: 'Maximum file size:',
-      highlight: '10MB'
+      highlight: '10MB (32MB for ImgBB images)'
     },
     {
       number: 2,
@@ -48,8 +54,8 @@ const MediaManagement = () => {
     },
     {
       number: 4,
-      text: 'Recommended image dimensions:',
-      highlight: '1920×1080 pixels'
+      text: 'Image hosting:',
+      highlight: imgbbStatus.configured ? 'ImgBB (Configured)' : 'Local storage'
     }
   ];
 
@@ -128,15 +134,25 @@ const MediaManagement = () => {
   };
 
   const renderFilePreview = (file) => {
-    const displayUrl = file.tempUrl || file.url;
+    // Use ImgBB URLs if available, otherwise fall back to regular URL
+    const displayUrl = file.display_url || file.url || file.tempUrl;
     
     if (file.type === 'Image' && displayUrl) {
       return (
-        <img
-          src={displayUrl}
-          alt={file.alt}
-          className="h-full w-full object-cover object-center group-hover:opacity-90 transition-opacity"
-        />
+        <div className="relative h-full w-full">
+          <img
+            src={displayUrl}
+            alt={file.alt}
+            className="h-full w-full object-cover object-center group-hover:opacity-90 transition-opacity"
+          />
+          {/* ImgBB indicator */}
+          {file.storage_provider === 'imgbb' && (
+            <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+              <ExternalLink className="w-3 h-3" />
+              ImgBB
+            </div>
+          )}
+        </div>
       );
     } else {
       const IconComponent = getFileIcon(file.type);
@@ -157,6 +173,20 @@ const MediaManagement = () => {
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Manage all your uploaded media files
           </p>
+          {/* ImgBB Status Indicator */}
+          <div className="flex items-center gap-2 mt-2">
+            {imgbbStatus.configured ? (
+              <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                <CheckCircle className="w-4 h-4" />
+                <span className="text-xs font-medium">ImgBB Connected</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
+                <AlertCircle className="w-4 h-4" />
+                <span className="text-xs font-medium">ImgBB Not Configured</span>
+              </div>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -282,7 +312,12 @@ const MediaManagement = () => {
                   {file.name.length > 30 ? `${file.name.substring(0, 30)}...` : file.name}
                 </h3>
                 <div className="flex justify-between items-center mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  <span>{file.type}</span>
+                  <span className="flex items-center gap-1">
+                    {file.type}
+                    {file.storage_provider === 'imgbb' && (
+                      <ExternalLink className="w-3 h-3 text-green-500" title="Hosted on ImgBB" />
+                    )}
+                  </span>
                   <span>{formatFileSize(file.size)}</span>
                 </div>
               </div>

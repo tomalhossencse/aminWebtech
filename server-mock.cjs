@@ -479,14 +479,256 @@ app.get("/", (req, res) => {
   res.send("Mock Projects Server is running! 🚀");
 });
 
+// ----------------Media Management API -----------------
+// Mock media data
+let mockMedia = [
+  {
+    _id: "media-1",
+    name: "Hero Background",
+    originalName: "hero-bg.jpg",
+    type: "Image",
+    size: 1024000,
+    url: "https://i.ibb.co/sample1/hero-bg.jpg",
+    display_url: "https://i.ibb.co/sample1/hero-bg.jpg",
+    thumb_url: "https://i.ibb.co/sample1/hero-bg-thumb.jpg",
+    medium_url: "https://i.ibb.co/sample1/hero-bg-medium.jpg",
+    alt: "Hero background image",
+    mimeType: "image/jpeg",
+    width: 1920,
+    height: 1080,
+    imgbb_id: "sample1",
+    imgbb_filename: "hero-bg.jpg",
+    storage_provider: "imgbb",
+    createdAt: new Date('2024-12-29'),
+    updatedAt: new Date('2024-12-29')
+  },
+  {
+    _id: "media-2",
+    name: "Project Thumbnail",
+    originalName: "project-thumb.png",
+    type: "Image",
+    size: 512000,
+    url: "https://i.ibb.co/sample2/project-thumb.png",
+    display_url: "https://i.ibb.co/sample2/project-thumb.png",
+    thumb_url: "https://i.ibb.co/sample2/project-thumb-thumb.png",
+    medium_url: "https://i.ibb.co/sample2/project-thumb-medium.png",
+    alt: "Project thumbnail",
+    mimeType: "image/png",
+    width: 800,
+    height: 600,
+    imgbb_id: "sample2",
+    imgbb_filename: "project-thumb.png",
+    storage_provider: "imgbb",
+    createdAt: new Date('2024-12-28'),
+    updatedAt: new Date('2024-12-28')
+  }
+];
+
+// GET all media files (Admin only)
+app.get("/api/media", verifyAdmin, async (req, res) => {
+  try {
+    console.log("📁 GET /api/media - Request received");
+    
+    const { 
+      page = 1, 
+      limit = 20, 
+      search = "", 
+      type = "",
+      sortBy = "createdAt",
+      sortOrder = "desc"
+    } = req.query;
+    
+    let filteredMedia = [...mockMedia];
+    
+    // Apply search filter
+    if (search) {
+      filteredMedia = filteredMedia.filter(media => 
+        media.name.toLowerCase().includes(search.toLowerCase()) ||
+        media.originalName.toLowerCase().includes(search.toLowerCase()) ||
+        media.alt.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+    
+    // Apply type filter
+    if (type && type !== "All Types") {
+      filteredMedia = filteredMedia.filter(media => media.type === type);
+    }
+    
+    // Apply sorting
+    filteredMedia.sort((a, b) => {
+      const aValue = a[sortBy];
+      const bValue = b[sortBy];
+      
+      if (sortOrder === "desc") {
+        return bValue > aValue ? 1 : -1;
+      } else {
+        return aValue > bValue ? 1 : -1;
+      }
+    });
+    
+    // Apply pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const paginatedMedia = filteredMedia.slice(skip, skip + parseInt(limit));
+    
+    // Calculate stats
+    const stats = {
+      total: filteredMedia.length,
+      images: filteredMedia.filter(m => m.type === 'Image').length,
+      documents: filteredMedia.filter(m => m.type === 'Document').length,
+      videos: filteredMedia.filter(m => m.type === 'Video').length,
+      audio: filteredMedia.filter(m => m.type === 'Audio').length,
+      totalSize: filteredMedia.reduce((sum, m) => sum + m.size, 0)
+    };
+    
+    res.send({
+      media: paginatedMedia,
+      stats,
+      total: filteredMedia.length,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil(filteredMedia.length / parseInt(limit))
+    });
+    
+    console.log(`✅ GET /api/media - Returned ${paginatedMedia.length} media files`);
+  } catch (error) {
+    console.error("❌ GET /api/media error:", error);
+    res.status(500).send({ error: "Failed to fetch media files" });
+  }
+});
+
+// POST upload media file (Admin only)
+app.post("/api/media", verifyAdmin, async (req, res) => {
+  try {
+    console.log("📤 POST /api/media - Upload request received");
+    
+    const { 
+      name,
+      originalName,
+      type,
+      size,
+      url,
+      display_url,
+      thumb_url,
+      medium_url,
+      delete_url,
+      alt,
+      mimeType,
+      width,
+      height,
+      imgbb_id,
+      imgbb_filename,
+      storage_provider
+    } = req.body;
+    
+    // Validate required fields
+    if (!name || !type || !size) {
+      return res.status(400).send({ 
+        error: "Missing required fields: name, type, size" 
+      });
+    }
+    
+    const newMedia = {
+      _id: `media-${Date.now()}`,
+      name: name.trim(),
+      originalName: originalName || name,
+      type,
+      size: parseInt(size),
+      url: url || null,
+      display_url: display_url || url || null,
+      thumb_url: thumb_url || null,
+      medium_url: medium_url || null,
+      delete_url: delete_url || null,
+      alt: alt || "",
+      mimeType: mimeType || "",
+      width: width ? parseInt(width) : null,
+      height: height ? parseInt(height) : null,
+      imgbb_id: imgbb_id || null,
+      imgbb_filename: imgbb_filename || null,
+      storage_provider: storage_provider || 'local',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    mockMedia.unshift(newMedia);
+    
+    console.log(`✅ POST /api/media - Created: ${newMedia.name} (${storage_provider || 'local'})`);
+    
+    res.status(201).send({
+      ...newMedia,
+      message: `Media file uploaded successfully${storage_provider === 'imgbb' ? ' to ImgBB' : ''}`
+    });
+    
+  } catch (error) {
+    console.error("❌ POST /api/media error:", error);
+    res.status(500).send({ error: "Failed to upload media file" });
+  }
+});
+
+// DELETE single media file (Admin only)
+app.delete("/api/media/:id", verifyAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const mediaIndex = mockMedia.findIndex(media => media._id === id);
+    if (mediaIndex === -1) {
+      return res.status(404).send({ error: "Media file not found" });
+    }
+    
+    const deletedMedia = mockMedia.splice(mediaIndex, 1)[0];
+    
+    console.log(`🗑️ DELETE /api/media/${id} - Deleted: ${deletedMedia.name}`);
+    
+    res.send({ message: "Media file deleted successfully" });
+  } catch (error) {
+    console.error("❌ DELETE /api/media/:id error:", error);
+    res.status(500).send({ error: "Failed to delete media file" });
+  }
+});
+
+// DELETE multiple media files (Admin only)
+app.delete("/api/media", verifyAdmin, async (req, res) => {
+  try {
+    const { ids } = req.body;
+    
+    if (!ids || !Array.isArray(ids)) {
+      return res.status(400).send({ error: "Invalid ids array" });
+    }
+    
+    let deletedCount = 0;
+    
+    ids.forEach(id => {
+      const mediaIndex = mockMedia.findIndex(media => media._id === id);
+      if (mediaIndex !== -1) {
+        mockMedia.splice(mediaIndex, 1);
+        deletedCount++;
+      }
+    });
+    
+    console.log(`🗑️ DELETE /api/media - Deleted ${deletedCount} media files`);
+    
+    res.send({ 
+      message: `${deletedCount} media files deleted successfully`,
+      deletedCount 
+    });
+  } catch (error) {
+    console.error("❌ DELETE /api/media error:", error);
+    res.status(500).send({ error: "Failed to delete media files" });
+  }
+});
+
 app.listen(port, () => {
   console.log(`🚀 Mock server running on port ${port}`);
   console.log(`📋 Mock projects loaded: ${mockProjects.length} projects`);
+  console.log(`📁 Mock media loaded: ${mockMedia.length} media files`);
   console.log(`🔗 Available endpoints:`);
   console.log(`   GET  /projects - List projects with pagination and filters`);
   console.log(`   GET  /projects/:id - Get single project`);
   console.log(`   POST /projects - Create new project`);
   console.log(`   PUT  /projects/:id - Update project`);
   console.log(`   DELETE /projects/:id - Delete project`);
+  console.log(`   GET  /api/media - List media files (Admin)`);
+  console.log(`   POST /api/media - Upload media file (Admin)`);
+  console.log(`   DELETE /api/media/:id - Delete media file (Admin)`);
+  console.log(`   DELETE /api/media - Delete multiple media files (Admin)`);
   console.log(`   POST /api/auth/login - Admin login`);
 });
