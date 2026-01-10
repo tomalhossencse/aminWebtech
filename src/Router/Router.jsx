@@ -5,6 +5,7 @@ import About from "../Pages/About/About/About";
 import Services from "../Pages/Services/Services/Services";
 import Projects from "../Pages/Projects/Projects/Projects";
 import Blog from "../Pages/Blog/Blog/Blog";
+import BlogDetailPage from "../Pages/Blog/Components/BlogDetailPage";
 import Contact from "../Pages/Contact/Contact/Contact";
 import Dashboard from "../Pages/Dashboard/Dashboard/Dashboard";
 import DashboardHome from "../Pages/Dashboard/Components/DashboardHome";
@@ -44,6 +45,10 @@ export const router = createBrowserRouter([
       {
         path: "/blog",
         Component: Blog,
+      },
+      {
+        path: "/blog/:id",
+        Component: BlogDetailPage,
       },
       {
         path: "/contact",

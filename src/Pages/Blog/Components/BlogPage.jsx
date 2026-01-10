@@ -1,115 +1,132 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import BlogHeader from './BlogHeader';
 import BlogFilter from './BlogFilter';
 import BlogPost from './BlogPost';
 import BlogSidebar from './BlogSidebar';
+import useBlogAPI from '../../../hooks/useBlogAPI';
 
 const BlogPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
+  const [blogPosts, setBlogPosts] = useState([]);
+  const [recentPosts, setRecentPosts] = useState([]);
+  const [popularTags, setPopularTags] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  
+  const { getBlogs, loading, error } = useBlogAPI();
 
-  // Sample blog data
-  const blogPosts = [
-    {
-      id: 1,
-      title: "Building a Modern Android App: A Complete Beginner-to-Pro Guide",
-      excerpt: "Build modern, scalable Android applications using the latest tools, architectures, and best practices. Learn how to integrate APIs, manage state, and deploy to the Play Store efficiently.",
-      image: "https://images.unsplash.com/photo-1607252650355-f7fd0460ccdb?w=800&h=600&fit=crop",
-      category: "Mobile Development",
-      author: "Super Admin",
-      date: "Dec 27, 2025",
-      readTime: 8,
-      views: 127,
-      likes: 23,
-      tags: ["Android", "Java", "Kotlin", "Mobile", "API"],
-      slug: "/blog/android-app-guide",
-      type: "mobile"
-    },
-    {
-      id: 2,
-      title: "React Performance Optimization: Advanced Techniques",
-      excerpt: "Discover advanced React optimization techniques including memoization, code splitting, and virtual DOM optimization to build lightning-fast applications.",
-      image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&h=600&fit=crop",
-      category: "Web Development",
-      author: "John Doe",
-      date: "Dec 25, 2025",
-      readTime: 12,
-      views: 89,
-      likes: 15,
-      tags: ["React", "JavaScript", "Performance", "Optimization"],
-      slug: "/blog/react-performance",
-      type: "web"
-    },
-    {
-      id: 3,
-      title: "UI/UX Design Principles for Modern Web Applications",
-      excerpt: "Learn essential design principles and best practices for creating intuitive, accessible, and beautiful user interfaces that convert.",
-      image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=600&fit=crop",
-      category: "UI/UX Design",
-      author: "Jane Smith",
-      date: "Dec 23, 2025",
-      readTime: 6,
-      views: 156,
-      likes: 31,
-      tags: ["Design", "UX", "UI", "Figma", "Accessibility"],
-      slug: "/blog/ui-ux-principles",
-      type: "design"
-    },
-    {
-      id: 4,
-      title: "Node.js Microservices Architecture: Best Practices",
-      excerpt: "Build scalable microservices with Node.js, Docker, and Kubernetes. Learn about service communication, data management, and deployment strategies.",
-      image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&h=600&fit=crop",
-      category: "Backend Development",
-      author: "Mike Johnson",
-      date: "Dec 20, 2025",
-      readTime: 15,
-      views: 203,
-      likes: 42,
-      tags: ["Node.js", "Microservices", "Docker", "Kubernetes", "API"],
-      slug: "/blog/nodejs-microservices",
-      type: "backend"
+  // Fetch blogs from API
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const params = {
+          page: currentPage,
+          limit: 10,
+          search: searchTerm || undefined,
+          status: 'Published' // Only show published blogs on public page
+        };
+        
+        const response = await getBlogs(params);
+        
+        if (response) {
+          const blogs = response.blogs || [];
+          
+          if (currentPage === 1) {
+            setBlogPosts(blogs);
+          } else {
+            setBlogPosts(prev => [...prev, ...blogs]);
+          }
+          
+          setTotalPages(response.totalPages || 1);
+          setHasMore(currentPage < (response.totalPages || 1));
+          
+          // Set recent posts (first 3 from latest blogs)
+          if (currentPage === 1) {
+            const recent = blogs.slice(0, 3).map(post => ({
+              id: post._id || post.id,
+              title: post.title,
+              date: post.created || post.createdAt || post.date,
+              image: post.featuredImage || post.image,
+              slug: `/blog/${post.slug || post._id || post.id}`
+            }));
+            setRecentPosts(recent);
+            
+            // Extract unique tags from all posts
+            const allTags = blogs.reduce((tags, post) => {
+              if (post.tags && Array.isArray(post.tags)) {
+                return [...tags, ...post.tags];
+              }
+              return tags;
+            }, []);
+            
+            const uniqueTags = [...new Set(allTags)].slice(0, 14); // Limit to 14 tags
+            setPopularTags(uniqueTags);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch blogs:', err);
+      }
+    };
+
+    fetchBlogs();
+  }, [getBlogs, currentPage, searchTerm]);
+
+  // Reset to first page when search term changes
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
     }
-  ];
+  }, [searchTerm]);
 
-  const recentPosts = [
-    {
-      id: 1,
-      title: "Building a Modern Android App: A Complete Guide",
-      date: "27/12/2025",
-      image: "https://images.unsplash.com/photo-1607252650355-f7fd0460ccdb?w=200&h=150&fit=crop",
-      slug: "/blog/android-app-guide"
-    },
-    {
-      id: 2,
-      title: "React Performance Optimization Techniques",
-      date: "25/12/2025",
-      image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=200&h=150&fit=crop",
-      slug: "/blog/react-performance"
-    },
-    {
-      id: 3,
-      title: "UI/UX Design Principles for Modern Apps",
-      date: "23/12/2025",
-      image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=200&h=150&fit=crop",
-      slug: "/blog/ui-ux-principles"
+  // Load more posts
+  const handleLoadMore = () => {
+    if (hasMore && !loading) {
+      setCurrentPage(prev => prev + 1);
     }
-  ];
+  };
 
-  const popularTags = [
-    "React", "JavaScript", "Laravel", "Node.js", "Vue.js", 
-    "CSS", "Next.js", "PHP", "AWS", "MySQL", "Android", 
-    "Kotlin", "Design", "UX"
-  ];
+  // Calculate category counts from blog posts
+  const categoryStats = useMemo(() => {
+    const stats = {
+      all: blogPosts.length,
+      mobile: 0,
+      web: 0,
+      design: 0,
+      backend: 0
+    };
+
+    blogPosts.forEach(post => {
+      const category = post.category?.toLowerCase() || '';
+      const type = post.type?.toLowerCase() || '';
+      
+      if (category.includes('mobile') || type === 'mobile') {
+        stats.mobile++;
+      } else if (category.includes('web') || type === 'web') {
+        stats.web++;
+      } else if (category.includes('design') || category.includes('ui') || type === 'design') {
+        stats.design++;
+      } else if (category.includes('backend') || category.includes('server') || type === 'backend') {
+        stats.backend++;
+      }
+    });
+
+    return stats;
+  }, [blogPosts]);
 
   // Filter posts based on search term and active filter
   const filteredPosts = useMemo(() => {
     return blogPosts.filter(post => {
-      const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           post.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchesSearch = post.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           post.excerpt?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           post.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           (post.tags && Array.isArray(post.tags) && 
+                            post.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())));
       
-      const matchesFilter = activeFilter === 'all' || post.type === activeFilter;
+      const matchesFilter = activeFilter === 'all' || 
+                           post.category?.toLowerCase().includes(activeFilter.toLowerCase()) ||
+                           post.type === activeFilter;
       
       return matchesSearch && matchesFilter;
     });
@@ -131,6 +148,7 @@ const BlogPage = () => {
                 activeFilter={activeFilter}
                 onFilterChange={setActiveFilter}
                 postCount={blogPosts.length}
+                categoryStats={categoryStats}
               />
 
               {/* Search Results Info */}
@@ -142,13 +160,30 @@ const BlogPage = () => {
                 </div>
               )}
 
+              {/* Loading State */}
+              {loading && currentPage === 1 && (
+                <div className="col-span-full text-center py-16">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600 dark:text-gray-400">Loading blog posts...</p>
+                </div>
+              )}
+
+              {/* Error State */}
+              {error && (
+                <div className="col-span-full bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
+                  <p className="text-red-800 dark:text-red-200 text-sm">
+                    Error loading blogs: {error}
+                  </p>
+                </div>
+              )}
+
               {/* Blog Posts */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredPosts.length > 0 ? (
+                {!loading && filteredPosts.length > 0 ? (
                   filteredPosts.map((post, index) => (
-                    <BlogPost key={post.id} post={post} index={index} />
+                    <BlogPost key={post._id || post.id} post={post} index={index} />
                   ))
-                ) : (
+                ) : !loading && (
                   <div className="col-span-full text-center py-16">
                     <span className="material-icons text-6xl text-gray-300 dark:text-gray-600 mb-4 block">
                       search_off
@@ -157,18 +192,31 @@ const BlogPage = () => {
                       No posts found
                     </h3>
                     <p className="text-gray-500 dark:text-gray-500">
-                      Try adjusting your search terms or filters
+                      {searchTerm ? 'Try adjusting your search terms or filters' : 'No blog posts available at the moment'}
                     </p>
                   </div>
                 )}
               </div>
 
               {/* Load More Button */}
-              {filteredPosts.length > 0 && (
+              {!loading && filteredPosts.length > 0 && hasMore && (
                 <div className="text-center pt-8">
-                  <button className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl">
-                    Load More Posts
-                    <span className="material-icons text-[18px]">expand_more</span>
+                  <button 
+                    onClick={handleLoadMore}
+                    disabled={loading}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl disabled:cursor-not-allowed"
+                  >
+                    {loading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Loading...
+                      </>
+                    ) : (
+                      <>
+                        Load More Posts
+                        <span className="material-icons text-[18px]">expand_more</span>
+                      </>
+                    )}
                   </button>
                 </div>
               )}

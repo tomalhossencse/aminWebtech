@@ -52,14 +52,18 @@ const AdminLogin = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    console.log("🚀 Form submitted with:", { username: formData.username, password: "***" });
+    
     try {
+      console.log("📤 Calling login mutation...");
       await loginMutation.mutateAsync({
         username: formData.username,
         password: formData.password
       });
+      console.log("✅ Login mutation completed successfully");
       // Navigation is handled in the mutation's onSuccess
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('❌ Login failed in handleSubmit:', error);
       // You can add toast notification here
     }
   };

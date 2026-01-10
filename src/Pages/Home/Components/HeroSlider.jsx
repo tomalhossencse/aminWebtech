@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router";
 
 const HeroSlider = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -200,10 +201,13 @@ const HeroSlider = () => {
                     : "opacity-0 translate-y-8 scale-95"
                 }`}
               >
-                <button className="btn btn-lg bg-white text-blue-700 hover:bg-blue-50 font-semibold border-none shadow-lg hover:shadow-xl hover:-translate-y-1 hover:scale-105 transition-all duration-400 ease-out group">
+                <Link
+                  to={"/contact"}
+                  className="btn btn-lg bg-white text-blue-700 hover:bg-blue-50 font-semibold border-none shadow-lg hover:shadow-xl hover:-translate-y-1 hover:scale-105 transition-all duration-400 ease-out group"
+                >
                   {slide.primaryBtn}
                   <i className="fas fa-arrow-right text-sm group-hover:translate-x-2 transition-transform duration-300 ease-out"></i>
-                </button>
+                </Link>
 
                 <button className="btn btn-lg btn-outline text-white border-white/30 hover:bg-white/10 font-medium backdrop-blur-sm transition-all duration-400 ease-out group hover:scale-105">
                   <i className="fas fa-play text-lg group-hover:scale-110 transition-transform duration-300 ease-out"></i>

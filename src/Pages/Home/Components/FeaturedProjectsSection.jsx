@@ -1,10 +1,81 @@
 import { useState, useEffect, useRef } from 'react';
+import useProjectsAPI from '../../../hooks/useProjectsAPI';
 
 const FeaturedProjectsSection = () => {
   const [isVisible, setIsVisible] = useState(false);
+  const [projects, setProjects] = useState([]);
   const sectionRef = useRef(null);
+  
+  const { getProjects, loading, error } = useProjectsAPI();
 
-  const projects = [
+  // Fetch featured projects from API
+  useEffect(() => {
+    const fetchFeaturedProjects = async () => {
+      try {
+        const response = await getProjects({ 
+          limit: 4, // Get 4 projects for featured section
+          status: 'Published' // Only show published projects
+        });
+        
+        if (response && response.projects) {
+          // Transform API data to match component structure
+          const transformedProjects = response.projects.map((project, index) => ({
+            id: project._id || project.id,
+            title: project.title,
+            description: project.description || 'No description available',
+            category: project.category || 'Web Development',
+            company: project.clientName || project.client || 'Client Project',
+            technologies: project.technologies?.map(tech => 
+              typeof tech === 'string' ? tech : tech.name
+            ) || ['HTML', 'CSS', 'JavaScript'],
+            gradient: project.gradient || getGradientByIndex(index),
+            letter: project.title?.charAt(0).toUpperCase() || 'P',
+            categoryColor: getCategoryColor(project.category),
+            image: project.image || project.featuredImage,
+            projectUrl: project.projectUrl,
+            year: project.year || new Date(project.createdAt || Date.now()).getFullYear()
+          }));
+          
+          setProjects(transformedProjects);
+        }
+      } catch (err) {
+        console.error('Failed to fetch featured projects:', err);
+        // Keep fallback projects if API fails
+        setProjects(getFallbackProjects());
+      }
+    };
+
+    fetchFeaturedProjects();
+  }, [getProjects]);
+
+  // Helper function to get gradient by index
+  const getGradientByIndex = (index) => {
+    const gradients = [
+      'from-blue-400 to-purple-700',
+      'from-purple-400 to-pink-600',
+      'from-green-400 to-blue-600',
+      'from-orange-400 to-red-600',
+      'from-indigo-400 to-purple-600',
+      'from-pink-400 to-rose-600'
+    ];
+    return gradients[index % gradients.length];
+  };
+
+  // Helper function to get category color
+  const getCategoryColor = (category) => {
+    const categoryColors = {
+      'E-Commerce': 'bg-blue-500/20 text-blue-300 border-blue-400/20',
+      'Mobile App': 'bg-violet-500/20 text-violet-300 border-violet-400/20',
+      'Web Development': 'bg-green-500/20 text-green-300 border-green-400/20',
+      'UI/UX Design': 'bg-pink-500/20 text-pink-300 border-pink-400/20',
+      'Backend': 'bg-orange-500/20 text-orange-300 border-orange-400/20',
+      'Full Stack': 'bg-purple-500/20 text-purple-300 border-purple-400/20'
+    };
+    return categoryColors[category] || 'bg-gray-500/20 text-gray-300 border-gray-400/20';
+  };
+
+  // Fallback projects in case API fails
+  const getFallbackProjects = () => [
     {
       id: 1,
       title: 'Ahbab Art Store',
@@ -183,11 +254,63 @@ const FeaturedProjectsSection = () => {
       </div>
 
       {/* Projects Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
-        {projects.map((project, index) => (
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
+          {[1, 2].map((index) => (
+            <div key={index} className="animate-pulse">
+              <div className="bg-gray-200 dark:bg-gray-700 h-72 rounded-t-3xl"></div>
+              <div className="bg-white dark:bg-gray-800 p-8 rounded-b-3xl">
+                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-4 w-3/4"></div>
+                <div className="flex gap-2 mb-4">
+                  <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
+                  <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+                  <div className="h-10 w-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : error ? (
+        <div className="text-center py-16">
+          <div className="text-red-500 mb-4">
+            <span className="material-icons text-6xl">error_outline</span>
+          </div>
+          <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">
+            Failed to load projects
+          </h3>
+          <p className="text-gray-500 dark:text-gray-500 mb-4">
+            {error}
+          </p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="btn btn-outline"
+          >
+            Try Again
+          </button>
+        </div>
+      ) : projects.length === 0 ? (
+        <div className="text-center py-16">
+          <div className="text-gray-400 mb-4">
+            <span className="material-icons text-6xl">work_off</span>
+          </div>
+          <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">
+            No projects found
+          </h3>
+          <p className="text-gray-500 dark:text-gray-500">
+            No featured projects are available at the moment.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
+          {projects.map((project, index) => (
           <div
             key={project.id}
-            className={`group relative transition-all duration-700 hover:scale-[1.02] ${
+            className={`group relative transition-all duration-700 hover:scale-[1.02] h-full ${
               isVisible 
                 ? 'opacity-100 translate-y-0' 
                 : 'opacity-0 translate-y-10'
@@ -200,7 +323,7 @@ const FeaturedProjectsSection = () => {
             <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
             
             {/* Main Card */}
-            <div className="relative card bg-base-100 shadow-2xl border border-base-300/50 rounded-3xl overflow-hidden backdrop-blur-sm hover:shadow-purple-500/20 transition-all duration-500">
+            <div className="relative card bg-base-100 shadow-2xl border border-base-300/50 rounded-3xl overflow-hidden backdrop-blur-sm hover:shadow-purple-500/20 transition-all duration-500 h-full flex flex-col">
               {/* Project Header with Enhanced Gradient */}
               <div className={`h-72 w-full bg-gradient-to-br ${project.gradient} relative flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform duration-700`}>
                 {/* Animated Background Pattern */}
@@ -233,7 +356,7 @@ const FeaturedProjectsSection = () => {
               </div>
 
               {/* Project Content with Enhanced Styling */}
-              <div className="card-body p-8 flex flex-col flex-grow relative">
+              <div className="card-body p-8 flex flex-col flex-grow relative min-h-0">
                 {/* Decorative Corner */}
                 <div className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-br from-purple-400/10 to-pink-400/10 rounded-xl rotate-12 group-hover:rotate-45 transition-transform duration-500"></div>
 
@@ -242,12 +365,12 @@ const FeaturedProjectsSection = () => {
                   <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 group-hover:w-full transition-all duration-500"></div>
                 </h3>
                 
-                <p className="text-base-content/70 text-sm leading-relaxed mb-8 flex-grow group-hover:text-base-content/80 transition-colors duration-300">
+                <p className="text-base-content/70 text-sm leading-relaxed mb-6 flex-grow group-hover:text-base-content/80 transition-colors duration-300 line-clamp-3">
                   {project.description}
                 </p>
 
                 {/* Enhanced Technology Tags */}
-                <div className="flex flex-wrap gap-3 mb-8">
+                <div className="flex flex-wrap gap-3 mb-6 min-h-[2rem]">
                   {project.technologies.map((tech, techIndex) => (
                     <div 
                       key={techIndex} 
@@ -265,18 +388,37 @@ const FeaturedProjectsSection = () => {
                     <span className="text-sm font-semibold text-base-content group-hover:text-purple-600 transition-colors duration-300">
                       {project.company}
                     </span>
+                    {project.year && (
+                      <span className="text-xs text-base-content/50">
+                        • {project.year}
+                      </span>
+                    )}
                   </div>
                   
-                  <button className="btn btn-circle btn-md bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 text-blue-600 dark:text-blue-400 border-2 border-blue-200 dark:border-blue-800 hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-transparent hover:scale-110 hover:rotate-12 transition-all duration-300 shadow-lg hover:shadow-xl group-hover:animate-bounce">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path 
-                        d="M14 5l7 7m0 0l-7 7m7-7H3" 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth="2"
-                      />
-                    </svg>
-                  </button>
+                  <div className="flex gap-2">
+                    {project.projectUrl && (
+                      <a
+                        href={project.projectUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-circle btn-sm bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 text-green-600 dark:text-green-400 border-2 border-green-200 dark:border-green-800 hover:from-green-600 hover:to-blue-600 hover:text-white hover:border-transparent hover:scale-110 transition-all duration-300 shadow-lg hover:shadow-xl"
+                        title="View Live Project"
+                      >
+                        <span className="material-icons text-sm">launch</span>
+                      </a>
+                    )}
+                    
+                    <button className="btn btn-circle btn-md bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 text-blue-600 dark:text-blue-400 border-2 border-blue-200 dark:border-blue-800 hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-transparent hover:scale-110 hover:rotate-12 transition-all duration-300 shadow-lg hover:shadow-xl group-hover:animate-bounce">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path 
+                          d="M14 5l7 7m0 0l-7 7m7-7H3" 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth="2"
+                        />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Floating Particles */}
@@ -286,7 +428,8 @@ const FeaturedProjectsSection = () => {
             </div>
           </div>
         ))}
-      </div>
+        </div>
+      )}
 
       {/* Floating Action Button */}
       <div className={`flex justify-center mt-20 transition-all duration-1000 delay-1000 ${

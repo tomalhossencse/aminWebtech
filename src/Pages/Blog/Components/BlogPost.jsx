@@ -1,8 +1,14 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 
 const BlogPost = ({ post, index = 0 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const navigate = useNavigate();
+
+  const handleReadMore = () => {
+    navigate(`/blog/${post._id || post.id}`);
+  };
 
   return (
     <article 
@@ -27,7 +33,7 @@ const BlogPost = ({ post, index = 0 }) => {
           className={`w-full h-full object-cover transition-all duration-700 ${
             imageLoaded ? 'opacity-100' : 'opacity-0'
           } ${isHovered ? 'scale-110' : 'scale-100'}`}
-          src={post.image}
+          src={post.featuredImage || post.image || 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=600&fit=crop'}
           onLoad={() => setImageLoaded(true)}
         />
         
@@ -48,12 +54,14 @@ const BlogPost = ({ post, index = 0 }) => {
         <div className={`absolute top-4 right-4 flex gap-1.5 transition-all duration-500 ${
           isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
         }`}>
-          <span className="bg-black/50 backdrop-blur-md text-white text-xs font-medium px-2.5 py-1 rounded-full">
-            {post.readTime}m
-          </span>
+          {post.readTime && (
+            <span className="bg-black/50 backdrop-blur-md text-white text-xs font-medium px-2.5 py-1 rounded-full">
+              {post.readTime}m
+            </span>
+          )}
           <span className="bg-black/50 backdrop-blur-md text-white text-xs font-medium px-2.5 py-1 rounded-full flex items-center gap-1">
             <span className="material-icons text-xs">visibility</span>
-            {post.views}
+            {post.views || 0}
           </span>
         </div>
 
@@ -73,11 +81,11 @@ const BlogPost = ({ post, index = 0 }) => {
         <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 mb-4">
           <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-slate-700/50 px-2.5 py-1 rounded-full">
             <span className="material-icons text-[14px] text-blue-500">calendar_today</span>
-            <span className="font-medium">{post.date}</span>
+            <span className="font-medium">{post.date || post.created || 'No date'}</span>
           </div>
           <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-slate-700/50 px-2.5 py-1 rounded-full">
             <span className="material-icons text-[14px] text-green-500">person</span>
-            <span className="font-medium">{post.author}</span>
+            <span className="font-medium">{post.author || 'Anonymous'}</span>
           </div>
         </div>
 
@@ -88,12 +96,12 @@ const BlogPost = ({ post, index = 0 }) => {
 
         {/* Excerpt */}
         <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed text-sm line-clamp-2">
-          {post.excerpt}
+          {post.excerpt || post.content?.substring(0, 150) + '...' || 'No description available'}
         </p>
 
         {/* Tags */}
         <div className="flex flex-wrap gap-2 mb-6">
-          {post.tags.slice(0, 2).map((tag, index) => (
+          {(post.tags || []).slice(0, 2).map((tag, index) => (
             <span
               key={index}
               className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 text-blue-700 dark:text-blue-300 border border-blue-200/50 dark:border-blue-700/50 hover:from-blue-100 hover:to-purple-100 dark:hover:from-blue-900/40 dark:hover:to-purple-900/40 transition-all duration-300 cursor-pointer hover:scale-105"
@@ -102,29 +110,29 @@ const BlogPost = ({ post, index = 0 }) => {
               {tag}
             </span>
           ))}
-          {post.tags.length > 2 && (
+          {(post.tags || []).length > 2 && (
             <span className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-600">
-              +{post.tags.length - 2}
+              +{(post.tags || []).length - 2}
             </span>
           )}
         </div>
 
         {/* Footer */}
         <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
-          <a 
-            href={post.slug}
+          <button 
+            onClick={handleReadMore}
             className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold px-4 py-2 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl group/btn text-sm"
           >
             Read More
             <span className="material-icons text-[16px] group-hover/btn:translate-x-1 transition-transform">
               arrow_forward
             </span>
-          </a>
+          </button>
           
           <div className="flex items-center gap-4 text-gray-400 text-xs">
             <div className="flex items-center gap-1 hover:text-blue-500 transition-colors cursor-pointer">
               <span className="material-icons text-[16px]">favorite</span>
-              <span className="font-medium">{post.likes}</span>
+              <span className="font-medium">{post.likes || 0}</span>
             </div>
             <div className="flex items-center gap-1 hover:text-green-500 transition-colors cursor-pointer">
               <span className="material-icons text-[16px]">share</span>

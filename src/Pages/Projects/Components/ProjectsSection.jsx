@@ -272,7 +272,7 @@ const ProjectCard = ({ project, index }) => {
 
   return (
     <div 
-      className={`bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 flex flex-col group ${
+      className={`bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 flex flex-col group h-full ${
         index % 2 === 0 ? 'animate-fade-in-up' : 'animate-fade-in-up'
       }`}
       style={{ animationDelay: `${index * 100}ms` }}

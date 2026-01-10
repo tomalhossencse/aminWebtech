@@ -3,11 +3,72 @@ const app = express();
 const cors = require("cors");
 require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const jwt = require("jsonwebtoken");
 const port = process.env.PORT || 3000;
+
+// JWT Secret - In production, use a strong secret from environment variables
+const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key-change-in-production";
 
 // middleware
 app.use(express.json());
 app.use(cors());
+
+// Admin verification middleware
+const verifyAdmin = (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader) {
+      return res.status(401).json({ 
+        error: "Access denied. No token provided.",
+        code: "NO_TOKEN" 
+      });
+    }
+
+    const token = authHeader.split(' ')[1]; // Bearer TOKEN
+    
+    if (!token) {
+      return res.status(401).json({ 
+        error: "Access denied. Invalid token format.",
+        code: "INVALID_TOKEN_FORMAT" 
+      });
+    }
+
+    // Verify JWT token
+    const decoded = jwt.verify(token, JWT_SECRET);
+    
+    // Check if user is admin
+    if (decoded.role !== 'admin') {
+      return res.status(403).json({ 
+        error: "Access denied. Admin privileges required.",
+        code: "INSUFFICIENT_PRIVILEGES" 
+      });
+    }
+
+    // Add user info to request
+    req.user = decoded;
+    next();
+  } catch (error) {
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ 
+        error: "Access denied. Invalid token.",
+        code: "INVALID_TOKEN" 
+      });
+    }
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ 
+        error: "Access denied. Token expired.",
+        code: "TOKEN_EXPIRED" 
+      });
+    }
+    
+    console.error("Auth middleware error:", error);
+    return res.status(500).json({ 
+      error: "Internal server error during authentication.",
+      code: "AUTH_ERROR" 
+    });
+  }
+};
 
 // mongodb
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.vybtxro.mongodb.net/?appName=Cluster0`;
@@ -203,8 +264,8 @@ async function run() {
       }
     });
 
-    // POST Services
-    app.post("/services", async (req, res) => {
+    // POST Services (Admin only)
+    app.post("/services", verifyAdmin, async (req, res) => {
       try {
         const service = req.body;
         const result = await servicesCollection.insertOne(service);
@@ -215,7 +276,7 @@ async function run() {
     });
 
     // ----------------Projects Related API -----------------
-    // GET projects with pagination and filters
+    // GET projects with pagination and filters (Public - for frontend display)
     app.get("/projects", async (req, res) => {
       try {
         const { 
@@ -275,6 +336,66 @@ async function run() {
       }
     });
 
+    // GET projects for admin management (Admin only)
+    app.get("/api/admin/projects", verifyAdmin, async (req, res) => {
+      try {
+        const { 
+          page = 1, 
+          limit = 10, 
+          search = "", 
+          status = "", 
+          category = "" 
+        } = req.query;
+        
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        
+        // Build filter query
+        let filter = {};
+        
+        if (search) {
+          filter.$or = [
+            { title: { $regex: search, $options: "i" } },
+            { description: { $regex: search, $options: "i" } },
+            { clientName: { $regex: search, $options: "i" } }
+          ];
+        }
+        
+        if (status && status !== "All Status") {
+          if (status === "Active") {
+            filter.isActive = true;
+          } else if (status === "Inactive") {
+            filter.isActive = false;
+          }
+        }
+        
+        if (category && category !== "All Categories") {
+          filter.category = category;
+        }
+        
+        // Get projects with pagination
+        const projects = await projectsCollection
+          .find(filter)
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(parseInt(limit))
+          .toArray();
+        
+        // Get total count for pagination
+        const total = await projectsCollection.countDocuments(filter);
+        
+        res.send({
+          projects,
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          totalPages: Math.ceil(total / parseInt(limit))
+        });
+      } catch (error) {
+        console.error("Get admin projects error:", error);
+        res.status(500).send({ error: "Failed to fetch projects" });
+      }
+    });
+
     // GET single project by ID
     app.get("/projects/:id", async (req, res) => {
       try {
@@ -292,8 +413,8 @@ async function run() {
       }
     });
 
-    // POST create new project
-    app.post("/projects", async (req, res) => {
+    // POST create new project (Admin only)
+    app.post("/projects", verifyAdmin, async (req, res) => {
       try {
         const project = {
           ...req.body,
@@ -309,8 +430,8 @@ async function run() {
       }
     });
 
-    // PUT update project
-    app.put("/projects/:id", async (req, res) => {
+    // PUT update project (Admin only)
+    app.put("/projects/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
         const updateData = {
@@ -334,8 +455,8 @@ async function run() {
       }
     });
 
-    // DELETE project
-    app.delete("/projects/:id", async (req, res) => {
+    // DELETE project (Admin only)
+    app.delete("/projects/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
         const result = await projectsCollection.deleteOne({ _id: new ObjectId(id) });
@@ -421,8 +542,8 @@ async function run() {
       }
     });
 
-    // POST create new blog
-    app.post("/blogs", async (req, res) => {
+    // POST create new blog (Admin only)
+    app.post("/blogs", verifyAdmin, async (req, res) => {
       try {
         const blog = {
           ...req.body,
@@ -443,8 +564,8 @@ async function run() {
       }
     });
 
-    // PUT update blog
-    app.put("/blogs/:id", async (req, res) => {
+    // PUT update blog (Admin only)
+    app.put("/blogs/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
         const updateData = {
@@ -474,8 +595,8 @@ async function run() {
       }
     });
 
-    // DELETE blog
-    app.delete("/blogs/:id", async (req, res) => {
+    // DELETE blog (Admin only)
+    app.delete("/blogs/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
         const result = await blogsCollection.deleteOne({ _id: new ObjectId(id) });
@@ -581,8 +702,8 @@ async function run() {
       }
     });
 
-    // POST create new team member
-    app.post("/team-members", async (req, res) => {
+    // POST create new team member (Admin only)
+    app.post("/team-members", verifyAdmin, async (req, res) => {
       try {
         const teamMember = {
           ...req.body,
@@ -599,8 +720,8 @@ async function run() {
       }
     });
 
-    // PUT update team member
-    app.put("/team-members/:id", async (req, res) => {
+    // PUT update team member (Admin only)
+    app.put("/team-members/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
         const updateData = {
@@ -624,8 +745,8 @@ async function run() {
       }
     });
 
-    // DELETE team member
-    app.delete("/team-members/:id", async (req, res) => {
+    // DELETE team member (Admin only)
+    app.delete("/team-members/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
         const result = await teamMembersCollection.deleteOne({ _id: new ObjectId(id) });
@@ -642,8 +763,8 @@ async function run() {
     });
 
     // ----------------Testimonials Related API -----------------
-    // GET testimonials with pagination and filters
-    app.get("/api/testimonials", async (req, res) => {
+    // GET testimonials with pagination and filters (Admin only)
+    app.get("/api/testimonials", verifyAdmin, async (req, res) => {
       try {
         const { 
           page = 1, 
@@ -726,8 +847,8 @@ async function run() {
       }
     });
 
-    // GET single testimonial by ID
-    app.get("/api/testimonials/:id", async (req, res) => {
+    // GET single testimonial by ID (Admin only)
+    app.get("/api/testimonials/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
         const testimonial = await testimonialsCollection.findOne({ _id: new ObjectId(id) });
@@ -743,8 +864,8 @@ async function run() {
       }
     });
 
-    // POST create new testimonial
-    app.post("/api/testimonials", async (req, res) => {
+    // POST create new testimonial (Admin only)
+    app.post("/api/testimonials", verifyAdmin, async (req, res) => {
       try {
         const testimonial = {
           ...req.body,
@@ -768,8 +889,8 @@ async function run() {
       }
     });
 
-    // PUT update testimonial
-    app.put("/api/testimonials/:id", async (req, res) => {
+    // PUT update testimonial (Admin only)
+    app.put("/api/testimonials/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
         const updateData = {
@@ -797,8 +918,8 @@ async function run() {
       }
     });
 
-    // DELETE testimonial
-    app.delete("/api/testimonials/:id", async (req, res) => {
+    // DELETE testimonial (Admin only)
+    app.delete("/api/testimonials/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
         const result = await testimonialsCollection.deleteOne({ _id: new ObjectId(id) });
@@ -814,8 +935,8 @@ async function run() {
       }
     });
 
-    // PUT toggle testimonial featured status
-    app.put("/api/testimonials/:id/featured", async (req, res) => {
+    // PUT toggle testimonial featured status (Admin only)
+    app.put("/api/testimonials/:id/featured", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
         const { featured } = req.body;
@@ -841,8 +962,8 @@ async function run() {
       }
     });
 
-    // PUT toggle testimonial active status
-    app.put("/api/testimonials/:id/active", async (req, res) => {
+    // PUT toggle testimonial active status (Admin only)
+    app.put("/api/testimonials/:id/active", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
         const { active } = req.body;
@@ -874,8 +995,8 @@ async function run() {
     });
 
     // ----------------Contacts Related API -----------------
-    // GET contacts with pagination and filters
-    app.get("/api/contacts", async (req, res) => {
+    // GET contacts with pagination and filters (Admin only)
+    app.get("/api/contacts", verifyAdmin, async (req, res) => {
       try {
         console.log("📞 GET /api/contacts - Request received");
         
@@ -958,8 +1079,8 @@ async function run() {
       }
     });
 
-    // GET single contact by ID
-    app.get("/api/contacts/:id", async (req, res) => {
+    // GET single contact by ID (Admin only)
+    app.get("/api/contacts/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
         const contact = await contactsCollection.findOne({ _id: new ObjectId(id) });
@@ -1011,8 +1132,8 @@ async function run() {
       }
     });
 
-    // PUT update contact status
-    app.put("/api/contacts/:id/status", async (req, res) => {
+    // PUT update contact status (Admin only)
+    app.put("/api/contacts/:id/status", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
         const { status } = req.body;
@@ -1048,8 +1169,8 @@ async function run() {
       }
     });
 
-    // DELETE contact
-    app.delete("/api/contacts/:id", async (req, res) => {
+    // DELETE contact (Admin only)
+    app.delete("/api/contacts/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
         const result = await contactsCollection.deleteOne({ _id: new ObjectId(id) });
@@ -1065,8 +1186,8 @@ async function run() {
       }
     });
 
-    // GET contact stats
-    app.get("/api/contacts/stats", async (req, res) => {
+    // GET contact stats (Admin only)
+    app.get("/api/contacts/stats", verifyAdmin, async (req, res) => {
       try {
         const stats = {
           total: await contactsCollection.countDocuments(),
@@ -1083,8 +1204,8 @@ async function run() {
       }
     });
 
-    // POST reply to contact
-    app.post("/api/contacts/:id/reply", async (req, res) => {
+    // POST reply to contact (Admin only)
+    app.post("/api/contacts/:id/reply", verifyAdmin, async (req, res) => {
       try {
         console.log("📧 POST /api/contacts/:id/reply - Request received");
         const { id } = req.params;
@@ -1240,8 +1361,8 @@ async function run() {
       }
     });
 
-    // GET replies for a contact
-    app.get("/api/contacts/:id/replies", async (req, res) => {
+    // GET replies for a contact (Admin only)
+    app.get("/api/contacts/:id/replies", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
         
@@ -1259,8 +1380,8 @@ async function run() {
 
     // -----------------------Analytics APIs---------------
 
-    // GET analytics overview
-    app.get("/analytics/overview", async (req, res) => {
+    // GET analytics overview (Admin only)
+    app.get("/analytics/overview", verifyAdmin, async (req, res) => {
       try {
         const { timeRange = "7d" } = req.query;
         
@@ -1322,8 +1443,8 @@ async function run() {
       }
     });
 
-    // GET visitor distribution by country
-    app.get("/analytics/visitor-distribution", async (req, res) => {
+    // GET visitor distribution by country (Admin only)
+    app.get("/analytics/visitor-distribution", verifyAdmin, async (req, res) => {
       try {
         const { timeRange = "7d" } = req.query;
         
@@ -1398,8 +1519,8 @@ async function run() {
       }
     });
 
-    // GET recent visitors
-    app.get("/analytics/recent-visitors", async (req, res) => {
+    // GET recent visitors (Admin only)
+    app.get("/analytics/recent-visitors", verifyAdmin, async (req, res) => {
       try {
         const { limit = 10 } = req.query;
         
@@ -1429,8 +1550,8 @@ async function run() {
       }
     });
 
-    // GET top performing pages
-    app.get("/analytics/top-pages", async (req, res) => {
+    // GET top performing pages (Admin only)
+    app.get("/analytics/top-pages", verifyAdmin, async (req, res) => {
       try {
         const { timeRange = "7d", limit = 10 } = req.query;
         
@@ -1626,25 +1747,53 @@ async function run() {
       try {
         const { username, password } = req.body;
         
-        // Simple authentication - replace with proper authentication
+        console.log("🔐 Login attempt for username:", username);
+        
+        // Simple authentication - replace with proper authentication in production
         if (username === "admin" && password === "admin123") {
+          // Generate JWT token
+          const tokenPayload = {
+            id: 1,
+            username: username,
+            role: "admin",
+            iat: Math.floor(Date.now() / 1000), // Issued at
+            exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // Expires in 24 hours
+          };
+          
+          const token = jwt.sign(tokenPayload, JWT_SECRET);
+          
+          console.log("✅ Login successful for admin");
+          
           res.send({
             success: true,
-            token: "jwt-token-here",
-            user: { id: 1, username, role: "admin" }
+            token: token,
+            user: { 
+              id: 1, 
+              username: username, 
+              role: "admin" 
+            },
+            expiresIn: "24h"
           });
         } else {
-          res.status(401).send({ error: "Invalid credentials" });
+          console.log("❌ Invalid credentials for username:", username);
+          res.status(401).send({ 
+            error: "Invalid credentials",
+            code: "INVALID_CREDENTIALS" 
+          });
         }
       } catch (error) {
-        res.status(500).send({ error: "Authentication failed" });
+        console.error("Authentication error:", error);
+        res.status(500).send({ 
+          error: "Authentication failed",
+          code: "AUTH_FAILED" 
+        });
       }
     });
 
     // ----------------Media Management API -----------------
     
-    // GET all media files with pagination and filters
-    app.get("/api/media", async (req, res) => {
+    // GET all media files with pagination and filters (Admin only)
+    app.get("/api/media", verifyAdmin, async (req, res) => {
       try {
         console.log("📁 GET /api/media - Request received");
         
@@ -1746,8 +1895,8 @@ async function run() {
       }
     });
 
-    // POST upload media file
-    app.post("/api/media", async (req, res) => {
+    // POST upload media file (Admin only)
+    app.post("/api/media", verifyAdmin, async (req, res) => {
       try {
         console.log("📤 POST /api/media - Upload request received");
         
@@ -1802,8 +1951,8 @@ async function run() {
       }
     });
 
-    // PUT update media file
-    app.put("/api/media/:id", async (req, res) => {
+    // PUT update media file (Admin only)
+    app.put("/api/media/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
         const updateData = { ...req.body };
@@ -1830,8 +1979,8 @@ async function run() {
       }
     });
 
-    // DELETE single media file
-    app.delete("/api/media/:id", async (req, res) => {
+    // DELETE single media file (Admin only)
+    app.delete("/api/media/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
         
@@ -1852,8 +2001,8 @@ async function run() {
       }
     });
 
-    // DELETE multiple media files
-    app.delete("/api/media", async (req, res) => {
+    // DELETE multiple media files (Admin only)
+    app.delete("/api/media", verifyAdmin, async (req, res) => {
       try {
         const { ids } = req.body;
         
@@ -1881,8 +2030,8 @@ async function run() {
       }
     });
 
-    // GET media file by ID
-    app.get("/api/media/:id", async (req, res) => {
+    // GET media file by ID (Admin only)
+    app.get("/api/media/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
         

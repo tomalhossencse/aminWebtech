@@ -146,8 +146,22 @@ export const useVisitorTracking = () => {
 
   // Function to get IP and location with multiple fallbacks
   const getLocationInfo = async () => {
-    // Try multiple location services
+    // Try multiple location services with CORS-friendly alternatives
     const services = [
+      {
+        name: 'fallback-fingerprint',
+        url: null, // No external request needed
+        parser: () => {
+          // Generate a unique identifier based on browser fingerprint for development
+          const fingerprint = btoa(navigator.userAgent + navigator.language + screen.width + screen.height).slice(0, 15);
+          return {
+            ipAddress: `dev_${fingerprint}`,
+            country: 'Development',
+            city: 'Localhost',
+            countryCode: 'DEV'
+          };
+        }
+      },
       {
         name: 'ipapi.co',
         url: 'https://ipapi.co/json/',
@@ -157,33 +171,22 @@ export const useVisitorTracking = () => {
           city: data.city || 'Unknown',
           countryCode: data.country_code || 'XX'
         })
-      },
-      {
-        name: 'ipify + ipapi',
-        url: 'https://api.ipify.org?format=json',
-        parser: async (data) => {
-          try {
-            const locationResponse = await fetch(`https://ipapi.co/${data.ip}/json/`);
-            const locationData = await locationResponse.json();
-            return {
-              ipAddress: data.ip || 'Unknown',
-              country: locationData.country_name || 'Unknown',
-              city: locationData.city || 'Unknown',
-              countryCode: locationData.country_code || 'XX'
-            };
-          } catch {
-            return {
-              ipAddress: data.ip || 'Unknown',
-              country: 'Unknown',
-              city: 'Unknown',
-              countryCode: 'XX'
-            };
-          }
-        }
       }
     ];
 
-    for (const service of services) {
+    // Check if we're in development mode (localhost)
+    const isDevelopment = window.location.hostname === 'localhost' || 
+                         window.location.hostname === '127.0.0.1' ||
+                         window.location.hostname.includes('localhost');
+
+    // If in development, use fallback immediately to avoid CORS issues
+    if (isDevelopment) {
+      console.log('🔧 Development mode detected, using fallback fingerprint');
+      return services[0].parser();
+    }
+
+    // In production, try external services
+    for (const service of services.slice(1)) { // Skip fallback service for production
       try {
         console.log(`🔍 Trying ${service.name} for location data...`);
         const response = await fetch(service.url, { 
@@ -213,15 +216,8 @@ export const useVisitorTracking = () => {
     }
 
     // Final fallback - generate a unique identifier based on browser fingerprint
-    const fingerprint = btoa(navigator.userAgent + navigator.language + screen.width + screen.height).slice(0, 15);
-    console.log('🔧 Using fallback fingerprint for tracking');
-    
-    return {
-      ipAddress: `fp_${fingerprint}`,
-      country: 'Unknown',
-      city: 'Unknown',
-      countryCode: 'XX'
-    };
+    console.log('🔧 All services failed, using fallback fingerprint');
+    return services[0].parser();
   };
 
   // Function to track current page
@@ -250,6 +246,8 @@ export const useVisitorTracking = () => {
       hasTrackedRef.current = true;
     } catch (error) {
       console.error('❌ Failed to track visitor:', error);
+      // Don't throw the error to prevent it from breaking the app
+      hasTrackedRef.current = true; // Mark as tracked to prevent retries
     }
   };
 

@@ -1,12 +1,12 @@
 import React from 'react';
 
-const BlogFilter = ({ activeFilter, onFilterChange, postCount }) => {
+const BlogFilter = ({ activeFilter, onFilterChange, postCount, categoryStats = {} }) => {
   const filters = [
-    { id: 'all', label: 'All Posts', count: postCount, icon: 'grid_view', color: 'from-blue-500 to-cyan-500' },
-    { id: 'mobile', label: 'Mobile Development', count: 3, icon: 'smartphone', color: 'from-green-500 to-emerald-500' },
-    { id: 'web', label: 'Web Development', count: 5, icon: 'language', color: 'from-purple-500 to-pink-500' },
-    { id: 'design', label: 'UI/UX Design', count: 2, icon: 'palette', color: 'from-orange-500 to-red-500' },
-    { id: 'backend', label: 'Backend', count: 4, icon: 'dns', color: 'from-indigo-500 to-blue-500' }
+    { id: 'all', label: 'All Posts', count: categoryStats.all || postCount, icon: 'grid_view', color: 'from-blue-500 to-cyan-500' },
+    { id: 'mobile', label: 'Mobile Development', count: categoryStats.mobile || 0, icon: 'smartphone', color: 'from-green-500 to-emerald-500' },
+    { id: 'web', label: 'Web Development', count: categoryStats.web || 0, icon: 'language', color: 'from-purple-500 to-pink-500' },
+    { id: 'design', label: 'UI/UX Design', count: categoryStats.design || 0, icon: 'palette', color: 'from-orange-500 to-red-500' },
+    { id: 'backend', label: 'Backend', count: categoryStats.backend || 0, icon: 'dns', color: 'from-indigo-500 to-blue-500' }
   ];
 
   return (

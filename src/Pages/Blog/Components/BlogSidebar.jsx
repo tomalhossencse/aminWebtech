@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 
-const BlogSidebar = ({ recentPosts, popularTags }) => {
+const BlogSidebar = ({ recentPosts, popularTags, title = "Recent Posts" }) => {
   const [email, setEmail] = useState('');
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubscribe = (e) => {
     e.preventDefault();
@@ -19,14 +21,14 @@ const BlogSidebar = ({ recentPosts, popularTags }) => {
       <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 hover:shadow-md transition-shadow duration-300">
         <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-5 flex items-center gap-2">
           <span className="material-icons text-blue-500">schedule</span>
-          Recent Posts
+          {title}
         </h3>
         <div className="space-y-4">
           {recentPosts.map((post) => (
-            <a 
+            <button 
               key={post.id}
-              href={post.slug}
-              className="group flex gap-4 items-start hover:bg-gray-50 dark:hover:bg-slate-700/50 p-2 -m-2 rounded-lg transition-colors"
+              onClick={() => navigate(post.slug)}
+              className="group flex gap-4 items-start hover:bg-gray-50 dark:hover:bg-slate-700/50 p-2 -m-2 rounded-lg transition-colors w-full text-left"
             >
               <div className="flex-shrink-0 w-20 h-16 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
                 <img 
@@ -44,7 +46,7 @@ const BlogSidebar = ({ recentPosts, popularTags }) => {
                   {post.date}
                 </p>
               </div>
-            </a>
+            </button>
           ))}
         </div>
       </div>

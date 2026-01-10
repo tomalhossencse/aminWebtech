@@ -9,7 +9,6 @@ const Projects = () => {
     <div>
       <ProjectsSection />
       <WorkingProcessSection />
-      {/* <WorkingProcessEnhanced/> */}
       <TechnologiesCarousel />
       <TestimonialsSimple />
     </div>
