@@ -20,6 +20,7 @@ import MediaManagement from "../Pages/Dashboard/Components/MediaManagement";
 import SettingsManagement from "../Pages/Dashboard/Components/SettingsManagement";
 import AdminLogin from "../Pages/Auth/AdminLogin";
 import AdminRoute from "../components/AdminRoute";
+import NotFound from "../Pages/NotFound/NotFound";
 
 export const router = createBrowserRouter([
   {
@@ -109,5 +110,9 @@ export const router = createBrowserRouter([
         Component: SettingsManagement,
       },
     ],
+  },
+  {
+    path: "*",
+    Component: NotFound,
   },
 ]);
