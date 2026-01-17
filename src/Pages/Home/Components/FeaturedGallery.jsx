@@ -79,22 +79,24 @@ const FeaturedGallery = () => {
       gradient: 'from-red-600 to-pink-600',
       hasCallout: true,
       calloutColor: 'bg-red-400'
+    },
+    {
+      id: 10,
+      title: 'Data Analytics & BI',
+      image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+      gradient: 'from-emerald-600 via-green-600 to-lime-600',
+      overlay: 'bg-emerald-900/30'
     }
   ];
-
-  const totalSlides = Math.ceil(galleryItems.length / 3);
 
   // Auto-slide functionality
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => {
-        const nextSlide = prev + 1;
-        return nextSlide >= totalSlides ? 0 : nextSlide;
-      });
+      setCurrentSlide((prev) => (prev + 1) % Math.ceil(galleryItems.length / 3));
     }, 4000); // Change slide every 4 seconds
 
     return () => clearInterval(interval);
-  }, [totalSlides]);
+  }, [galleryItems.length]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -146,13 +148,15 @@ const FeaturedGallery = () => {
         <div 
           className="flex transition-transform duration-1000 ease-in-out"
           style={{
-            transform: `translateX(-${currentSlide * 100}%)`
+            transform: `translateX(-${currentSlide * 100}%)`,
+            width: '100%' // CHANGE 1: Set to 100% instead of manual calculation
           }}
         >
-          {Array.from({ length: totalSlides }).map((_, slideIndex) => (
+          {Array.from({ length: Math.ceil(galleryItems.length / 3) }).map((_, slideIndex) => (
             <div 
               key={slideIndex}
-              className="w-full flex-shrink-0 grid grid-cols-1 md:grid-cols-3 gap-8 px-4"
+              className="w-full flex-shrink-0 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4"
+              // CHANGE 2: Remove the style={{ width: ... }} line from here
             >
               {galleryItems.slice(slideIndex * 3, slideIndex * 3 + 3).map((item, index) => (
                 <div
@@ -230,22 +234,6 @@ const FeaturedGallery = () => {
                 </div>
               ))}
             </div>
-          ))}
-        </div>
-
-        {/* Slider Navigation Dots */}
-        <div className="flex justify-center gap-2 mt-8">
-          {Array.from({ length: totalSlides }).map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentSlide(index)}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                currentSlide === index 
-                  ? 'bg-blue-500 w-8' 
-                  : 'bg-gray-300 hover:bg-gray-400'
-              }`}
-              aria-label={`Go to slide ${index + 1}`}
-            />
           ))}
         </div>
       </div>
