@@ -1,9 +1,9 @@
 import axios from "axios";
 
 const getBaseURL = () => {
-  if (import.meta.env.DEV) {
-    return "http://localhost:3000";
-  }
+  // if (import.meta.env.DEV) {
+  //   return "http://localhost:3000";
+  // }
   return "https://amin-web-tech-server.vercel.app";
 };
 
@@ -29,7 +29,7 @@ axiosInstance.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // 2. RESPONSE INTERCEPTOR: The "Session Monitor"
@@ -50,7 +50,7 @@ axiosInstance.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 const useAxios = () => {
