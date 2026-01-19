@@ -1,10 +1,8 @@
 import axios from "axios";
 
 const getBaseURL = () => {
-  if (import.meta.env.DEV) {
-    return "http://localhost:3000";
-  }
-  return "https://amin-web-tech-server.vercel.app";
+  // Always use local server for development
+  return "http://localhost:3000";
 };
 
 const axiosInstance = axios.create({

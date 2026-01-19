@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router';
 import { 
   BarChart, 
@@ -20,9 +19,7 @@ import {
   Star,
   Mail,
   TrendingUp,
-  Activity,
-  Eye,
-  Calendar
+  Activity
 } from 'lucide-react';
 import RecentActivities from './RecentActivities';
 import RecentContacts from './RecentContacts';
@@ -30,18 +27,9 @@ import useDashboardAPI from '../../../hooks/useDashboardAPI';
 
 const DashboardHome = () => {
   const { isDarkMode } = useOutletContext();
-  const [isChartsReady, setIsChartsReady] = useState(false);
   
   // Get dashboard data from API
   const { dashboardData, loading: dashboardLoading, error: dashboardError } = useDashboardAPI();
-
-  // Ensure charts render properly
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsChartsReady(true);
-    }, 100);
-    return () => clearTimeout(timer);
-  }, []);
 
   // Extract data from API response
   const { stats, contentData, pieData } = dashboardData || {};
@@ -122,7 +110,7 @@ const DashboardHome = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-2 sm:px-3 lg:px-4 py-4">
+    <div className="max-w-7xl mx-auto px-2 sm:px-3 lg:px-4 py-4 overflow-hidden">
       {/* Welcome Section */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
@@ -176,39 +164,51 @@ const DashboardHome = () => {
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-8 overflow-hidden">
         {/* Bar Chart */}
-        <div className="xl:col-span-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4 border border-gray-100 dark:border-gray-700">
+        <div className="xl:col-span-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4 border border-gray-100 dark:border-gray-700 overflow-hidden">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-6">Content Overview</h3>
-          <div className="w-full h-80 min-h-[320px]">
-            {isChartsReady && contentData ? (
-              <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={320}>
-                <BarChart data={contentData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
-                  <XAxis 
-                    dataKey="name" 
-                    stroke="#6b7280"
-                    fontSize={12}
-                  />
-                  <YAxis 
-                    stroke="#6b7280"
-                    fontSize={12}
-                  />
-                  <Tooltip 
-                    contentStyle={{
-                      backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
-                      border: '1px solid #374151',
-                      borderRadius: '8px',
-                      color: isDarkMode ? '#f3f4f6' : '#111827'
-                    }}
-                  />
-                  <Bar 
-                    dataKey="value" 
-                    fill="#3b82f6"
-                    radius={[4, 4, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+          <div className="w-full h-80 min-h-[320px] overflow-hidden">
+            {contentData ? (
+              <div className="w-full h-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart 
+                    data={contentData} 
+                    margin={{ top: 20, right: 20, left: 10, bottom: 20 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+                    <XAxis 
+                      dataKey="name" 
+                      stroke="#6b7280"
+                      fontSize={12}
+                      tick={{ fontSize: 12 }}
+                      interval={0}
+                      angle={-45}
+                      textAnchor="end"
+                      height={60}
+                    />
+                    <YAxis 
+                      stroke="#6b7280"
+                      fontSize={12}
+                      tick={{ fontSize: 12 }}
+                      width={40}
+                    />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
+                        border: '1px solid #374151',
+                        borderRadius: '8px',
+                        color: isDarkMode ? '#f3f4f6' : '#111827'
+                      }}
+                    />
+                    <Bar 
+                      dataKey="value" 
+                      fill="#3b82f6"
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <div className="animate-pulse text-gray-500 dark:text-gray-400">Loading chart...</div>
@@ -218,7 +218,7 @@ const DashboardHome = () => {
         </div>
 
         {/* Pie Chart */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 flex flex-col items-center">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 flex flex-col items-center overflow-hidden">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-6">Services Status</h3>
           
           <div className="flex justify-center space-x-4 mb-6">
@@ -232,33 +232,35 @@ const DashboardHome = () => {
             </span>
           </div>
           
-          <div className="w-48 h-48 min-w-[192px] min-h-[192px]">
-            {isChartsReady && pieData ? (
-              <ResponsiveContainer width="100%" height="100%" minWidth={192} minHeight={192}>
-                <PieChart margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{
-                      backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
-                      border: '1px solid #374151',
-                      borderRadius: '8px',
-                      color: isDarkMode ? '#f3f4f6' : '#111827'
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+          <div className="w-full max-w-[200px] h-48 flex justify-center items-center overflow-hidden">
+            {pieData ? (
+              <div className="w-full h-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={75}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {pieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
+                        border: '1px solid #374151',
+                        borderRadius: '8px',
+                        color: isDarkMode ? '#f3f4f6' : '#111827'
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <div className="animate-pulse text-gray-500 dark:text-gray-400">Loading chart...</div>

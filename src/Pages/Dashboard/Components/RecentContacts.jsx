@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { MessageSquare, ExternalLink, Eye, CheckCircle, Mail, Phone, Clock, ArrowRight } from 'lucide-react';
 import useContactsAPI from '../../../hooks/useContactsAPI';
+import ContactViewModal from '../../../components/ContactViewModal';
 
 const RecentContacts = () => {
   const [activeFilter, setActiveFilter] = useState('all');
-  const { contacts, stats, loading } = useContactsAPI();
+  const [selectedContact, setSelectedContact] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { contacts, stats, loading, updateContactStatus, deleteContact, replyToContact } = useContactsAPI();
 
   // Get recent contacts (last 3)
   const recentContacts = contacts.slice(0, 3);
@@ -88,6 +91,34 @@ const RecentContacts = () => {
       return `${diffInDays} days ago`;
     } else {
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+  };
+
+  const handleQuickView = (contact) => {
+    setSelectedContact(contact);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedContact(null);
+  };
+
+  const handleStatusChange = async (contactId, newStatus) => {
+    if (updateContactStatus) {
+      await updateContactStatus(contactId, newStatus);
+    }
+  };
+
+  const handleDeleteContact = async (contactId) => {
+    if (deleteContact) {
+      await deleteContact(contactId);
+    }
+  };
+
+  const handleReplyToContact = async (contactId, message, trackingId) => {
+    if (replyToContact) {
+      await replyToContact(contactId, message, trackingId);
     }
   };
 
@@ -177,11 +208,17 @@ const RecentContacts = () => {
                   </div>
                   
                   <div className="flex gap-3">
-                    <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors shadow-sm shadow-blue-200 dark:shadow-none">
+                    <button 
+                      onClick={() => handleQuickView(contact)}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors shadow-sm shadow-blue-200 dark:shadow-none"
+                    >
                       <Eye className="w-4 h-4" />
                       Quick View
                     </button>
-                    <button className="bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-900/20 dark:hover:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50 px-4 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors">
+                    <button 
+                      onClick={() => handleQuickView(contact)}
+                      className="bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-900/20 dark:hover:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50 px-4 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors"
+                    >
                       <CheckCircle className="w-4 h-4" />
                       Reply
                     </button>
@@ -207,6 +244,17 @@ const RecentContacts = () => {
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </a>
       </div>
+
+      {/* Contact View Modal */}
+      <ContactViewModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        contact={selectedContact}
+        onStatusChange={handleStatusChange}
+        onDelete={handleDeleteContact}
+        onReply={handleReplyToContact}
+        loading={loading}
+      />
     </div>
   );
 };

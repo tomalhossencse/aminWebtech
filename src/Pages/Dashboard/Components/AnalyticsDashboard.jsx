@@ -520,40 +520,42 @@ const AnalyticsDashboard = () => {
             </div>
           </div>
 
-          <div className="flex-grow flex items-center justify-center relative mb-6 min-h-[300px]">
+          <div className="flex-grow flex items-center justify-center relative mb-6 min-h-[320px]">
             <div className="w-full max-w-sm h-80 relative">
-              {isChartsReady && visitorDistribution && visitorDistribution.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%" minWidth={250} minHeight={300}>
-                  <PieChart>
-                    <Pie
-                      data={visitorDistribution}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={renderCustomizedLabel}
-                      outerRadius={80}
-                      innerRadius={50}
-                      fill="#8884d8"
-                      dataKey="value"
-                      animationBegin={0}
-                      animationDuration={800}
-                    >
-                      {visitorDistribution.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip content={<CustomTooltip />} />
-                    <Legend
-                      verticalAlign="bottom"
-                      height={36}
-                      iconType="circle"
-                      wrapperStyle={{
-                        fontSize: "12px",
-                        color: isDarkMode ? "#9CA3AF" : "#4B5563",
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+              {visitorDistribution && visitorDistribution.length > 0 ? (
+                <div className="w-full h-full">
+                  <ResponsiveContainer width="100%" height="100%" aspect={1}>
+                    <PieChart>
+                      <Pie
+                        data={visitorDistribution}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={renderCustomizedLabel}
+                        outerRadius={80}
+                        innerRadius={50}
+                        fill="#8884d8"
+                        dataKey="value"
+                        animationBegin={500}
+                        animationDuration={800}
+                      >
+                        {visitorDistribution.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend
+                        verticalAlign="bottom"
+                        height={36}
+                        iconType="circle"
+                        wrapperStyle={{
+                          fontSize: "12px",
+                          color: isDarkMode ? "#9CA3AF" : "#4B5563",
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <div className="text-center">

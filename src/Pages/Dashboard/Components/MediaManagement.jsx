@@ -289,8 +289,8 @@ const MediaManagement = () => {
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredFiles.map((file) => (
-            <div key={file._id} className="group relative flex flex-col">
+          {filteredFiles.map((file, index) => (
+            <div key={`${file._id}-${index}`} className="group relative flex flex-col">
               <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
                 {renderFilePreview(file)}
                 
