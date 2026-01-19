@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router';
 import useLogin from '../../hooks/useLogin';
 
 const AdminLogin = () => {
@@ -10,7 +9,6 @@ const AdminLogin = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isDark, setIsDark] = useState(false);
-  const navigate = useNavigate();
   const loginMutation = useLogin();
 
   // Dark mode management

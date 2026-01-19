@@ -125,7 +125,7 @@ const HeroSlider = () => {
         </button>
 
         {/* Navigation arrows */}
-        <div className="hidden md:flex items-center gap-4 ml-auto">
+        {/* <div className="hidden md:flex items-center gap-4 ml-auto">
           <button
             onClick={prevSlide}
             className="btn btn-circle btn-ghost text-white hover:bg-white/10 hover:scale-110 transition-all duration-400 ease-out"
@@ -140,7 +140,7 @@ const HeroSlider = () => {
           >
             <i className="fas fa-chevron-right"></i>
           </button>
-        </div>
+        </div> */}
       </header>
 
       {/* Main Content */}

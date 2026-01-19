@@ -1,9 +1,9 @@
 import axios from "axios";
 
 const getBaseURL = () => {
-  // if (import.meta.env.DEV) {
-  //   return "http://localhost:3000";
-  // }
+  if (import.meta.env.DEV) {
+    return "http://localhost:3000";
+  }
   return "https://amin-web-tech-server.vercel.app";
 };
 
@@ -44,8 +44,8 @@ axiosInstance.interceptors.response.use(
       localStorage.removeItem("admin_token");
 
       // Force redirect to login page if we are not already there
-      if (!window.location.pathname.includes("/admin-login")) {
-        window.location.replace("/admin-login");
+      if (!window.location.pathname.includes("/admin")) {
+        window.location.replace("/admin");
       }
     }
 

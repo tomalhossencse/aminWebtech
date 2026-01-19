@@ -3,11 +3,72 @@ const app = express();
 const cors = require("cors");
 require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const jwt = require("jsonwebtoken");
 const port = process.env.PORT || 3000;
+
+// JWT Secret - In production, use a strong secret from environment variables
+const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key-change-in-production";
 
 // middleware
 app.use(express.json());
 app.use(cors());
+
+// Admin verification middleware
+const verifyAdmin = (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader) {
+      return res.status(401).json({ 
+        error: "Access denied. No token provided.",
+        code: "NO_TOKEN" 
+      });
+    }
+
+    const token = authHeader.split(' ')[1]; // Bearer TOKEN
+    
+    if (!token) {
+      return res.status(401).json({ 
+        error: "Access denied. Invalid token format.",
+        code: "INVALID_TOKEN_FORMAT" 
+      });
+    }
+
+    // Verify JWT token
+    const decoded = jwt.verify(token, JWT_SECRET);
+    
+    // Check if user is admin
+    if (decoded.role !== 'admin') {
+      return res.status(403).json({ 
+        error: "Access denied. Admin privileges required.",
+        code: "INSUFFICIENT_PRIVILEGES" 
+      });
+    }
+
+    // Add user info to request
+    req.user = decoded;
+    next();
+  } catch (error) {
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ 
+        error: "Access denied. Invalid token.",
+        code: "INVALID_TOKEN" 
+      });
+    }
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ 
+        error: "Access denied. Token expired.",
+        code: "TOKEN_EXPIRED" 
+      });
+    }
+    
+    console.error("Auth middleware error:", error);
+    return res.status(500).json({ 
+      error: "Internal server error during authentication.",
+      code: "AUTH_ERROR" 
+    });
+  }
+};
 
 // mongodb
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.vybtxro.mongodb.net/?appName=Cluster0`;
@@ -33,6 +94,7 @@ async function run() {
     const testimonialsCollection = db.collection("testimonials");
     const contactsCollection = db.collection("contacts");
     const repliesCollection = db.collection("replies");
+    const mediaCollection = db.collection("media");
     
     // Analytics Collections
     const analyticsCollection = db.collection("analytics");
@@ -641,8 +703,8 @@ async function run() {
     });
 
     // ----------------Testimonials Related API -----------------
-    // GET testimonials with pagination and filters
-    app.get("/api/testimonials", async (req, res) => {
+    // GET testimonials with pagination and filters (Admin only)
+    app.get("/api/testimonials", verifyAdmin, async (req, res) => {
       try {
         const { 
           page = 1, 
@@ -725,8 +787,8 @@ async function run() {
       }
     });
 
-    // GET single testimonial by ID
-    app.get("/api/testimonials/:id", async (req, res) => {
+    // GET single testimonial by ID (Admin only)
+    app.get("/api/testimonials/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
         const testimonial = await testimonialsCollection.findOne({ _id: new ObjectId(id) });
@@ -742,8 +804,8 @@ async function run() {
       }
     });
 
-    // POST create new testimonial
-    app.post("/api/testimonials", async (req, res) => {
+    // POST create new testimonial (Admin only)
+    app.post("/api/testimonials", verifyAdmin, async (req, res) => {
       try {
         const testimonial = {
           ...req.body,
@@ -767,8 +829,8 @@ async function run() {
       }
     });
 
-    // PUT update testimonial
-    app.put("/api/testimonials/:id", async (req, res) => {
+    // PUT update testimonial (Admin only)
+    app.put("/api/testimonials/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
         const updateData = {
@@ -796,8 +858,8 @@ async function run() {
       }
     });
 
-    // DELETE testimonial
-    app.delete("/api/testimonials/:id", async (req, res) => {
+    // DELETE testimonial (Admin only)
+    app.delete("/api/testimonials/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
         const result = await testimonialsCollection.deleteOne({ _id: new ObjectId(id) });
@@ -813,8 +875,8 @@ async function run() {
       }
     });
 
-    // PUT toggle testimonial featured status
-    app.put("/api/testimonials/:id/featured", async (req, res) => {
+    // PUT toggle testimonial featured status (Admin only)
+    app.put("/api/testimonials/:id/featured", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
         const { featured } = req.body;
@@ -840,8 +902,8 @@ async function run() {
       }
     });
 
-    // PUT toggle testimonial active status
-    app.put("/api/testimonials/:id/active", async (req, res) => {
+    // PUT toggle testimonial active status (Admin only)
+    app.put("/api/testimonials/:id/active", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
         const { active } = req.body;
@@ -868,8 +930,8 @@ async function run() {
     });
 
     // ----------------Contacts Related API -----------------
-    // GET contacts with pagination and filters
-    app.get("/api/contacts", async (req, res) => {
+    // GET contacts with pagination and filters (Admin only)
+    app.get("/api/contacts", verifyAdmin, async (req, res) => {
       try {
         const { 
           page = 1, 
@@ -930,8 +992,8 @@ async function run() {
       }
     });
 
-    // GET single contact by ID
-    app.get("/api/contacts/:id", async (req, res) => {
+    // GET single contact by ID (Admin only)
+    app.get("/api/contacts/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
         const contact = await contactsCollection.findOne({ _id: new ObjectId(id) });
@@ -970,8 +1032,8 @@ async function run() {
       }
     });
 
-    // PUT update contact status
-    app.put("/api/contacts/:id/status", async (req, res) => {
+    // PUT update contact status (Admin only)
+    app.put("/api/contacts/:id/status", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
         const { status } = req.body;
@@ -1007,8 +1069,8 @@ async function run() {
       }
     });
 
-    // DELETE contact
-    app.delete("/api/contacts/:id", async (req, res) => {
+    // DELETE contact (Admin only)
+    app.delete("/api/contacts/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
         const result = await contactsCollection.deleteOne({ _id: new ObjectId(id) });
@@ -1024,8 +1086,8 @@ async function run() {
       }
     });
 
-    // GET contact stats
-    app.get("/api/contacts/stats", async (req, res) => {
+    // GET contact stats (Admin only)
+    app.get("/api/contacts/stats", verifyAdmin, async (req, res) => {
       try {
         const stats = {
           total: await contactsCollection.countDocuments(),
@@ -1042,8 +1104,8 @@ async function run() {
       }
     });
 
-    // POST reply to contact
-    app.post("/api/contacts/:id/reply", async (req, res) => {
+    // POST reply to contact (Admin only)
+    app.post("/api/contacts/:id/reply", verifyAdmin, async (req, res) => {
       try {
         console.log("📧 POST /api/contacts/:id/reply - Request received");
         const { id } = req.params;
@@ -1199,8 +1261,8 @@ async function run() {
       }
     });
 
-    // GET replies for a contact
-    app.get("/api/contacts/:id/replies", async (req, res) => {
+    // GET replies for a contact (Admin only)
+    app.get("/api/contacts/:id/replies", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
         
@@ -1218,8 +1280,8 @@ async function run() {
 
     // -----------------------Analytics APIs---------------
 
-    // GET analytics overview
-    app.get("/analytics/overview", async (req, res) => {
+    // GET analytics overview (Admin only)
+    app.get("/analytics/overview", verifyAdmin, async (req, res) => {
       try {
         const { timeRange = "7d" } = req.query;
         
@@ -1281,8 +1343,8 @@ async function run() {
       }
     });
 
-    // GET visitor distribution by country
-    app.get("/analytics/visitor-distribution", async (req, res) => {
+    // GET visitor distribution by country (Admin only)
+    app.get("/analytics/visitor-distribution", verifyAdmin, async (req, res) => {
       try {
         const { timeRange = "7d" } = req.query;
         
@@ -1357,8 +1419,8 @@ async function run() {
       }
     });
 
-    // GET recent visitors
-    app.get("/analytics/recent-visitors", async (req, res) => {
+    // GET recent visitors (Admin only)
+    app.get("/analytics/recent-visitors", verifyAdmin, async (req, res) => {
       try {
         const { limit = 10 } = req.query;
         
@@ -1388,8 +1450,8 @@ async function run() {
       }
     });
 
-    // GET top performing pages
-    app.get("/analytics/top-pages", async (req, res) => {
+    // GET top performing pages (Admin only)
+    app.get("/analytics/top-pages", verifyAdmin, async (req, res) => {
       try {
         const { timeRange = "7d", limit = 10 } = req.query;
         
@@ -1650,19 +1712,332 @@ async function run() {
       try {
         const { username, password } = req.body;
         
-        // Simple authentication - replace with proper authentication
+        console.log("🔐 Login attempt for username:", username);
+        
+        // Simple authentication - replace with proper authentication in production
         if (username === "admin" && password === "admin123") {
+          // Generate JWT token
+          const tokenPayload = {
+            id: 1,
+            username: username,
+            role: "admin",
+            iat: Math.floor(Date.now() / 1000), // Issued at
+            exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // Expires in 24 hours
+          };
+          
+          const token = jwt.sign(tokenPayload, JWT_SECRET);
+          
+          console.log("✅ Login successful for admin");
+          
           res.send({
             success: true,
-            token: "jwt-token-here",
-            user: { id: 1, username, role: "admin" }
+            token: token,
+            user: { 
+              id: 1, 
+              username: username, 
+              role: "admin" 
+            },
+            expiresIn: "24h"
           });
         } else {
-          res.status(401).send({ error: "Invalid credentials" });
+          console.log("❌ Invalid credentials for username:", username);
+          res.status(401).send({ 
+            error: "Invalid credentials",
+            code: "INVALID_CREDENTIALS" 
+          });
         }
       } catch (error) {
-        res.status(500).send({ error: "Authentication failed" });
+        console.error("Authentication error:", error);
+        res.status(500).send({ 
+          error: "Authentication failed",
+          code: "AUTH_FAILED" 
+        });
       }
+    });
+
+    // ----------------Media Management API -----------------
+    
+    // GET all media files with pagination and filters (Admin only)
+    app.get("/api/media", verifyAdmin, async (req, res) => {
+      try {
+        console.log("📁 GET /api/media - Request received");
+        
+        const { 
+          page = 1, 
+          limit = 20, 
+          search = "", 
+          type = "",
+          sortBy = "createdAt",
+          sortOrder = "desc"
+        } = req.query;
+        
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        
+        // Build filter query
+        let filter = {};
+        
+        if (search) {
+          filter.$or = [
+            { name: { $regex: search, $options: "i" } },
+            { originalName: { $regex: search, $options: "i" } },
+            { alt: { $regex: search, $options: "i" } }
+          ];
+        }
+        
+        if (type && type !== "All Types") {
+          filter.type = type;
+        }
+        
+        // Build sort query
+        const sort = {};
+        sort[sortBy] = sortOrder === "desc" ? -1 : 1;
+        
+        console.log("Media filter:", filter);
+        console.log("Media sort:", sort);
+        
+        const [media, total] = await Promise.all([
+          mediaCollection
+            .find(filter)
+            .sort(sort)
+            .skip(skip)
+            .limit(parseInt(limit))
+            .toArray(),
+          mediaCollection.countDocuments(filter)
+        ]);
+        
+        // Calculate stats
+        const stats = await mediaCollection.aggregate([
+          {
+            $group: {
+              _id: "$type",
+              count: { $sum: 1 },
+              totalSize: { $sum: "$size" }
+            }
+          }
+        ]).toArray();
+        
+        const statsObj = {
+          total: total,
+          images: 0,
+          documents: 0,
+          videos: 0,
+          audio: 0,
+          totalSize: 0
+        };
+        
+        stats.forEach(stat => {
+          statsObj.totalSize += stat.totalSize;
+          switch(stat._id) {
+            case 'Image':
+              statsObj.images = stat.count;
+              break;
+            case 'Document':
+              statsObj.documents = stat.count;
+              break;
+            case 'Video':
+              statsObj.videos = stat.count;
+              break;
+            case 'Audio':
+              statsObj.audio = stat.count;
+              break;
+          }
+        });
+        
+        console.log("✅ Media fetched successfully:", { total, mediaCount: media.length });
+        
+        res.send({
+          media,
+          stats: statsObj,
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          totalPages: Math.ceil(total / parseInt(limit))
+        });
+        
+      } catch (error) {
+        console.error("❌ Get media error:", error);
+        res.status(500).send({ error: "Failed to fetch media files" });
+      }
+    });
+
+    // POST upload media file (Admin only)
+    app.post("/api/media", verifyAdmin, async (req, res) => {
+      try {
+        console.log("📤 POST /api/media - Upload request received");
+        
+        const { 
+          name,
+          originalName,
+          type,
+          size,
+          url,
+          display_url,
+          thumb_url,
+          medium_url,
+          delete_url,
+          alt,
+          mimeType,
+          width,
+          height,
+          imgbb_id,
+          imgbb_filename,
+          storage_provider
+        } = req.body;
+        
+        // Validate required fields
+        if (!name || !type || !size) {
+          return res.status(400).send({ 
+            error: "Missing required fields: name, type, size" 
+          });
+        }
+        
+        const mediaData = {
+          name: name.trim(),
+          originalName: originalName || name,
+          type,
+          size: parseInt(size),
+          url: url || null,
+          display_url: display_url || url || null,
+          thumb_url: thumb_url || null,
+          medium_url: medium_url || null,
+          delete_url: delete_url || null,
+          alt: alt || "",
+          mimeType: mimeType || "",
+          width: width ? parseInt(width) : null,
+          height: height ? parseInt(height) : null,
+          imgbb_id: imgbb_id || null,
+          imgbb_filename: imgbb_filename || null,
+          storage_provider: storage_provider || 'local',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        
+        console.log("Creating media file:", {
+          ...mediaData,
+          storage_provider: mediaData.storage_provider,
+          imgbb_id: mediaData.imgbb_id ? 'Present' : 'None'
+        });
+        
+        const result = await mediaCollection.insertOne(mediaData);
+        
+        console.log("✅ Media file created:", result.insertedId);
+        
+        res.status(201).send({
+          _id: result.insertedId,
+          ...mediaData,
+          message: `Media file uploaded successfully${storage_provider === 'imgbb' ? ' to ImgBB' : ''}`
+        });
+        
+      } catch (error) {
+        console.error("❌ Upload media error:", error);
+        res.status(500).send({ error: "Failed to upload media file" });
+      }
+    });
+
+    // PUT update media file (Admin only)
+    app.put("/api/media/:id", verifyAdmin, async (req, res) => {
+      try {
+        const { id } = req.params;
+        const updateData = { ...req.body };
+        delete updateData._id;
+        updateData.updatedAt = new Date();
+        
+        console.log("📝 Updating media file:", id, updateData);
+        
+        const result = await mediaCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: updateData }
+        );
+        
+        if (result.matchedCount === 0) {
+          return res.status(404).send({ error: "Media file not found" });
+        }
+        
+        console.log("✅ Media file updated:", id);
+        res.send({ message: "Media file updated successfully" });
+        
+      } catch (error) {
+        console.error("❌ Update media error:", error);
+        res.status(500).send({ error: "Failed to update media file" });
+      }
+    });
+
+    // DELETE single media file (Admin only)
+    app.delete("/api/media/:id", verifyAdmin, async (req, res) => {
+      try {
+        const { id } = req.params;
+        
+        console.log("🗑️ Deleting media file:", id);
+        
+        const result = await mediaCollection.deleteOne({ _id: new ObjectId(id) });
+        
+        if (result.deletedCount === 0) {
+          return res.status(404).send({ error: "Media file not found" });
+        }
+        
+        console.log("✅ Media file deleted:", id);
+        res.send({ message: "Media file deleted successfully" });
+        
+      } catch (error) {
+        console.error("❌ Delete media error:", error);
+        res.status(500).send({ error: "Failed to delete media file" });
+      }
+    });
+
+    // DELETE multiple media files (Admin only)
+    app.delete("/api/media", verifyAdmin, async (req, res) => {
+      try {
+        const { ids } = req.body;
+        
+        if (!ids || !Array.isArray(ids) || ids.length === 0) {
+          return res.status(400).send({ error: "Invalid or empty ids array" });
+        }
+        
+        console.log("🗑️ Deleting multiple media files:", ids);
+        
+        const objectIds = ids.map(id => new ObjectId(id));
+        const result = await mediaCollection.deleteMany({ 
+          _id: { $in: objectIds } 
+        });
+        
+        console.log("✅ Media files deleted:", result.deletedCount);
+        
+        res.send({ 
+          message: `${result.deletedCount} media files deleted successfully`,
+          deletedCount: result.deletedCount
+        });
+        
+      } catch (error) {
+        console.error("❌ Delete multiple media error:", error);
+        res.status(500).send({ error: "Failed to delete media files" });
+      }
+    });
+
+    // GET media file by ID (Admin only)
+    app.get("/api/media/:id", verifyAdmin, async (req, res) => {
+      try {
+        const { id } = req.params;
+        
+        console.log("📁 Getting media file:", id);
+        
+        const media = await mediaCollection.findOne({ _id: new ObjectId(id) });
+        
+        if (!media) {
+          return res.status(404).send({ error: "Media file not found" });
+        }
+        
+        console.log("✅ Media file found:", media.name);
+        res.send(media);
+        
+      } catch (error) {
+        console.error("❌ Get media by ID error:", error);
+        res.status(500).send({ error: "Failed to fetch media file" });
+      }
+    });
+
+    // Test endpoint for media
+    app.get("/api/media/test", (req, res) => {
+      res.send({ message: "Media API is working!", timestamp: new Date() });
     });
 
   } finally {
