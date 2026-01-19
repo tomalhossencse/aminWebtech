@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { MessageSquare, ExternalLink, Eye, CheckCircle, Mail, Phone, Clock, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router';
 import useContactsAPI from '../../../hooks/useContactsAPI';
 import ContactViewModal from '../../../components/ContactViewModal';
 
 const RecentContacts = () => {
+  const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState('all');
   const [selectedContact, setSelectedContact] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -122,6 +124,10 @@ const RecentContacts = () => {
     }
   };
 
+  const handleViewAllContacts = () => {
+    navigate('/dashboard/contacts');
+  };
+
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col h-full">
       <div className="p-6 flex justify-between items-start">
@@ -136,7 +142,10 @@ const RecentContacts = () => {
             </p>
           </div>
         </div>
-        <button className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg flex items-center gap-1 transition-colors">
+        <button 
+          onClick={handleViewAllContacts}
+          className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg flex items-center gap-1 transition-colors"
+        >
           View All
           <ExternalLink className="w-4 h-4" />
         </button>
@@ -239,10 +248,13 @@ const RecentContacts = () => {
         <span className="text-gray-500 dark:text-gray-400">
           Showing {recentContacts.length} of {stats.total || 0} messages
         </span>
-        <a className="text-blue-500 hover:text-blue-600 font-medium flex items-center gap-1 group" href="#">
+        <button 
+          onClick={handleViewAllContacts}
+          className="text-blue-500 hover:text-blue-600 font-medium flex items-center gap-1 group"
+        >
           Manage all contacts
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-        </a>
+        </button>
       </div>
 
       {/* Contact View Modal */}
