@@ -1,9 +1,14 @@
-import React from 'react';
-import { Calendar, User, FileText } from 'lucide-react';
+import React, { useState } from 'react';
+import { Calendar, User, FileText, Trash2 } from 'lucide-react';
 import useActivitiesAPI from '../../../hooks/useActivitiesAPI';
+import { useToast } from '../../../Context/ToastContext';
+import ConfirmDialog from '../../../components/ConfirmDialog';
 
 const RecentActivities = () => {
   const { activities, loading, clearActivities } = useActivitiesAPI();
+  const { success, error } = useToast();
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
 
   const getIconBgColor = (type) => {
     return type === 'action' 
@@ -23,11 +28,26 @@ const RecentActivities = () => {
   };
 
   const handleClearActivities = async () => {
+    setShowConfirmDialog(true);
+  };
+
+  const confirmClearActivities = async () => {
     try {
+      setIsClearing(true);
+      setShowConfirmDialog(false);
+      
       await clearActivities();
-    } catch (error) {
-      console.error('Failed to clear activities:', error);
+      success('All activities have been cleared successfully');
+    } catch (err) {
+      console.error('Failed to clear activities:', err);
+      error('Failed to clear activities. Please try again.');
+    } finally {
+      setIsClearing(false);
     }
+  };
+
+  const cancelClearActivities = () => {
+    setShowConfirmDialog(false);
   };
 
   return (
@@ -41,10 +61,11 @@ const RecentActivities = () => {
         </div>
         <button 
           onClick={handleClearActivities}
-          disabled={loading}
-          className="px-3 py-1.5 text-sm font-medium text-red-500 border border-red-200 dark:border-red-900/50 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={loading || isClearing || activities.length === 0}
+          className="px-3 py-1.5 text-sm font-medium text-red-600 hover:text-red-700 border border-red-200 dark:border-red-900/50 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
         >
-          {loading ? 'Clearing...' : 'Clear'}
+          <Trash2 className="w-4 h-4" />
+          {isClearing ? 'Clearing...' : 'Clear All'}
         </button>
       </div>
       
@@ -95,6 +116,18 @@ const RecentActivities = () => {
           </div>
         )}
       </div>
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showConfirmDialog}
+        onClose={cancelClearActivities}
+        onConfirm={confirmClearActivities}
+        title="Clear All Activities"
+        message="Are you sure you want to clear all recent activities? This action cannot be undone."
+        confirmText="Clear All"
+        cancelText="Cancel"
+        type="danger"
+      />
     </div>
   );
 };

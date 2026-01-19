@@ -13,6 +13,46 @@ const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key-change-i
 app.use(express.json());
 app.use(cors());
 
+// Trust proxy for proper IP detection (important for production deployments)
+app.set('trust proxy', true);
+
+// IP detection middleware
+app.use((req, res, next) => {
+  // Get real IP address from various headers
+  const forwarded = req.headers['x-forwarded-for'];
+  const realIP = req.headers['x-real-ip'];
+  const cfConnectingIP = req.headers['cf-connecting-ip']; // Cloudflare
+  const clientIP = req.headers['x-client-ip'];
+  
+  // Priority order for IP detection
+  req.clientIP = 
+    cfConnectingIP ||                           // Cloudflare
+    clientIP ||                                 // X-Client-IP
+    (forwarded ? forwarded.split(',')[0].trim() : null) || // X-Forwarded-For (first IP)
+    realIP ||                                   // X-Real-IP
+    req.connection?.remoteAddress ||            // Direct connection
+    req.socket?.remoteAddress ||                // Socket connection
+    req.ip ||                                   // Express default
+    'Unknown';
+  
+  // Clean up IPv6 mapped IPv4 addresses
+  if (req.clientIP && req.clientIP.startsWith('::ffff:')) {
+    req.clientIP = req.clientIP.substring(7);
+  }
+  
+  // Clean up localhost variations for better display
+  if (req.clientIP === '::1' || req.clientIP === '127.0.0.1') {
+    req.clientIP = 'localhost';
+  }
+  
+  // Log IP detection for debugging (only in development)
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`🌐 IP: ${req.clientIP} | Method: ${req.method} ${req.path}`);
+  }
+  
+  next();
+});
+
 // Admin verification middleware
 const verifyAdmin = (req, res, next) => {
   try {
@@ -95,6 +135,7 @@ async function run() {
     const contactsCollection = db.collection("contacts");
     const repliesCollection = db.collection("replies");
     const mediaCollection = db.collection("media");
+    const activitiesCollection = db.collection("activities");
     
     // Analytics Collections
     const analyticsCollection = db.collection("analytics");
@@ -1116,6 +1157,13 @@ async function run() {
         const result = await contactsCollection.insertOne(contact);
         console.log("Insert result:", result);
         
+        // Log activity
+        await logActivity('create', `New contact received from ${contact.name}`, 'System', {
+          contactId: result.insertedId,
+          contactEmail: contact.email,
+          contactSubject: contact.subject
+        }, req);
+        
         // Return the created contact with the new ID
         const createdContact = await contactsCollection.findOne({ _id: result.insertedId });
         console.log("✅ Created contact:", createdContact);
@@ -1159,6 +1207,15 @@ async function run() {
         if (result.matchedCount === 0) {
           return res.status(404).send({ error: "Contact not found" });
         }
+        
+        // Log activity
+        const contact = await contactsCollection.findOne({ _id: new ObjectId(id) });
+        await logActivity('update', `Updated contact status to ${status}`, req.user?.username || 'Admin', {
+          contactId: id,
+          contactName: contact?.name,
+          oldStatus: contact?.status,
+          newStatus: status
+        }, req);
         
         // Return the updated contact
         const updatedContact = await contactsCollection.findOne({ _id: new ObjectId(id) });
@@ -1236,6 +1293,15 @@ async function run() {
         
         // Store the reply in replies collection
         await repliesCollection.insertOne(replyData);
+        
+        // Log activity
+        await logActivity('action', `Replied to contact from ${contact.name}`, req.user?.username || 'Admin', {
+          contactId: id,
+          contactName: contact.name,
+          contactEmail: contact.email,
+          replyMethod: replyData.method,
+          trackingId: replyData.trackingId
+        }, req);
         
         // Update the contact status to 'replied' and add reply timestamp
         await contactsCollection.updateOne(
@@ -1762,6 +1828,11 @@ async function run() {
           
           const token = jwt.sign(tokenPayload, JWT_SECRET);
           
+          // Log login activity
+          await logActivity('login', 'User logged in', username, {
+            loginTime: new Date()
+          }, req);
+          
           console.log("✅ Login successful for admin");
           
           res.send({
@@ -1776,6 +1847,12 @@ async function run() {
           });
         } else {
           console.log("❌ Invalid credentials for username:", username);
+          
+          // Log failed login attempt
+          await logActivity('login', 'Failed login attempt', username || 'Unknown', {
+            reason: 'Invalid credentials'
+          }, req);
+          
           res.status(401).send({ 
             error: "Invalid credentials",
             code: "INVALID_CREDENTIALS" 
@@ -1789,6 +1866,261 @@ async function run() {
         });
       }
     });
+
+    // Test endpoint for IP detection
+    app.get("/api/test/ip", (req, res) => {
+      res.send({
+        message: "IP Detection Test",
+        detectedIP: req.clientIP,
+        headers: {
+          'x-forwarded-for': req.headers['x-forwarded-for'],
+          'x-real-ip': req.headers['x-real-ip'],
+          'cf-connecting-ip': req.headers['cf-connecting-ip']
+        },
+        expressIP: req.ip,
+        connectionIP: req.connection?.remoteAddress,
+        socketIP: req.socket?.remoteAddress,
+        timestamp: new Date()
+      });
+    });
+
+    // ----------------Activities Related API -----------------
+    
+    // Helper function to log activity
+    const logActivity = async (type, action, user = 'System', metadata = {}, req = null) => {
+      try {
+        const activity = {
+          type, // 'login', 'action', 'create', 'update', 'delete'
+          action,
+          user,
+          metadata,
+          ipAddress: req?.clientIP || metadata.ipAddress || 'N/A',
+          userAgent: req?.get('User-Agent') || metadata.userAgent || 'N/A',
+          createdAt: new Date(),
+          timestamp: new Date().toISOString()
+        };
+        
+        await activitiesCollection.insertOne(activity);
+        console.log(`📝 Activity logged: ${user} - ${action} (IP: ${activity.ipAddress})`);
+      } catch (error) {
+        console.error('❌ Failed to log activity:', error);
+      }
+    };
+
+    // GET activities with pagination and filters (Admin only)
+    app.get("/api/activities", verifyAdmin, async (req, res) => {
+      try {
+        console.log("📊 GET /api/activities - Request received");
+        
+        const { 
+          page = 1, 
+          limit = 20, 
+          search = "", 
+          type = "",
+          user = "",
+          startDate = "",
+          endDate = ""
+        } = req.query;
+        
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        
+        // Build filter query
+        let filter = {};
+        
+        if (search) {
+          filter.$or = [
+            { action: { $regex: search, $options: "i" } },
+            { user: { $regex: search, $options: "i" } },
+            { type: { $regex: search, $options: "i" } }
+          ];
+        }
+        
+        if (type && type !== "all") {
+          filter.type = type;
+        }
+        
+        if (user && user !== "all") {
+          filter.user = user;
+        }
+        
+        if (startDate && endDate) {
+          filter.createdAt = {
+            $gte: new Date(startDate),
+            $lte: new Date(endDate)
+          };
+        }
+        
+        console.log("Activities filter:", filter);
+        
+        // Get activities with pagination
+        const activities = await activitiesCollection
+          .find(filter)
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(parseInt(limit))
+          .toArray();
+        
+        // Get total count for pagination
+        const total = await activitiesCollection.countDocuments(filter);
+        
+        // Get stats
+        const stats = {
+          total: await activitiesCollection.countDocuments(),
+          login: await activitiesCollection.countDocuments({ type: 'login' }),
+          action: await activitiesCollection.countDocuments({ type: 'action' }),
+          create: await activitiesCollection.countDocuments({ type: 'create' }),
+          update: await activitiesCollection.countDocuments({ type: 'update' }),
+          delete: await activitiesCollection.countDocuments({ type: 'delete' })
+        };
+        
+        console.log("✅ Activities fetched:", activities.length);
+        
+        res.send({
+          activities,
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          totalPages: Math.ceil(total / parseInt(limit)),
+          stats
+        });
+      } catch (error) {
+        console.error("❌ Get activities error:", error);
+        res.status(500).send({ error: "Failed to fetch activities" });
+      }
+    });
+
+    // GET recent activities (for dashboard)
+    app.get("/api/activities/recent", verifyAdmin, async (req, res) => {
+      try {
+        console.log("📊 GET /api/activities/recent - Request received");
+        
+        const { limit = 6 } = req.query;
+        
+        const activities = await activitiesCollection
+          .find({})
+          .sort({ createdAt: -1 })
+          .limit(parseInt(limit))
+          .toArray();
+        
+        // Format activities for frontend
+        const formattedActivities = activities.map(activity => ({
+          id: activity._id,
+          user: activity.user,
+          action: activity.action,
+          timestamp: getTimeAgo(activity.createdAt),
+          date: activity.createdAt.toLocaleString('en-GB'),
+          ip: activity.ipAddress || 'N/A',
+          type: activity.type,
+          icon: getActivityIcon(activity.type),
+          metadata: activity.metadata
+        }));
+        
+        console.log("✅ Recent activities fetched:", formattedActivities.length);
+        
+        res.send(formattedActivities);
+      } catch (error) {
+        console.error("❌ Get recent activities error:", error);
+        res.status(500).send({ error: "Failed to fetch recent activities" });
+      }
+    });
+
+    // POST create activity (for manual logging)
+    app.post("/api/activities", verifyAdmin, async (req, res) => {
+      try {
+        const { type, action, user, metadata } = req.body;
+        
+        if (!type || !action) {
+          return res.status(400).send({ error: "Type and action are required" });
+        }
+        
+        await logActivity(type, action, user || req.user?.username || 'Admin', metadata, req);
+        
+        res.send({ message: "Activity logged successfully" });
+      } catch (error) {
+        console.error("❌ Create activity error:", error);
+        res.status(500).send({ error: "Failed to create activity" });
+      }
+    });
+
+    // DELETE clear all activities (Admin only)
+    app.delete("/api/activities/clear", verifyAdmin, async (req, res) => {
+      try {
+        console.log("🗑️ Clearing all activities...");
+        
+        const result = await activitiesCollection.deleteMany({});
+        
+        // Log the clear action
+        await logActivity('action', 'Cleared all activities', req.user?.username || 'Admin', {
+          deletedCount: result.deletedCount
+        }, req);
+        
+        console.log("✅ Activities cleared:", result.deletedCount);
+        
+        res.send({ 
+          message: "All activities cleared successfully",
+          deletedCount: result.deletedCount
+        });
+      } catch (error) {
+        console.error("❌ Clear activities error:", error);
+        res.status(500).send({ error: "Failed to clear activities" });
+      }
+    });
+
+    // DELETE single activity (Admin only)
+    app.delete("/api/activities/:id", verifyAdmin, async (req, res) => {
+      try {
+        const { id } = req.params;
+        
+        const result = await activitiesCollection.deleteOne({ _id: new ObjectId(id) });
+        
+        if (result.deletedCount === 0) {
+          return res.status(404).send({ error: "Activity not found" });
+        }
+        
+        res.send({ message: "Activity deleted successfully" });
+      } catch (error) {
+        console.error("❌ Delete activity error:", error);
+        res.status(500).send({ error: "Failed to delete activity" });
+      }
+    });
+
+    // Helper functions for activities
+    const getTimeAgo = (date) => {
+      if (!date) return 'Unknown';
+      
+      const now = new Date();
+      const past = new Date(date);
+      const diffInMs = now - past;
+      const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+      const diffInHours = Math.floor(diffInMinutes / 60);
+      const diffInDays = Math.floor(diffInHours / 24);
+
+      if (diffInDays > 0) {
+        return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+      } else if (diffInHours > 0) {
+        return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+      } else if (diffInMinutes > 0) {
+        return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
+      } else {
+        return 'Just now';
+      }
+    };
+
+    const getActivityIcon = (type) => {
+      switch (type) {
+        case 'login':
+          return 'User';
+        case 'create':
+          return 'Plus';
+        case 'update':
+          return 'Edit';
+        case 'delete':
+          return 'Trash';
+        case 'action':
+        default:
+          return 'FileText';
+      }
+    };
 
     // ----------------Media Management API -----------------
     

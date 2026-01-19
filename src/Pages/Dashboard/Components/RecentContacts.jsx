@@ -197,7 +197,7 @@ const RecentContacts = () => {
             >
               {filter.label}
               {filter.count > 0 && (
-                <span className="ml-2 text-gray-400 dark:text-gray-600">{filter.count}</span>
+                <span className="ml-2 text-gray-400 dark:text-gray-600">({filter.count})</span>
               )}
             </button>
           ))}
