@@ -11,8 +11,12 @@ const RecentContacts = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { contacts, stats, loading, updateContactStatus, deleteContact, replyToContact } = useContactsAPI();
 
-  // Get recent contacts (last 3)
-  const recentContacts = contacts.slice(0, 3);
+  // Get recent contacts (last 3) with filtering
+  const filteredContacts = activeFilter === 'all' 
+    ? contacts 
+    : contacts.filter(contact => contact.status === activeFilter);
+  
+  const recentContacts = filteredContacts.slice(0, 3);
 
   const filters = [
     { key: 'all', label: 'All Messages', count: stats.total || 0 },
@@ -128,6 +132,27 @@ const RecentContacts = () => {
     navigate('/dashboard/contacts');
   };
 
+  // Get display text for current filter
+  const getFilterDisplayText = () => {
+    if (loading) return 'Loading...';
+    
+    const totalCount = stats.total || 0;
+    const newCount = stats.new || 0;
+    
+    if (activeFilter === 'all') {
+      return `${totalCount} total messages • ${newCount} unread`;
+    } else {
+      const filterCount = filteredContacts.length;
+      const filterLabel = filters.find(f => f.key === activeFilter)?.label || activeFilter;
+      return `${filterCount} ${filterLabel.toLowerCase()} messages • ${totalCount} total`;
+    }
+  };
+
+  // Handle filter change with feedback
+  const handleFilterChange = (filterKey) => {
+    setActiveFilter(filterKey);
+  };
+
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col h-full">
       <div className="p-6 flex justify-between items-start">
@@ -136,9 +161,16 @@ const RecentContacts = () => {
             <MessageSquare className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recent Contacts</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              Recent Contacts
+              {activeFilter !== 'all' && (
+                <span className="text-sm font-normal text-blue-600 dark:text-blue-400 ml-2">
+                  ({filters.find(f => f.key === activeFilter)?.label})
+                </span>
+              )}
+            </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              {loading ? 'Loading...' : `${stats.total || 0} total messages • ${stats.new || 0} unread`}
+              {getFilterDisplayText()}
             </p>
           </div>
         </div>
@@ -156,16 +188,16 @@ const RecentContacts = () => {
           {filters.map((filter) => (
             <button
               key={filter.key}
-              onClick={() => setActiveFilter(filter.key)}
+              onClick={() => handleFilterChange(filter.key)}
               className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${
                 activeFilter === filter.key
-                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
               {filter.label}
               {filter.count > 0 && (
-                <span className="ml-1 text-gray-400 dark:text-gray-600">{filter.count}</span>
+                <span className="ml-2 text-gray-400 dark:text-gray-600">{filter.count}</span>
               )}
             </button>
           ))}
@@ -239,14 +271,27 @@ const RecentContacts = () => {
         ) : (
           <div className="flex flex-col items-center justify-center py-8 text-gray-500 dark:text-gray-400">
             <MessageSquare className="w-12 h-12 mb-3 opacity-50" />
-            <p className="text-sm">No recent contacts</p>
+            <p className="text-sm">
+              {activeFilter === 'all' 
+                ? 'No recent contacts' 
+                : `No ${activeFilter} contacts found`
+              }
+            </p>
+            {activeFilter !== 'all' && (
+              <button 
+                onClick={() => setActiveFilter('all')}
+                className="text-blue-500 hover:text-blue-600 text-xs mt-2 underline"
+              >
+                Show all contacts
+              </button>
+            )}
           </div>
         )}
       </div>
 
       <div className="p-6 pt-0 border-t-0 flex flex-col sm:flex-row justify-between items-center text-sm gap-4 mt-auto">
         <span className="text-gray-500 dark:text-gray-400">
-          Showing {recentContacts.length} of {stats.total || 0} messages
+          Showing {recentContacts.length} of {filteredContacts.length} {activeFilter === 'all' ? 'messages' : `${activeFilter} messages`}
         </span>
         <button 
           onClick={handleViewAllContacts}
