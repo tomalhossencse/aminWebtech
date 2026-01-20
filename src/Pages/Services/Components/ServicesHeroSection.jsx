@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { Link } from 'react-router';
 import { useServicesAPI } from '../../../hooks/useServicesAPI';
 import {
   Globe,
@@ -12,7 +13,8 @@ import {
   Palette,
   TrendingUp,
   Layers,
-  Zap
+  Zap,
+  ExternalLink
 } from 'lucide-react';
 
 const ServicesHeroSection = () => {
@@ -288,9 +290,12 @@ const ServiceCard = ({ service, getIconComponent }) => {
 
       {/* Action Buttons */}
       <div className="grid grid-cols-2 gap-3">
-        <button className="bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium py-2.5 px-4 rounded-lg shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40 transition-shadow flex items-center justify-center gap-1 text-sm">
-          View Details <span className="material-icons-round text-sm">open_in_new</span>
-        </button>
+        <Link
+          to={`/services/${service.slug || service.title.toLowerCase().replace(/\s+/g, '-')}`}
+          className="bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium py-2.5 px-4 rounded-lg shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40 transition-shadow flex items-center justify-center gap-1 text-sm"
+        >
+          View Details <ExternalLink className="w-4 h-4" />
+        </Link>
         <button className="bg-blue-50 dark:bg-slate-700 text-blue-600 dark:text-blue-300 font-medium py-2.5 px-4 rounded-lg hover:bg-blue-100 dark:hover:bg-slate-600 transition-colors text-sm">
           Get Quote
         </button>

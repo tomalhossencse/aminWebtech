@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { Link } from "react-router";
 import { useServicesAPI } from "../../../hooks/useServicesAPI";
 import AddServiceModal from "../../../components/AddServiceModal";
 import TestModal from "../../../components/TestModal";
@@ -191,15 +192,15 @@ const ServicesSection = () => {
 
                     {/* Learn More Link */}
                     <div className="card-actions justify-start mt-auto">
-                      <a
-                        href={`/services/${service.slug || service.name.toLowerCase().replace(/\s+/g, '-')}`}
+                      <Link
+                        to={`/services/${service.slug || service.name.toLowerCase().replace(/\s+/g, '-')}`}
                         className="inline-flex items-center gap-2 text-primary font-semibold text-lg hover:gap-3 transition-all duration-300 group/link"
                       >
                         Learn More
                         <i className="material-icons-outlined text-xl group-hover/link:translate-x-1 transition-transform duration-300">
                           arrow_right_alt
                         </i>
-                      </a>
+                      </Link>
                     </div>
                   </div>
 

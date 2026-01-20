@@ -3,6 +3,7 @@ import MainLayout from "../Layouts/MainLayout";
 import Home from "../Pages/Home/Home/Home";
 import About from "../Pages/About/About/About";
 import Services from "../Pages/Services/Services/Services";
+import ServiceDetailPage from "../Pages/Services/Components/ServiceDetailPage";
 import Projects from "../Pages/Projects/Projects/Projects";
 import Blog from "../Pages/Blog/Blog/Blog";
 import BlogDetailPage from "../Pages/Blog/Components/BlogDetailPage";
@@ -37,6 +38,10 @@ export const router = createBrowserRouter([
       {
         path: "/services",
         Component: Services,
+      },
+      {
+        path: "/services/:slug",
+        Component: ServiceDetailPage,
       },
       {
         path: "/projects",
