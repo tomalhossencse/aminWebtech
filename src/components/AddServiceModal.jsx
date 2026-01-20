@@ -1,13 +1,23 @@
 import React, { useState, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 
-const AddServiceModal = ({ isOpen, onClose, onSubmit }) => {
+const AddServiceModal = ({ isOpen, onClose, onSubmit, service = null }) => {
   // Mock implementation without backend
   const createServiceMutation = {
     mutateAsync: async (data) => {
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       console.log("Service created:", data);
+      return data;
+    },
+    isPending: false
+  };
+
+  const updateServiceMutation = {
+    mutateAsync: async (data) => {
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log("Service updated:", data);
       return data;
     },
     isPending: false
@@ -50,19 +60,19 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit }) => {
   });
 
   const serviceIcons = [
-    { icon: "code", label: "Code" },
-    { icon: "brush", label: "Design" },
-    { icon: "shopping_cart", label: "E-commerce" },
-    { icon: "language", label: "Web" },
-    { icon: "smartphone", label: "Mobile" },
-    { icon: "cloud", label: "Cloud" },
-    { icon: "security", label: "Security" },
-    { icon: "analytics", label: "Analytics" },
-    { icon: "view_in_ar", label: "3D" },
-    { icon: "dns", label: "Server" },
-    { icon: "psychology", label: "AI / ML" },
-    { icon: "build", label: "Maintenance" },
-    { icon: "campaign", label: "Digital Marketing" },
+    { icon: "code", label: "Code", color: "text-blue-600", bg: "bg-blue-100" },
+    { icon: "brush", label: "Design", color: "text-purple-600", bg: "bg-purple-100" },
+    { icon: "shopping_cart", label: "E-commerce", color: "text-green-600", bg: "bg-green-100" },
+    { icon: "language", label: "Web", color: "text-indigo-600", bg: "bg-indigo-100" },
+    { icon: "smartphone", label: "Mobile", color: "text-pink-600", bg: "bg-pink-100" },
+    { icon: "cloud", label: "Cloud", color: "text-sky-600", bg: "bg-sky-100" },
+    { icon: "security", label: "Security", color: "text-red-600", bg: "bg-red-100" },
+    { icon: "analytics", label: "Analytics", color: "text-orange-600", bg: "bg-orange-100" },
+    { icon: "view_in_ar", label: "3D", color: "text-teal-600", bg: "bg-teal-100" },
+    { icon: "dns", label: "Server", color: "text-gray-600", bg: "bg-gray-100" },
+    { icon: "psychology", label: "AI / ML", color: "text-violet-600", bg: "bg-violet-100" },
+    { icon: "build", label: "Maintenance", color: "text-amber-600", bg: "bg-amber-100" },
+    { icon: "campaign", label: "Marketing", color: "text-rose-600", bg: "bg-rose-100" },
   ];
 
   // Watch title field for auto-slug generation
@@ -93,8 +103,12 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit }) => {
     try {
       console.log("Service Data:", data);
 
-      // Use the mutation to create service
-      await createServiceMutation.mutateAsync(data);
+      // Use the appropriate mutation based on whether we're editing or creating
+      if (service) {
+        await updateServiceMutation.mutateAsync({ ...data, id: service._id });
+      } else {
+        await createServiceMutation.mutateAsync(data);
+      }
 
       // Call the onSubmit prop if provided
       if (onSubmit) {
@@ -105,7 +119,7 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit }) => {
       reset();
       onClose();
     } catch (error) {
-      console.error("Error creating service:", error);
+      console.error("Error saving service:", error);
       // You can add toast notification here
     }
   };
@@ -116,6 +130,26 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit }) => {
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
   };
+
+  // Populate form when editing
+  useEffect(() => {
+    if (service && isOpen) {
+      reset({
+        title: service.title || "",
+        slug: service.slug || "",
+        shortDescription: service.shortDescription || "",
+        detailedDescription: service.detailedDescription || "",
+        displayOrder: service.displayOrder || 0,
+        metaTitle: service.metaTitle || "",
+        metaKeywords: service.metaKeywords || "",
+        metaDescription: service.metaDescription || "",
+        isFeatured: service.isFeatured || false,
+        isActive: service.isActive !== undefined ? service.isActive : true,
+        selectedIcon: service.selectedIcon || "code",
+        features: service.features || [],
+      });
+    }
+  }, [service, isOpen, reset]);
 
   // Auto-generate slug when title changes
   useEffect(() => {
@@ -132,13 +166,30 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit }) => {
     }
   }, [isOpen, reset]);
 
+  const isEditing = !!service;
+  const mutation = isEditing ? updateServiceMutation : createServiceMutation;
+
   if (!isOpen) return null;
 
   return (
     <div className="modal modal-open">
-      <div className="modal-box w-11/12 max-w-3xl max-h-[90vh] overflow-y-auto">
+      <div className="modal-box w-11/12 max-w-4xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="font-bold text-lg">Add New Service</h3>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+              <span className="material-icons text-primary text-xl">
+                {isEditing ? "edit" : "add"}
+              </span>
+            </div>
+            <div>
+              <h3 className="font-bold text-lg">
+                {isEditing ? "Edit Service" : "Add New Service"}
+              </h3>
+              <p className="text-sm text-base-content/60">
+                {isEditing ? "Update service information" : "Create a new service offering"}
+              </p>
+            </div>
+          </div>
           <button
             onClick={onClose}
             className="btn btn-sm btn-circle btn-ghost"
@@ -147,202 +198,258 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit }) => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-6">
-          {/* Basic Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Title *</span>
-              </label>
-              <input
-                type="text"
-                {...register("title", { required: "Title is required" })}
-                className="input input-bordered"
-                placeholder="Web Development"
-              />
-              {errors.title && (
-                <span className="text-error text-sm">{errors.title.message}</span>
-              )}
-            </div>
+        <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-8">
+          {/* Basic Information Section */}
+          <div className="card bg-base-100 border border-base-300">
+            <div className="card-body">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="material-icons text-primary">info</span>
+                <h4 className="font-semibold text-lg">Basic Information</h4>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text font-medium">Service Title *</span>
+                  </label>
+                  <input
+                    type="text"
+                    {...register("title", { required: "Title is required" })}
+                    className="input input-bordered focus:input-primary"
+                    placeholder="e.g. Web Development"
+                  />
+                  {errors.title && (
+                    <span className="text-error text-sm mt-1">{errors.title.message}</span>
+                  )}
+                </div>
 
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Slug *</span>
-              </label>
-              <input
-                type="text"
-                {...register("slug", { required: "Slug is required" })}
-                className="input input-bordered"
-                placeholder="web-development"
-              />
-              {errors.slug && (
-                <span className="text-error text-sm">{errors.slug.message}</span>
-              )}
-            </div>
-          </div>
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text font-medium">URL Slug *</span>
+                  </label>
+                  <input
+                    type="text"
+                    {...register("slug", { required: "Slug is required" })}
+                    className="input input-bordered focus:input-primary"
+                    placeholder="web-development"
+                  />
+                  {errors.slug && (
+                    <span className="text-error text-sm mt-1">{errors.slug.message}</span>
+                  )}
+                </div>
+              </div>
 
-          {/* Icon Selection */}
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Service Icon *</span>
-            </label>
-            <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
-              {serviceIcons.map((item) => (
-                <button
-                  key={item.icon}
-                  type="button"
-                  onClick={() => setValue("selectedIcon", item.icon)}
-                  className={`btn btn-outline aspect-square p-2 flex-col ${
-                    selectedIcon === item.icon ? "btn-primary" : ""
-                  }`}
-                >
-                  <span className="material-icons text-lg">{item.icon}</span>
-                  <span className="text-xs">{item.label}</span>
-                </button>
-              ))}
-            </div>
-            <input type="hidden" {...register("selectedIcon")} />
-          </div>
-
-          {/* Descriptions */}
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Short Description *</span>
-            </label>
-            <textarea
-              {...register("shortDescription", { required: "Short description is required" })}
-              className="textarea textarea-bordered h-24"
-              placeholder="Brief description of the service"
-            />
-            {errors.shortDescription && (
-              <span className="text-error text-sm">{errors.shortDescription.message}</span>
-            )}
-          </div>
-
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Detailed Description</span>
-            </label>
-            <textarea
-              {...register("detailedDescription")}
-              className="textarea textarea-bordered h-32"
-              placeholder="Detailed description of the service"
-            />
-          </div>
-
-          {/* Features */}
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Features</span>
-            </label>
-            
-            {/* Add Feature Form */}
-            <div className="card bg-base-200 p-4 mb-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2">
-                <input
-                  type="text"
-                  name="title"
-                  value={newFeature.title}
-                  onChange={handleFeatureChange}
-                  className="input input-bordered input-sm"
-                  placeholder="Feature title"
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-medium">Short Description *</span>
+                </label>
+                <textarea
+                  {...register("shortDescription", { required: "Short description is required" })}
+                  className="textarea textarea-bordered focus:textarea-primary h-24 resize-none"
+                  placeholder="Brief description of the service (used in cards and previews)"
                 />
-                <input
-                  type="text"
-                  name="description"
-                  value={newFeature.description}
-                  onChange={handleFeatureChange}
-                  className="input input-bordered input-sm"
-                  placeholder="Feature description"
-                />
-                <input
-                  type="text"
-                  name="iconClass"
-                  value={newFeature.iconClass}
-                  onChange={handleFeatureChange}
-                  className="input input-bordered input-sm"
-                  placeholder="Icon class (optional)"
+                {errors.shortDescription && (
+                  <span className="text-error text-sm mt-1">{errors.shortDescription.message}</span>
+                )}
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-medium">Detailed Description</span>
+                </label>
+                <textarea
+                  {...register("detailedDescription")}
+                  className="textarea textarea-bordered focus:textarea-primary h-32 resize-none"
+                  placeholder="Comprehensive description of the service (used on service detail pages)"
                 />
               </div>
-              <button
-                type="button"
-                onClick={addFeature}
-                className="btn btn-primary btn-sm"
-              >
-                Add Feature
-              </button>
             </div>
+          </div>
 
-            {/* Features List */}
-            <div className="space-y-2">
-              {fields.map((field, index) => (
-                <div key={field.id} className="card bg-base-100 border p-3">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="material-icons text-sm text-primary">
-                          {field.iconClass || "check"}
-                        </span>
-                        <h5 className="font-medium">{field.title}</h5>
-                      </div>
-                      {field.description && (
-                        <p className="text-sm text-base-content/70 mt-1">
-                          {field.description}
-                        </p>
-                      )}
+          {/* Icon Selection Section */}
+          <div className="card bg-base-100 border border-base-300">
+            <div className="card-body">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="material-icons text-primary">palette</span>
+                <h4 className="font-semibold text-lg">Service Icon</h4>
+              </div>
+              
+              <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-7 gap-3">
+                {serviceIcons.map((item) => (
+                  <button
+                    key={item.icon}
+                    type="button"
+                    onClick={() => setValue("selectedIcon", item.icon)}
+                    className={`btn h-auto p-3 flex-col gap-2 transition-all duration-200 border-2 group ${
+                      selectedIcon === item.icon 
+                        ? "btn-primary border-primary bg-primary hover:bg-primary/90" 
+                        : "btn-ghost border-base-300 hover:border-primary/30 hover:bg-primary/5"
+                    }`}
+                  >
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 ${
+                      selectedIcon === item.icon 
+                        ? "bg-white/20 text-white group-hover:text-white" 
+                        : `${item.bg} ${item.color} group-hover:scale-105`
+                    }`}>
+                      <span className="material-icons text-lg">{item.icon}</span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => remove(index)}
-                      className="btn btn-sm btn-circle btn-ghost text-error"
-                    >
-                      ✕
-                    </button>
+                    <span className={`text-xs font-medium transition-colors duration-200 ${
+                      selectedIcon === item.icon 
+                        ? "text-white group-hover:text-white" 
+                        : "text-base-content/70 group-hover:text-primary"
+                    }`}>
+                      {item.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <input type="hidden" {...register("selectedIcon")} />
+            </div>
+          </div>
+
+          {/* Features Section */}
+          <div className="card bg-base-100 border border-base-300">
+            <div className="card-body">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="material-icons text-primary">star</span>
+                <h4 className="font-semibold text-lg">Key Features</h4>
+              </div>
+              
+              {/* Add Feature Form */}
+              <div className="card bg-base-200/50 border border-base-300">
+                <div className="card-body p-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                    <input
+                      type="text"
+                      name="title"
+                      value={newFeature.title}
+                      onChange={handleFeatureChange}
+                      className="input input-bordered input-sm focus:input-primary"
+                      placeholder="Feature title"
+                    />
+                    <input
+                      type="text"
+                      name="description"
+                      value={newFeature.description}
+                      onChange={handleFeatureChange}
+                      className="input input-bordered input-sm focus:input-primary"
+                      placeholder="Feature description"
+                    />
+                    <input
+                      type="text"
+                      name="iconClass"
+                      value={newFeature.iconClass}
+                      onChange={handleFeatureChange}
+                      className="input input-bordered input-sm focus:input-primary"
+                      placeholder="Icon (optional)"
+                    />
                   </div>
+                  <button
+                    type="button"
+                    onClick={addFeature}
+                    disabled={!newFeature.title.trim()}
+                    className="btn btn-primary btn-sm w-full"
+                  >
+                    <span className="material-icons text-sm">add</span>
+                    Add Feature
+                  </button>
                 </div>
-              ))}
+              </div>
+
+              {/* Features List */}
+              {fields.length > 0 && (
+                <div className="space-y-2 mt-4 max-h-48 overflow-y-auto">
+                  {fields.map((field, index) => (
+                    <div key={field.id} className="card bg-base-50 border border-base-300">
+                      <div className="card-body p-3">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="material-icons text-sm text-primary">
+                                {field.iconClass || "check_circle"}
+                              </span>
+                              <h5 className="font-medium text-sm">{field.title}</h5>
+                            </div>
+                            {field.description && (
+                              <p className="text-xs text-base-content/70 mt-1 ml-6">
+                                {field.description}
+                              </p>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => remove(index)}
+                            className="btn btn-xs btn-circle btn-ghost text-error hover:bg-error/10"
+                          >
+                            <span className="material-icons text-sm">close</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Settings */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Display Order</span>
-              </label>
-              <input
-                type="number"
-                {...register("displayOrder")}
-                className="input input-bordered"
-                placeholder="0"
-              />
-            </div>
+          {/* Settings Section */}
+          <div className="card bg-base-100 border border-base-300">
+            <div className="card-body">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="material-icons text-primary">settings</span>
+                <h4 className="font-semibold text-lg">Service Settings</h4>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text font-medium">Display Order</span>
+                  </label>
+                  <input
+                    type="number"
+                    {...register("displayOrder")}
+                    className="input input-bordered focus:input-primary"
+                    placeholder="0"
+                    min="0"
+                  />
+                  <label className="label">
+                    <span className="label-text-alt">Lower numbers appear first</span>
+                  </label>
+                </div>
 
-            <div className="form-control">
-              <label className="label cursor-pointer">
-                <span className="label-text">Featured</span>
-                <input
-                  type="checkbox"
-                  {...register("isFeatured")}
-                  className="checkbox checkbox-primary"
-                />
-              </label>
-            </div>
+                <div className="form-control">
+                  <label className="label cursor-pointer justify-start gap-3">
+                    <input
+                      type="checkbox"
+                      {...register("isFeatured")}
+                      className="checkbox checkbox-primary"
+                    />
+                    <div>
+                      <span className="label-text font-medium">Featured Service</span>
+                      <div className="text-xs text-base-content/60">Show in featured section</div>
+                    </div>
+                  </label>
+                </div>
 
-            <div className="form-control">
-              <label className="label cursor-pointer">
-                <span className="label-text">Active</span>
-                <input
-                  type="checkbox"
-                  {...register("isActive")}
-                  className="checkbox checkbox-primary"
-                />
-              </label>
+                <div className="form-control">
+                  <label className="label cursor-pointer justify-start gap-3">
+                    <input
+                      type="checkbox"
+                      {...register("isActive")}
+                      className="checkbox checkbox-primary"
+                    />
+                    <div>
+                      <span className="label-text font-medium">Active Service</span>
+                      <div className="text-xs text-base-content/60">Visible to users</div>
+                    </div>
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Submit Button */}
-          <div className="modal-action">
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-3 pt-4 border-t border-base-300">
             <button
               type="button"
               onClick={onClose}
@@ -352,13 +459,21 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit }) => {
             </button>
             <button
               type="submit"
-              disabled={createServiceMutation.isPending}
-              className="btn btn-primary"
+              disabled={mutation.isPending}
+              className="btn btn-primary min-w-32"
             >
-              {createServiceMutation.isPending ? (
-                <span className="loading loading-spinner loading-sm"></span>
+              {mutation.isPending ? (
+                <>
+                  <span className="loading loading-spinner loading-sm"></span>
+                  {isEditing ? "Updating..." : "Creating..."}
+                </>
               ) : (
-                "Create Service"
+                <>
+                  <span className="material-icons text-sm">
+                    {isEditing ? "save" : "add"}
+                  </span>
+                  {isEditing ? "Update Service" : "Create Service"}
+                </>
               )}
             </button>
           </div>

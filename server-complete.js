@@ -3,14 +3,84 @@ const app = express();
 const cors = require("cors");
 const os = require("os");
 const crypto = require("crypto");
-const IPGenerator = require("./ip-generator.cjs");
 require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const jwt = require("jsonwebtoken");
 const port = process.env.PORT || 3000;
 
-// Initialize IP generator
-const ipGenerator = new IPGenerator();
+// Simple IP generation without external dependency
+const sessionIPs = new Map();
+
+const generateSessionIP = (sessionId) => {
+  if (sessionIPs.has(sessionId)) {
+    return sessionIPs.get(sessionId);
+  }
+
+  // Create a hash from the session ID
+  const hash = crypto.createHash('md5').update(sessionId).digest('hex');
+  
+  // Generate IP components from hash
+  const ip1 = parseInt(hash.substring(0, 2), 16) % 223 + 1; // 1-223 (avoid reserved ranges)
+  const ip2 = parseInt(hash.substring(2, 4), 16) % 255;
+  const ip3 = parseInt(hash.substring(4, 6), 16) % 255;
+  const ip4 = parseInt(hash.substring(6, 8), 16) % 254 + 1; // 1-254 (avoid .0 and .255)
+  
+  const ip = `${ip1}.${ip2}.${ip3}.${ip4}`;
+  sessionIPs.set(sessionId, ip);
+  
+  return ip;
+};
+
+const generateRealisticIP = (type = 'random') => {
+  switch (type) {
+    case 'us':
+      // US IP ranges
+      const usRanges = [
+        [8, 8, 8, 8], // Google DNS
+        [208, 67, 222, 222], // OpenDNS
+        [173, 252, 0, 0], // Facebook range
+        [199, 16, 156, 0] // Twitter range
+      ];
+      const usRange = usRanges[Math.floor(Math.random() * usRanges.length)];
+      return `${usRange[0]}.${usRange[1]}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 254) + 1}`;
+    
+    case 'eu':
+      // European IP ranges
+      return `${Math.floor(Math.random() * 50) + 80}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 254) + 1}`;
+    
+    case 'asia':
+      // Asian IP ranges
+      return `${Math.floor(Math.random() * 50) + 110}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 254) + 1}`;
+    
+    default:
+      // Random but realistic
+      const firstOctet = Math.floor(Math.random() * 223) + 1;
+      const secondOctet = Math.floor(Math.random() * 255);
+      const thirdOctet = Math.floor(Math.random() * 255);
+      const fourthOctet = Math.floor(Math.random() * 254) + 1;
+      return `${firstOctet}.${secondOctet}.${thirdOctet}.${fourthOctet}`;
+  }
+};
+
+const getIPInfo = (ip) => {
+  const hash = crypto.createHash('md5').update(ip).digest('hex');
+  const countryIndex = parseInt(hash.substring(0, 2), 16) % 10;
+  
+  const countries = [
+    { country: 'United States', code: 'US', city: 'New York' },
+    { country: 'United Kingdom', code: 'GB', city: 'London' },
+    { country: 'Germany', code: 'DE', city: 'Berlin' },
+    { country: 'France', code: 'FR', city: 'Paris' },
+    { country: 'Japan', code: 'JP', city: 'Tokyo' },
+    { country: 'Canada', code: 'CA', city: 'Toronto' },
+    { country: 'Australia', code: 'AU', city: 'Sydney' },
+    { country: 'Netherlands', code: 'NL', city: 'Amsterdam' },
+    { country: 'Singapore', code: 'SG', city: 'Singapore' },
+    { country: 'Brazil', code: 'BR', city: 'São Paulo' }
+  ];
+  
+  return countries[countryIndex];
+};
 
 // JWT Secret - In production, use a strong secret from environment variables
 const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key-change-in-production";
@@ -68,7 +138,7 @@ app.use((req, res, next) => {
     } else {
       // Generate a consistent realistic IP based on user agent + timestamp
       const sessionId = (req.headers['user-agent'] || 'default') + (req.headers['host'] || '');
-      detectedIP = ipGenerator.generateSessionIP(sessionId);
+      detectedIP = generateSessionIP(sessionId);
     }
   }
   
@@ -1916,7 +1986,7 @@ async function run() {
       }
       
       // Get IP info if using generated IP
-      const ipInfo = ipGenerator.getIPInfo(req.clientIP);
+      const ipInfo = getIPInfo(req.clientIP);
       
       res.send({
         message: "IP Detection Test",
@@ -1936,10 +2006,10 @@ async function run() {
         socketIP: req.socket?.remoteAddress,
         networkInterfaces: allIPs,
         sampleIPs: {
-          us: ipGenerator.generateRealisticIP('us'),
-          eu: ipGenerator.generateRealisticIP('eu'),
-          asia: ipGenerator.generateRealisticIP('asia'),
-          random: ipGenerator.generateRealisticIP('random')
+          us: generateRealisticIP('us'),
+          eu: generateRealisticIP('eu'),
+          asia: generateRealisticIP('asia'),
+          random: generateRealisticIP('random')
         },
         timestamp: new Date()
       });
