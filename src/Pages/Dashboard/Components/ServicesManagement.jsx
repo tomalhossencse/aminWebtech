@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Plus,
   Search,
@@ -14,15 +14,21 @@ import {
   ChevronRight,
 } from "lucide-react";
 import AddServiceModal from "../../../components/AddServiceModal";
+import ConfirmDialog from "../../../components/ConfirmDialog";
 import useAxios from "../../../hooks/useAxios";
 import { useQuery } from "@tanstack/react-query";
+import { useToast } from "../../../Context/ToastContext";
 
 const ServicesManagement = () => {
   const axiosSecure = useAxios();
+  const { success, error } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All Status");
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingService, setEditingService] = useState(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState(null);
 
   const {
     data: services = [],
@@ -73,8 +79,8 @@ const ServicesManagement = () => {
 
   const filteredServices = services.filter((service) => {
     const matchesSearch =
-      service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      service.description.toLowerCase().includes(searchTerm.toLowerCase());
+      service.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      service.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
       statusFilter === "All Status" || service.status === statusFilter;
     return matchesSearch && matchesStatus;
@@ -82,49 +88,139 @@ const ServicesManagement = () => {
 
   const totalEntries = filteredServices.length;
   const entriesPerPage = 5;
-  const startEntry = (currentPage - 1) * entriesPerPage + 1;
+  const startEntry = totalEntries > 0 ? (currentPage - 1) * entriesPerPage + 1 : 0;
   const endEntry = Math.min(currentPage * entriesPerPage, totalEntries);
 
-  const handleAction = async (action, serviceId) => {
+  // Reset to first page when search or filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
+
+  const handleAction = async (action, serviceId, service = null) => {
     switch (action) {
       case "add":
+        setEditingService(null);
+        setIsAddModalOpen(true);
+        break;
+      case "edit":
+        setEditingService(service);
         setIsAddModalOpen(true);
         break;
       case "delete":
-        if (window.confirm("Are you sure you want to delete this service?")) {
-          try {
-            await axiosSecure.delete(`/services/${serviceId}`);
-            refetch();
-          } catch (err) {
-            console.error("Delete failed", err);
-          }
-        }
+        setServiceToDelete({ id: serviceId, name: service?.name || "this service" });
+        setDeleteConfirmOpen(true);
         break;
       default:
-        console.log(`${action} logic for ID: ${serviceId}`);
+        // Handle view action or other actions
+        if (action === "view") {
+          // Implement view logic here if needed
+          console.log(`View service with ID: ${serviceId}`);
+        }
         break;
     }
   };
 
+  const handleDeleteConfirm = async () => {
+    if (!serviceToDelete) return;
+    
+    try {
+      await axiosSecure.delete(`/services/${serviceToDelete.id}`);
+      refetch();
+      success(`Service "${serviceToDelete.name}" deleted successfully!`);
+    } catch (err) {
+      console.error("Delete failed", err);
+      error("Failed to delete service. Please try again.");
+    } finally {
+      setDeleteConfirmOpen(false);
+      setServiceToDelete(null);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteConfirmOpen(false);
+    setServiceToDelete(null);
+  };
+
   const handleAddService = async (serviceData) => {
-    const newService = {
-      name: serviceData.title,
-      description: serviceData.shortDescription.substring(0, 50) + "...",
-      icon: serviceData.selectedIcon, // Send the string to backend
-      iconBg: "bg-blue-100 dark:bg-blue-900/30",
-      iconColor: "text-blue-600 dark:text-blue-400",
-      features: serviceData.features.length,
-      status: serviceData.isActive ? "Active" : "Inactive",
-      featured: serviceData.isFeatured ? "Yes" : "No",
-      created: new Date().toLocaleDateString("en-GB"),
-    };
+    // Validate required fields
+    if (!serviceData.title?.trim()) {
+      error("Service title is required");
+      throw new Error("Service title is required");
+    }
+
+    if (!serviceData.shortDescription?.trim()) {
+      error("Service description is required");
+      throw new Error("Service description is required");
+    }
 
     try {
-      await axiosSecure.post("/services", newService);
-      refetch();
-      setIsAddModalOpen(false);
+      if (editingService) {
+        // Update existing service
+        const updatedService = {
+          name: serviceData.title,
+          description: serviceData.shortDescription?.length > 50 
+            ? serviceData.shortDescription.substring(0, 50) + "..." 
+            : serviceData.shortDescription,
+          icon: serviceData.selectedIcon,
+          iconBg: "bg-blue-100 dark:bg-blue-900/30",
+          iconColor: "text-blue-600 dark:text-blue-400",
+          features: serviceData.features?.length || 0,
+          status: serviceData.isActive ? "Active" : "Inactive",
+          featured: serviceData.isFeatured ? "Yes" : "No",
+          created: editingService.created, // Keep original creation date
+          // Include additional fields from the form
+          slug: serviceData.slug,
+          shortDescription: serviceData.shortDescription,
+          detailedDescription: serviceData.detailedDescription,
+          displayOrder: serviceData.displayOrder || 0,
+        };
+
+        const response = await axiosSecure.put(`/services/${editingService._id}`, updatedService);
+        refetch();
+        setIsAddModalOpen(false);
+        setEditingService(null);
+        success("Service updated successfully!");
+      } else {
+        // Create new service
+        const newService = {
+          name: serviceData.title,
+          description: serviceData.shortDescription?.length > 50 
+            ? serviceData.shortDescription.substring(0, 50) + "..." 
+            : serviceData.shortDescription,
+          icon: serviceData.selectedIcon,
+          iconBg: "bg-blue-100 dark:bg-blue-900/30",
+          iconColor: "text-blue-600 dark:text-blue-400",
+          features: serviceData.features?.length || 0,
+          status: serviceData.isActive ? "Active" : "Inactive",
+          featured: serviceData.isFeatured ? "Yes" : "No",
+          created: new Date().toLocaleDateString("en-GB"),
+          // Include additional fields from the form
+          slug: serviceData.slug,
+          shortDescription: serviceData.shortDescription,
+          detailedDescription: serviceData.detailedDescription,
+          displayOrder: serviceData.displayOrder || 0,
+        };
+
+        await axiosSecure.post("/services", newService);
+        refetch();
+        setIsAddModalOpen(false);
+        success("Service created successfully!");
+      }
     } catch (err) {
-      console.error("Add failed", err);
+      console.error(editingService ? "Update failed" : "Add failed", err);
+      
+      // More specific error messages
+      if (err.response?.status === 400) {
+        error("Invalid service data. Please check all required fields.");
+      } else if (err.response?.status === 404) {
+        error("Service not found. It may have been deleted.");
+      } else if (err.response?.status === 500) {
+        error("Server error. Please try again later.");
+      } else {
+        error(`Failed to ${editingService ? "update" : "create"} service. Please try again.`);
+      }
+      
+      throw err; // Re-throw to let the modal handle the error state
     }
   };
 
@@ -206,81 +302,94 @@ const ServicesManagement = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {filteredServices.map((service) => {
-                const IconComponent = getIconComponent(service.icon);
-                return (
-                  <tr
-                    key={service.id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-start gap-4">
-                        <div
-                          className={`h-10 w-10 rounded-lg ${service.iconBg} flex items-center justify-center flex-shrink-0 ${service.iconColor}`}
-                        >
-                          <IconComponent className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900 dark:text-white">
-                            {service.name}
-                          </div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400 mt-0.5 truncate max-w-[240px]">
-                            {service.description}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-3 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-300">
-                        {service.features} features
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusBadge(
-                          service.status
-                        )}`}
+              {filteredServices.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                    {services.length === 0 ? "No services found. Create your first service!" : "No services match your search criteria."}
+                  </td>
+                </tr>
+              ) : (
+                filteredServices
+                  .slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage)
+                  .map((service) => {
+                    const IconComponent = getIconComponent(service.icon);
+                    return (
+                      <tr
+                        key={service._id}
+                        className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
                       >
-                        {service.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-3 py-1 text-xs font-medium rounded-full ${getFeaturedBadge(
-                          service.featured
-                        )}`}
-                      >
-                        {service.featured}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                      {service.created}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <div className="flex items-center justify-end gap-3">
-                        <button
-                          onClick={() => handleAction("view", service.id)}
-                          className="text-blue-500 hover:text-blue-700 p-1"
-                        >
-                          <Eye className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => handleAction("edit", service.id)}
-                          className="text-amber-500 hover:text-amber-700 p-1"
-                        >
-                          <Edit className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => handleAction("delete", service.id)}
-                          className="text-red-500 hover:text-red-700 p-1"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-start gap-4">
+                            <div
+                              className={`h-10 w-10 rounded-lg ${service.iconBg || 'bg-blue-100 dark:bg-blue-900/30'} flex items-center justify-center flex-shrink-0 ${service.iconColor || 'text-blue-600 dark:text-blue-400'}`}
+                            >
+                              <IconComponent className="w-5 h-5" />
+                            </div>
+                            <div>
+                              <div className="font-medium text-gray-900 dark:text-white">
+                                {service.name || 'Untitled Service'}
+                              </div>
+                              <div className="text-sm text-gray-500 dark:text-gray-400 mt-0.5 truncate max-w-[240px]">
+                                {service.description || 'No description available'}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="px-3 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-300">
+                            {service.features || 0} features
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusBadge(
+                              service.status
+                            )}`}
+                          >
+                            {service.status || 'Active'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`px-3 py-1 text-xs font-medium rounded-full ${getFeaturedBadge(
+                              service.featured
+                            )}`}
+                          >
+                            {service.featured || 'No'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                          {service.created || 'N/A'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                          <div className="flex items-center justify-end gap-3">
+                            <button
+                              onClick={() => handleAction("view", service._id)}
+                              className="text-blue-500 hover:text-blue-700 p-1 transition-colors"
+                              title="View service"
+                            >
+                              <Eye className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() => handleAction("edit", service._id, service)}
+                              className="text-amber-500 hover:text-amber-700 p-1 transition-colors"
+                              title="Edit service"
+                            >
+                              <Edit className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() => handleAction("delete", service._id, service)}
+                              className="text-red-500 hover:text-red-700 p-1 transition-colors"
+                              title="Delete service"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+              )}
             </tbody>
           </table>
         </div>
@@ -294,14 +403,14 @@ const ServicesManagement = () => {
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="flex items-center gap-1 px-3 py-1 text-sm border rounded bg-white dark:bg-gray-700 disabled:opacity-50"
+              className="flex items-center gap-1 px-3 py-1 text-sm border rounded bg-white dark:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronLeft className="w-4 h-4" /> Prev
             </button>
             <button
               onClick={() => setCurrentPage((prev) => prev + 1)}
               disabled={endEntry >= totalEntries}
-              className="flex items-center gap-1 px-3 py-1 text-sm border rounded bg-white dark:bg-gray-700 disabled:opacity-50"
+              className="flex items-center gap-1 px-3 py-1 text-sm border rounded bg-white dark:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Next <ChevronRight className="w-4 h-4" />
             </button>
@@ -311,8 +420,23 @@ const ServicesManagement = () => {
 
       <AddServiceModal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        onClose={() => {
+          setIsAddModalOpen(false);
+          setEditingService(null);
+        }}
         onSubmit={handleAddService}
+        service={editingService}
+      />
+
+      <ConfirmDialog
+        isOpen={deleteConfirmOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Service"
+        message={`Are you sure you want to delete "${serviceToDelete?.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
       />
     </div>
   );

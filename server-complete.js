@@ -316,6 +316,81 @@ async function run() {
       console.log('✅ Sample testimonials data seeded successfully');
     }
 
+    // Seed services data if collection is empty
+    const servicesCount = await servicesCollection.countDocuments();
+    if (servicesCount === 0) {
+      const sampleServices = [
+        {
+          name: 'Web Development',
+          description: 'Custom web applications built with modern technologies and best practices.',
+          icon: 'code',
+          iconBg: 'bg-blue-100 dark:bg-blue-900/30',
+          iconColor: 'text-blue-600 dark:text-blue-400',
+          features: 5,
+          status: 'Active',
+          featured: 'Yes',
+          created: new Date().toLocaleDateString('en-GB'),
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          name: 'UI/UX Design',
+          description: 'Beautiful and intuitive user interfaces designed for optimal user experience.',
+          icon: 'brush',
+          iconBg: 'bg-purple-100 dark:bg-purple-900/30',
+          iconColor: 'text-purple-600 dark:text-purple-400',
+          features: 4,
+          status: 'Active',
+          featured: 'Yes',
+          created: new Date().toLocaleDateString('en-GB'),
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          name: 'E-commerce Solutions',
+          description: 'Complete online store solutions with payment integration and inventory management.',
+          icon: 'shopping_cart',
+          iconBg: 'bg-green-100 dark:bg-green-900/30',
+          iconColor: 'text-green-600 dark:text-green-400',
+          features: 6,
+          status: 'Active',
+          featured: 'No',
+          created: new Date().toLocaleDateString('en-GB'),
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          name: 'Mobile App Development',
+          description: 'Native and cross-platform mobile applications for iOS and Android.',
+          icon: 'smartphone',
+          iconBg: 'bg-pink-100 dark:bg-pink-900/30',
+          iconColor: 'text-pink-600 dark:text-pink-400',
+          features: 4,
+          status: 'Active',
+          featured: 'Yes',
+          created: new Date().toLocaleDateString('en-GB'),
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          name: 'Cloud Solutions',
+          description: 'Scalable cloud infrastructure and deployment solutions for modern applications.',
+          icon: 'cloud',
+          iconBg: 'bg-sky-100 dark:bg-sky-900/30',
+          iconColor: 'text-sky-600 dark:text-sky-400',
+          features: 3,
+          status: 'Active',
+          featured: 'No',
+          created: new Date().toLocaleDateString('en-GB'),
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ];
+      
+      await servicesCollection.insertMany(sampleServices);
+      console.log('✅ Sample services data seeded successfully');
+    }
+
     // Seed contacts data if collection is empty (for testing)
     const contactsCount = await contactsCollection.countDocuments();
     if (contactsCount === 0) {
@@ -398,8 +473,13 @@ async function run() {
     app.get("/services", async (req, res) => {
       try {
         const services = await servicesCollection.find().toArray();
+        console.log("Fetched services count:", services.length);
+        if (services.length > 0) {
+          console.log("Sample service ID:", services[0]._id);
+        }
         res.send(services);
       } catch (error) {
+        console.error("Get services error:", error);
         res.status(500).send({ error: "Failed to fetch services" });
       }
     });
@@ -407,11 +487,102 @@ async function run() {
     // POST Services (Admin only)
     app.post("/services", verifyAdmin, async (req, res) => {
       try {
-        const service = req.body;
+        const service = {
+          ...req.body,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
         const result = await servicesCollection.insertOne(service);
         res.send(result);
       } catch (error) {
-        res.status(500).send({ error: "Failed to add Services" });
+        console.error("Create service error:", error);
+        res.status(500).send({ error: "Failed to add service" });
+      }
+    });
+
+    // PUT update service (Admin only)
+    app.put("/services/:id", verifyAdmin, async (req, res) => {
+      try {
+        const { id } = req.params;
+        
+        // Validate ObjectId format
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).send({ error: "Invalid service ID format" });
+        }
+        
+        console.log("Updating service with ID:", id);
+        console.log("Update data:", req.body);
+        
+        const updateData = {
+          ...req.body,
+          updatedAt: new Date()
+        };
+        
+        const result = await servicesCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: updateData }
+        );
+        
+        console.log("Update result:", result);
+        
+        if (result.matchedCount === 0) {
+          return res.status(404).send({ error: "Service not found" });
+        }
+        
+        res.send(result);
+      } catch (error) {
+        console.error("Update service error:", error);
+        if (error.name === 'BSONError') {
+          return res.status(400).send({ error: "Invalid service ID format" });
+        }
+        res.status(500).send({ error: "Failed to update service" });
+      }
+    });
+
+    // DELETE service (Admin only)
+    app.delete("/services/:id", verifyAdmin, async (req, res) => {
+      try {
+        const { id } = req.params;
+        const result = await servicesCollection.deleteOne({ _id: new ObjectId(id) });
+        
+        if (result.deletedCount === 0) {
+          return res.status(404).send({ error: "Service not found" });
+        }
+        
+        res.send({ message: "Service deleted successfully" });
+      } catch (error) {
+        console.error("Delete service error:", error);
+        res.status(500).send({ error: "Failed to delete service" });
+      }
+    });
+
+    // GET single service by ID
+    app.get("/services/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
+        
+        // Validate ObjectId format
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).send({ error: "Invalid service ID format" });
+        }
+        
+        console.log("Fetching service with ID:", id);
+        
+        const service = await servicesCollection.findOne({ _id: new ObjectId(id) });
+        
+        if (!service) {
+          console.log("Service not found for ID:", id);
+          return res.status(404).send({ error: "Service not found" });
+        }
+        
+        console.log("Found service:", service.name);
+        res.send(service);
+      } catch (error) {
+        console.error("Get service error:", error);
+        if (error.name === 'BSONError') {
+          return res.status(400).send({ error: "Invalid service ID format" });
+        }
+        res.status(500).send({ error: "Failed to fetch service" });
       }
     });
 

@@ -69,6 +69,123 @@ const verifyAdmin = (req, res, next) => {
 };
 
 // Mock data
+let mockServices = [
+  {
+    _id: "507f1f77bcf86cd799439021",
+    name: "Web Development",
+    description: "Custom web applications built with modern technologies and best practices.",
+    icon: "code",
+    iconBg: "bg-blue-100 dark:bg-blue-900/30",
+    iconColor: "text-blue-600 dark:text-blue-400",
+    features: 5,
+    status: "Active",
+    featured: "Yes",
+    created: new Date().toLocaleDateString('en-GB'),
+    slug: "web-development",
+    shortDescription: "Custom web applications built with modern technologies and best practices for optimal performance and user experience.",
+    detailedDescription: "We create custom web applications using cutting-edge technologies like React, Node.js, and modern frameworks. Our development process ensures scalable, maintainable, and high-performance solutions.",
+    displayOrder: 1,
+    category: "Web Development",
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  {
+    _id: "507f1f77bcf86cd799439022",
+    name: "UI/UX Design",
+    description: "Beautiful and intuitive user interfaces designed for optimal user experience.",
+    icon: "brush",
+    iconBg: "bg-purple-100 dark:bg-purple-900/30",
+    iconColor: "text-purple-600 dark:text-purple-400",
+    features: 4,
+    status: "Active",
+    featured: "Yes",
+    created: new Date().toLocaleDateString('en-GB'),
+    slug: "ui-ux-design",
+    shortDescription: "Beautiful and intuitive user interfaces designed for optimal user experience and engagement.",
+    detailedDescription: "Our design team creates stunning user interfaces that not only look great but also provide exceptional user experiences. We focus on usability, accessibility, and modern design principles.",
+    displayOrder: 2,
+    category: "UI/UX Design",
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  {
+    _id: "507f1f77bcf86cd799439023",
+    name: "E-commerce Solutions",
+    description: "Complete online store solutions with payment integration and inventory management.",
+    icon: "shopping_cart",
+    iconBg: "bg-green-100 dark:bg-green-900/30",
+    iconColor: "text-green-600 dark:text-green-400",
+    features: 6,
+    status: "Active",
+    featured: "No",
+    created: new Date().toLocaleDateString('en-GB'),
+    slug: "ecommerce-solutions",
+    shortDescription: "Complete online store solutions with payment integration and inventory management systems.",
+    detailedDescription: "We build comprehensive e-commerce platforms with secure payment gateways, inventory management, order tracking, and customer management systems.",
+    displayOrder: 3,
+    category: "E-commerce",
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  {
+    _id: "507f1f77bcf86cd799439024",
+    name: "Mobile App Development",
+    description: "Native and cross-platform mobile applications for iOS and Android.",
+    icon: "smartphone",
+    iconBg: "bg-pink-100 dark:bg-pink-900/30",
+    iconColor: "text-pink-600 dark:text-pink-400",
+    features: 4,
+    status: "Active",
+    featured: "Yes",
+    created: new Date().toLocaleDateString('en-GB'),
+    slug: "mobile-app-development",
+    shortDescription: "Native and cross-platform mobile applications for iOS and Android platforms.",
+    detailedDescription: "Our mobile development team creates high-performance native and cross-platform applications using React Native, Flutter, and native technologies.",
+    displayOrder: 4,
+    category: "Mobile Apps",
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  {
+    _id: "507f1f77bcf86cd799439025",
+    name: "Digital Marketing",
+    description: "Strategic marketing campaigns that boost your online presence and drive real results.",
+    icon: "campaign",
+    iconBg: "bg-orange-100 dark:bg-orange-900/30",
+    iconColor: "text-orange-600 dark:text-orange-400",
+    features: 6,
+    status: "Active",
+    featured: "No",
+    created: new Date().toLocaleDateString('en-GB'),
+    slug: "digital-marketing",
+    shortDescription: "Strategic marketing campaigns that boost your online presence and drive real results.",
+    detailedDescription: "Our digital marketing experts create comprehensive strategies including SEO, social media marketing, content marketing, and paid advertising to grow your business online.",
+    displayOrder: 5,
+    category: "Digital Marketing",
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  {
+    _id: "507f1f77bcf86cd799439026",
+    name: "Cloud Solutions",
+    description: "Scalable cloud infrastructure and deployment solutions for modern applications.",
+    icon: "cloud",
+    iconBg: "bg-cyan-100 dark:bg-cyan-900/30",
+    iconColor: "text-cyan-600 dark:text-cyan-400",
+    features: 5,
+    status: "Active",
+    featured: "No",
+    created: new Date().toLocaleDateString('en-GB'),
+    slug: "cloud-solutions",
+    shortDescription: "Scalable cloud infrastructure and deployment solutions for modern applications.",
+    detailedDescription: "We provide comprehensive cloud solutions including AWS, Azure, and Google Cloud deployments, containerization, and DevOps automation for scalable applications.",
+    displayOrder: 6,
+    category: "Cloud Solutions",
+    createdAt: new Date(),
+    updatedAt: new Date()
+  }
+];
+
 let mockProjects = [
   {
     _id: "507f1f77bcf86cd799439011",
@@ -288,6 +405,113 @@ let mockProjects = [
     updatedAt: new Date("2024-03-01")
   }
 ];
+
+// ----------------Services Related API -----------------
+// GET services
+app.get("/services", async (req, res) => {
+  try {
+    console.log("📋 GET /services - Request received");
+    res.send(mockServices);
+    console.log(`✅ GET /services - Returned ${mockServices.length} services`);
+  } catch (error) {
+    console.error("❌ GET /services error:", error);
+    res.status(500).send({ error: "Failed to fetch services" });
+  }
+});
+
+// GET single service by ID
+app.get("/services/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(`📋 GET /services/${id} - Request received`);
+    
+    const service = mockServices.find(s => s._id === id);
+    
+    if (!service) {
+      console.log(`❌ Service not found for ID: ${id}`);
+      return res.status(404).send({ error: "Service not found" });
+    }
+    
+    console.log(`✅ GET /services/${id} - Service found: ${service.name}`);
+    res.send(service);
+  } catch (error) {
+    console.error("❌ GET /services/:id error:", error);
+    res.status(500).send({ error: "Failed to fetch service" });
+  }
+});
+
+// POST create new service (Admin only)
+app.post("/services", verifyAdmin, async (req, res) => {
+  try {
+    console.log("📋 POST /services - Create request received");
+    console.log("Request body:", req.body);
+    
+    const newService = {
+      _id: `507f1f77bcf86cd79943902${mockServices.length + 5}`,
+      ...req.body,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    mockServices.unshift(newService); // Add to beginning of array
+    console.log(`✅ POST /services - Created: ${newService.name}`);
+    res.send({ insertedId: newService._id, acknowledged: true });
+  } catch (error) {
+    console.error("❌ POST /services error:", error);
+    res.status(500).send({ error: "Failed to create service" });
+  }
+});
+
+// PUT update service (Admin only)
+app.put("/services/:id", verifyAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(`📋 PUT /services/${id} - Update request received`);
+    console.log("Request body:", req.body);
+    
+    const serviceIndex = mockServices.findIndex(s => s._id === id);
+    
+    if (serviceIndex === -1) {
+      console.log(`❌ Service not found for ID: ${id}`);
+      return res.status(404).send({ error: "Service not found" });
+    }
+    
+    // Update the service
+    mockServices[serviceIndex] = {
+      ...mockServices[serviceIndex],
+      ...req.body,
+      updatedAt: new Date()
+    };
+    
+    console.log(`✅ PUT /services/${id} - Updated: ${mockServices[serviceIndex].name}`);
+    res.send({ matchedCount: 1, modifiedCount: 1, acknowledged: true });
+  } catch (error) {
+    console.error("❌ PUT /services/:id error:", error);
+    res.status(500).send({ error: "Failed to update service" });
+  }
+});
+
+// DELETE service (Admin only)
+app.delete("/services/:id", verifyAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(`📋 DELETE /services/${id} - Delete request received`);
+    
+    const serviceIndex = mockServices.findIndex(s => s._id === id);
+    
+    if (serviceIndex === -1) {
+      console.log(`❌ Service not found for ID: ${id}`);
+      return res.status(404).send({ error: "Service not found" });
+    }
+    
+    const deletedService = mockServices.splice(serviceIndex, 1)[0];
+    console.log(`✅ DELETE /services/${id} - Deleted: ${deletedService.name}`);
+    res.send({ message: "Service deleted successfully" });
+  } catch (error) {
+    console.error("❌ DELETE /services/:id error:", error);
+    res.status(500).send({ error: "Failed to delete service" });
+  }
+});
 
 // ----------------Projects Related API -----------------
 // GET projects with pagination and filters
@@ -718,9 +942,15 @@ app.delete("/api/media", verifyAdmin, async (req, res) => {
 
 app.listen(port, () => {
   console.log(`🚀 Mock server running on port ${port}`);
+  console.log(`📋 Mock services loaded: ${mockServices.length} services`);
   console.log(`📋 Mock projects loaded: ${mockProjects.length} projects`);
   console.log(`📁 Mock media loaded: ${mockMedia.length} media files`);
   console.log(`🔗 Available endpoints:`);
+  console.log(`   GET  /services - List all services`);
+  console.log(`   GET  /services/:id - Get single service`);
+  console.log(`   POST /services - Create new service (Admin)`);
+  console.log(`   PUT  /services/:id - Update service (Admin)`);
+  console.log(`   DELETE /services/:id - Delete service (Admin)`);
   console.log(`   GET  /projects - List projects with pagination and filters`);
   console.log(`   GET  /projects/:id - Get single project`);
   console.log(`   POST /projects - Create new project`);

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useServicesAPI } from "../../../hooks/useServicesAPI";
 import AddServiceModal from "../../../components/AddServiceModal";
 import TestModal from "../../../components/TestModal";
 
@@ -8,63 +9,9 @@ const ServicesSection = () => {
   const [isTestModalOpen, setIsTestModalOpen] = useState(false);
   const sectionRef = useRef(null);
 
-  // Mock services data (replace with real API call later)
-  const [servicesData, setServicesData] = useState({
-    data: [
-      {
-        _id: '1',
-        title: 'Web Development',
-        slug: 'web-development',
-        shortDescription: 'Custom web applications built with modern technologies and best practices.',
-        selectedIcon: 'language',
-        features: ['Responsive Design', 'SEO Optimized', 'Fast Loading']
-      },
-      {
-        _id: '2',
-        title: 'Mobile App Development',
-        slug: 'mobile-app-development',
-        shortDescription: 'Native and cross-platform mobile applications for iOS and Android.',
-        selectedIcon: 'smartphone',
-        features: ['Cross Platform', 'Native Performance', 'App Store Ready']
-      },
-      {
-        _id: '3',
-        title: 'Custom Software',
-        slug: 'custom-software',
-        shortDescription: 'Tailored software solutions to meet your specific business requirements.',
-        selectedIcon: 'code',
-        features: ['Custom Logic', 'Scalable Architecture', 'Integration Ready']
-      },
-      {
-        _id: '4',
-        title: 'UI/UX Design',
-        slug: 'ui-ux-design',
-        shortDescription: 'Beautiful and intuitive user interfaces that enhance user experience.',
-        selectedIcon: 'brush',
-        features: ['User Centered', 'Modern Design', 'Prototype Testing']
-      },
-      {
-        _id: '5',
-        title: 'Digital Marketing',
-        slug: 'digital-marketing',
-        shortDescription: 'Comprehensive digital marketing strategies to grow your online presence.',
-        selectedIcon: 'campaign',
-        features: ['SEO Strategy', 'Social Media', 'Analytics Tracking']
-      },
-      {
-        _id: '6',
-        title: 'Cloud Solutions',
-        slug: 'cloud-solutions',
-        shortDescription: 'Scalable cloud infrastructure and deployment solutions.',
-        selectedIcon: 'cloud',
-        features: ['Auto Scaling', 'High Availability', 'Cost Optimized']
-      }
-    ]
-  });
-  
-  const isLoading = false;
-  const error = null;
-  const services = servicesData?.data || [];
+  // Fetch services from API
+  const { useActiveServices } = useServicesAPI();
+  const { data: services = [], isLoading, error } = useActiveServices();
 
   // Helper function to get service colors based on icon
   const getServiceColors = (icon) => {
@@ -77,6 +24,7 @@ const ServicesSection = () => {
       cloud: { color: "bg-cyan-500", shadowColor: "shadow-cyan-500/20", hoverColor: "hover:shadow-cyan-500/30" },
       security: { color: "bg-red-500", shadowColor: "shadow-red-500/20", hoverColor: "hover:shadow-red-500/30" },
       analytics: { color: "bg-indigo-500", shadowColor: "shadow-indigo-500/20", hoverColor: "hover:shadow-indigo-500/30" },
+      shopping_cart: { color: "bg-emerald-500", shadowColor: "shadow-emerald-500/20", hoverColor: "hover:shadow-emerald-500/30" },
     };
     return colorMap[icon] || { color: "bg-gray-500", shadowColor: "shadow-gray-500/20", hoverColor: "hover:shadow-gray-500/30" };
   };
@@ -197,7 +145,7 @@ const ServicesSection = () => {
         ) : (
           // Services list
           services.map((service, index) => {
-            const colors = getServiceColors(service.selectedIcon);
+            const colors = getServiceColors(service.icon);
             return (
               <div
                 key={service._id}
@@ -217,26 +165,26 @@ const ServicesSection = () => {
                       className={`w-16 h-16 ${colors.color} rounded-2xl flex items-center justify-center mb-6 shadow-lg ${colors.shadowColor} group-hover:scale-110 group-hover:${colors.hoverColor} transition-all duration-500`}
                     >
                       <i className="material-icons-outlined text-white text-3xl">
-                        {service.selectedIcon}
+                        {service.icon}
                       </i>
                     </div>
 
                     {/* Title */}
                     <h3 className="card-title text-2xl font-bold mb-4 group-hover:text-primary transition-colors duration-300">
-                      {service.title}
+                      {service.name}
                     </h3>
 
                     {/* Description */}
                     <p className="text-base-content/70 mb-8 leading-relaxed flex-grow">
-                      {service.shortDescription}
+                      {service.shortDescription || service.description}
                     </p>
 
                     {/* Features count if available */}
-                    {service.features && service.features.length > 0 && (
+                    {service.features && (
                       <div className="flex items-center gap-2 mb-4">
                         <i className="material-icons-outlined text-primary text-sm">star</i>
                         <span className="text-sm text-base-content/70">
-                          {service.features.length} feature{service.features.length !== 1 ? 's' : ''}
+                          {service.features} feature{service.features !== 1 ? 's' : ''}
                         </span>
                       </div>
                     )}
@@ -244,7 +192,7 @@ const ServicesSection = () => {
                     {/* Learn More Link */}
                     <div className="card-actions justify-start mt-auto">
                       <a
-                        href={`/services/${service.slug}`}
+                        href={`/services/${service.slug || service.name.toLowerCase().replace(/\s+/g, '-')}`}
                         className="inline-flex items-center gap-2 text-primary font-semibold text-lg hover:gap-3 transition-all duration-300 group/link"
                       >
                         Learn More

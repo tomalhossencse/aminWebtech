@@ -1,28 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 
 const AddServiceModal = ({ isOpen, onClose, onSubmit, service = null }) => {
-  // Mock implementation without backend
-  const createServiceMutation = {
-    mutateAsync: async (data) => {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log("Service created:", data);
-      return data;
-    },
-    isPending: false
-  };
-
-  const updateServiceMutation = {
-    mutateAsync: async (data) => {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log("Service updated:", data);
-      return data;
-    },
-    isPending: false
-  };
-  
   const {
     register,
     handleSubmit,
@@ -30,7 +9,7 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit, service = null }) => {
     watch,
     setValue,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm({
     defaultValues: {
       title: "",
@@ -58,6 +37,8 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit, service = null }) => {
     description: "",
     iconClass: "",
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const serviceIcons = [
     { icon: "code", label: "Code", color: "text-blue-600", bg: "bg-blue-100" },
@@ -100,19 +81,24 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit, service = null }) => {
   };
 
   const onSubmitForm = async (data) => {
-    try {
-      console.log("Service Data:", data);
+    // Basic validation
+    if (!data.title?.trim()) {
+      console.error("Title is required");
+      return;
+    }
 
-      // Use the appropriate mutation based on whether we're editing or creating
-      if (service) {
-        await updateServiceMutation.mutateAsync({ ...data, id: service._id });
-      } else {
-        await createServiceMutation.mutateAsync(data);
-      }
+    if (!data.shortDescription?.trim()) {
+      console.error("Short description is required");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      console.log("Service Data:", data);
 
       // Call the onSubmit prop if provided
       if (onSubmit) {
-        onSubmit(data);
+        await onSubmit(data);
       }
 
       // Reset form and close modal on success
@@ -120,7 +106,9 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit, service = null }) => {
       onClose();
     } catch (error) {
       console.error("Error saving service:", error);
-      // You can add toast notification here
+      // Error handling is done in the parent component
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -134,19 +122,21 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit, service = null }) => {
   // Populate form when editing
   useEffect(() => {
     if (service && isOpen) {
+      // Handle features array properly
+      const serviceFeatures = Array.isArray(service.features) 
+        ? service.features 
+        : [];
+
       reset({
-        title: service.title || "",
-        slug: service.slug || "",
-        shortDescription: service.shortDescription || "",
+        title: service.name || service.title || "",
+        slug: service.slug || generateSlug(service.name || service.title || ""),
+        shortDescription: service.shortDescription || service.description || "",
         detailedDescription: service.detailedDescription || "",
         displayOrder: service.displayOrder || 0,
-        metaTitle: service.metaTitle || "",
-        metaKeywords: service.metaKeywords || "",
-        metaDescription: service.metaDescription || "",
-        isFeatured: service.isFeatured || false,
-        isActive: service.isActive !== undefined ? service.isActive : true,
-        selectedIcon: service.selectedIcon || "code",
-        features: service.features || [],
+        isFeatured: service.featured === "Yes" || service.isFeatured || false,
+        isActive: service.status === "Active" || service.isActive !== false,
+        selectedIcon: service.icon || service.selectedIcon || "code",
+        features: serviceFeatures,
       });
     }
   }, [service, isOpen, reset]);
@@ -167,13 +157,21 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit, service = null }) => {
   }, [isOpen, reset]);
 
   const isEditing = !!service;
-  const mutation = isEditing ? updateServiceMutation : createServiceMutation;
 
   if (!isOpen) return null;
 
   return (
     <div className="modal modal-open">
-      <div className="modal-box w-11/12 max-w-4xl max-h-[90vh] overflow-y-auto">
+      <div className="modal-box w-10/12 max-w-2xl h-[95vh] overflow-y-scroll scrollbar-hide">
+        <style jsx>{`
+          .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+          .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -274,26 +272,26 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit, service = null }) => {
                 <h4 className="font-semibold text-lg">Service Icon</h4>
               </div>
               
-              <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-7 gap-3">
+              <div className="grid grid-cols-4 grid-rows-3 gap-4">
                 {serviceIcons.map((item) => (
                   <button
                     key={item.icon}
                     type="button"
                     onClick={() => setValue("selectedIcon", item.icon)}
-                    className={`btn h-auto p-3 flex-col gap-2 transition-all duration-200 border-2 group ${
+                    className={`btn h-auto p-4 flex-col gap-2 transition-all duration-200 border-2 group w-full ${
                       selectedIcon === item.icon 
                         ? "btn-primary border-primary bg-primary hover:bg-primary/90" 
                         : "btn-ghost border-base-300 hover:border-primary/30 hover:bg-primary/5"
                     }`}
                   >
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 ${
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 ${
                       selectedIcon === item.icon 
                         ? "bg-white/20 text-white group-hover:text-white" 
                         : `${item.bg} ${item.color} group-hover:scale-105`
                     }`}>
-                      <span className="material-icons text-lg">{item.icon}</span>
+                      <span className="material-icons text-xl">{item.icon}</span>
                     </div>
-                    <span className={`text-xs font-medium transition-colors duration-200 ${
+                    <span className={`text-sm font-medium transition-colors duration-200 ${
                       selectedIcon === item.icon 
                         ? "text-white group-hover:text-white" 
                         : "text-base-content/70 group-hover:text-primary"
@@ -459,10 +457,10 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit, service = null }) => {
             </button>
             <button
               type="submit"
-              disabled={mutation.isPending}
+              disabled={isSubmitting}
               className="btn btn-primary min-w-32"
             >
-              {mutation.isPending ? (
+              {isSubmitting ? (
                 <>
                   <span className="loading loading-spinner loading-sm"></span>
                   {isEditing ? "Updating..." : "Creating..."}
