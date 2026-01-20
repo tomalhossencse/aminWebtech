@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router";
 import {
   Plus,
   Search,
@@ -21,6 +22,7 @@ import { useToast } from "../../../Context/ToastContext";
 
 const ServicesManagement = () => {
   const axiosSecure = useAxios();
+  const navigate = useNavigate();
   const { success, error } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All Status");
@@ -110,12 +112,34 @@ const ServicesManagement = () => {
         setServiceToDelete({ id: serviceId, name: service?.name || "this service" });
         setDeleteConfirmOpen(true);
         break;
-      default:
-        // Handle view action or other actions
-        if (action === "view") {
-          // Implement view logic here if needed
-          console.log(`View service with ID: ${serviceId}`);
+      case "view":
+        // Navigate to service detail page using slug or service name
+        if (!service) {
+          error("Unable to view service details. Service data not found.");
+          return;
         }
+
+        let slug = service.slug;
+        
+        // If no slug exists, generate one from the service name
+        if (!slug && service.name) {
+          slug = service.name
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '') // Remove special characters except spaces and hyphens
+            .replace(/\s+/g, '-') // Replace spaces with hyphens
+            .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+            .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+            .trim();
+        }
+        
+        if (slug && slug.length > 0) {
+          navigate(`/services/${slug}`);
+        } else {
+          error(`Unable to view service details. Could not generate slug from service name: "${service.name || 'Unknown'}"`);
+        }
+        break;
+      default:
+        console.log(`Unknown action: ${action}`);
         break;
     }
   };
@@ -364,7 +388,7 @@ const ServicesManagement = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-right">
                           <div className="flex items-center justify-end gap-3">
                             <button
-                              onClick={() => handleAction("view", service._id)}
+                              onClick={() => handleAction("view", service._id, service)}
                               className="text-blue-500 hover:text-blue-700 p-1 transition-colors"
                               title="View service"
                             >
