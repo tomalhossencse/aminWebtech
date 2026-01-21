@@ -80,3 +80,23 @@ export const useTopPages = (timeRange = '7d', limit = 10) => {
     }
   });
 };
+
+// Hook for individual visitor details
+export const useVisitorDetails = (visitorId) => {
+  const axios = useAxios();
+  
+  return useQuery({
+    queryKey: ['analytics', 'visitor-details', visitorId],
+    queryFn: async () => {
+      console.log('🔍 Fetching visitor details for ID:', visitorId);
+      const response = await axios.get(`/analytics/visitor/${visitorId}`);
+      console.log('👤 Visitor details response:', response.data);
+      return response.data;
+    },
+    enabled: !!visitorId, // Only run query if visitorId exists
+    staleTime: 30000,
+    onError: (error) => {
+      console.error('❌ Visitor details error:', error.response?.data || error.message);
+    }
+  });
+};

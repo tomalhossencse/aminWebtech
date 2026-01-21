@@ -11,20 +11,32 @@ const BlogDetailPage = () => {
   const [popularTags, setPopularTags] = useState([]);
   const [isLiked, setIsLiked] = useState(false);
   const [likes, setLikes] = useState(0);
+  const [isLoading, setIsLoading] = useState(true); // Local loading state
+  const [hasError, setHasError] = useState(false); // Local error state
   
-  const { getBlog, getBlogs, incrementViews, loading, error } = useBlogAPI();
+  const { getBlog, getBlogs, incrementViews } = useBlogAPI(); // Remove loading and error from hook
 
   useEffect(() => {
+    let isMounted = true; // Flag to prevent state updates if component unmounts
+    
+    // Scroll to top when component mounts or ID changes
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
     const fetchBlogDetail = async () => {
+      if (!isMounted) return;
+      
+      setIsLoading(true);
+      setHasError(false);
+      
       try {
         // Fetch the specific blog
         const blogResponse = await getBlog(id);
-        if (blogResponse) {
+        if (blogResponse && isMounted) {
           setBlog(blogResponse);
           setLikes(blogResponse.likes || 0);
           
-          // Increment view count
-          await incrementViews(id);
+          // Increment view count (don't wait for this)
+          incrementViews(id).catch(err => console.error('Failed to increment views:', err));
           
           // Fetch related posts (same category, excluding current post)
           const relatedResponse = await getBlogs({ 
@@ -32,7 +44,7 @@ const BlogDetailPage = () => {
             status: 'Published' 
           });
           
-          if (relatedResponse && relatedResponse.blogs) {
+          if (relatedResponse && relatedResponse.blogs && isMounted) {
             const related = relatedResponse.blogs
               .filter(post => post._id !== id && post.category === blogResponse.category)
               .slice(0, 3)
@@ -56,14 +68,26 @@ const BlogDetailPage = () => {
           }
         }
       } catch (err) {
-        console.error('Failed to fetch blog details:', err);
+        if (isMounted) {
+          console.error('Failed to fetch blog details:', err);
+          setHasError(true);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     if (id) {
       fetchBlogDetail();
     }
-  }, [id, getBlog, getBlogs, incrementViews]);
+
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
+  }, [id]); // Only depend on id, not the functions
 
   const handleLike = () => {
     setIsLiked(!isLiked);
@@ -91,7 +115,7 @@ const BlogDetailPage = () => {
     // You could add a toast notification here
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="bg-gray-50 dark:bg-slate-900 min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -102,7 +126,7 @@ const BlogDetailPage = () => {
     );
   }
 
-  if (error || !blog) {
+  if (hasError || !blog) {
     return (
       <div className="bg-gray-50 dark:bg-slate-900 min-h-screen flex items-center justify-center">
         <div className="text-center">

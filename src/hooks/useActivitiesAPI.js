@@ -23,13 +23,8 @@ const useActivitiesAPI = () => {
         console.log('✅ Activities API response:', response.data);
         return response.data;
       } catch (error) {
-        // Only log detailed errors for non-auth issues
-        if (error.response?.status !== 401 && error.response?.status !== 403) {
-          console.error('❌ Error fetching activities:', error);
-          console.error('Error details:', error.response?.data || error.message);
-        } else {
-          console.log('🔐 Activities API requires authentication - using empty array');
-        }
+        console.error('❌ Error fetching activities:', error);
+        console.error('Error details:', error.response?.data || error.message);
         
         // Return empty array if server is not available
         console.log('🔄 Using empty array for activities');

@@ -1,63 +1,95 @@
-// Test various server endpoints to diagnose the issue
 const axios = require('axios');
 
-const testServerEndpoints = async () => {
-  console.log('🔍 Testing server endpoints to diagnose the issue...');
-  
-  const baseURL = 'https://amin-web-tech-server.vercel.app';
-  
-  const endpoints = [
-    { path: '/', method: 'GET', description: 'Root endpoint' },
-    { path: '/services', method: 'GET', description: 'Services list' },
-    { path: '/projects', method: 'GET', description: 'Projects list' },
-    { path: '/blogs', method: 'GET', description: 'Blogs list' },
-    { path: '/team-members', method: 'GET', description: 'Team members' },
-    { path: '/testimonials', method: 'GET', description: 'Testimonials' },
-    { path: '/api/auth/login', method: 'POST', description: 'Login endpoint', data: { username: 'test', password: 'test' } }
-  ];
-  
-  for (const endpoint of endpoints) {
-    try {
-      console.log(`\n📡 Testing ${endpoint.method} ${endpoint.path} - ${endpoint.description}`);
-      
-      let response;
-      if (endpoint.method === 'POST') {
-        response = await axios.post(`${baseURL}${endpoint.path}`, endpoint.data || {});
-      } else {
-        response = await axios.get(`${baseURL}${endpoint.path}`);
-      }
-      
-      console.log(`   ✅ Status: ${response.status}`);
-      
-      if (response.data) {
-        if (Array.isArray(response.data)) {
-          console.log(`   📊 Response: Array with ${response.data.length} items`);
-          if (response.data.length > 0) {
-            console.log(`   📋 First item keys: ${Object.keys(response.data[0]).join(', ')}`);
-          }
-        } else if (typeof response.data === 'object') {
-          console.log(`   📋 Response keys: ${Object.keys(response.data).join(', ')}`);
-        } else {
-          console.log(`   📄 Response: ${String(response.data).substring(0, 100)}...`);
-        }
-      }
-      
-    } catch (error) {
-      console.log(`   ❌ Status: ${error.response?.status || 'Network Error'}`);
-      console.log(`   📄 Error: ${error.response?.data?.error || error.message}`);
-      
-      if (error.response?.status === 404) {
-        console.log(`   🔍 This endpoint is not found - might be a routing issue`);
-      } else if (error.response?.status === 500) {
-        console.log(`   💥 Server error - likely database or code issue`);
-      }
+const BASE_URL = 'https://amin-web-tech-server.vercel.app';
+
+async function testEndpoints() {
+  console.log('🔍 Testing server endpoints...\n');
+
+  // Test 1: Basic server connectivity
+  try {
+    console.log('1. Testing basic connectivity...');
+    const response = await axios.get(`${BASE_URL}/api/test/ip`);
+    console.log('✅ Server is reachable');
+    console.log('   Response:', response.data.message);
+  } catch (error) {
+    console.log('❌ Server connectivity failed:', error.message);
+    return;
+  }
+
+  // Test 2: Test contacts endpoint (should return 404 without auth)
+  try {
+    console.log('\n2. Testing contacts endpoint without auth...');
+    const response = await axios.get(`${BASE_URL}/api/contacts`);
+    console.log('✅ Contacts endpoint accessible');
+  } catch (error) {
+    if (error.response?.status === 401) {
+      console.log('✅ Contacts endpoint properly protected (401 Unauthorized)');
+    } else if (error.response?.status === 404) {
+      console.log('❌ Contacts endpoint returns 404 - endpoint might not exist');
+    } else {
+      console.log('❌ Contacts endpoint error:', error.response?.status, error.message);
     }
   }
-  
-  console.log('\n🎯 Summary:');
-  console.log('If most endpoints work but /services fails, it\'s likely a database connection issue.');
-  console.log('If all endpoints fail, it\'s a deployment issue.');
-  console.log('If only some endpoints fail, it\'s likely a routing or code issue.');
-};
 
-testServerEndpoints();
+  // Test 3: Test activities endpoint (should return 404 without auth)
+  try {
+    console.log('\n3. Testing activities endpoint without auth...');
+    const response = await axios.get(`${BASE_URL}/api/activities/recent`);
+    console.log('✅ Activities endpoint accessible');
+  } catch (error) {
+    if (error.response?.status === 401) {
+      console.log('✅ Activities endpoint properly protected (401 Unauthorized)');
+    } else if (error.response?.status === 404) {
+      console.log('❌ Activities endpoint returns 404 - endpoint might not exist');
+    } else {
+      console.log('❌ Activities endpoint error:', error.response?.status, error.message);
+    }
+  }
+
+  // Test 4: Test login endpoint
+  try {
+    console.log('\n4. Testing login endpoint...');
+    const response = await axios.post(`${BASE_URL}/api/auth/login`, {
+      username: 'admin',
+      password: 'admin123'
+    });
+    console.log('✅ Login successful');
+    
+    const token = response.data.token;
+    console.log('   Token received:', token ? 'Yes' : 'No');
+
+    // Test 5: Test protected endpoints with token
+    if (token) {
+      console.log('\n5. Testing protected endpoints with token...');
+      
+      const authHeaders = {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      };
+
+      try {
+        const contactsResponse = await axios.get(`${BASE_URL}/api/contacts`, authHeaders);
+        console.log('✅ Contacts endpoint accessible with auth');
+        console.log('   Contacts count:', contactsResponse.data.contacts?.length || 0);
+      } catch (error) {
+        console.log('❌ Contacts endpoint failed with auth:', error.response?.status, error.message);
+      }
+
+      try {
+        const activitiesResponse = await axios.get(`${BASE_URL}/api/activities/recent?limit=6`, authHeaders);
+        console.log('✅ Activities endpoint accessible with auth');
+        console.log('   Activities count:', activitiesResponse.data?.length || 0);
+      } catch (error) {
+        console.log('❌ Activities endpoint failed with auth:', error.response?.status, error.message);
+      }
+    }
+
+  } catch (error) {
+    console.log('❌ Login failed:', error.response?.status, error.message);
+  }
+
+  console.log('\n🏁 Test completed!');
+}
+
+testEndpoints().catch(console.error);

@@ -90,63 +90,7 @@ const DashboardHome = () => {
       color: 'bg-indigo-500',
       progress: stats.contacts?.progress || 0
     }
-  ] : [
-    // Loading skeleton data
-    {
-      title: 'Total Services',
-      value: '...',
-      change: 'Loading...',
-      changeType: 'stable',
-      icon: Code,
-      color: 'bg-blue-500',
-      progress: 0
-    },
-    {
-      title: 'Active Projects',
-      value: '...',
-      change: 'Loading...',
-      changeType: 'stable',
-      icon: GitBranch,
-      color: 'bg-green-500',
-      progress: 0
-    },
-    {
-      title: 'Blog Posts',
-      value: '...',
-      change: 'Loading...',
-      changeType: 'stable',
-      icon: Rss,
-      color: 'bg-yellow-500',
-      progress: 0
-    },
-    {
-      title: 'Team Members',
-      value: '...',
-      change: 'Loading...',
-      changeType: 'stable',
-      icon: Users,
-      color: 'bg-purple-500',
-      progress: 0
-    },
-    {
-      title: 'Testimonials',
-      value: '...',
-      change: 'Loading...',
-      changeType: 'stable',
-      icon: Star,
-      color: 'bg-pink-500',
-      progress: 0
-    },
-    {
-      title: 'New Contacts',
-      value: '...',
-      change: 'Loading...',
-      changeType: 'stable',
-      icon: Mail,
-      color: 'bg-indigo-500',
-      progress: 0
-    }
-  ];
+  ] : [];
 
   const getChangeColor = (type) => {
     switch (type) {
@@ -225,7 +169,7 @@ const DashboardHome = () => {
         <div className="xl:col-span-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4 border border-gray-100 dark:border-gray-700 overflow-hidden">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-6">Content Overview</h3>
           <div className="w-full h-80 min-h-[320px] min-w-[300px] overflow-hidden">
-            {contentData && contentData.length > 0 ? (
+            {contentData ? (
               <div className="w-full h-full min-w-[300px] min-h-[320px]">
                 <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={320}>
                   <BarChart 
@@ -289,7 +233,7 @@ const DashboardHome = () => {
           </div>
           
           <div className="w-full max-w-[200px] h-48 min-w-[200px] min-h-[192px] flex justify-center items-center overflow-hidden">
-            {pieData && pieData.length > 0 ? (
+            {pieData ? (
               <div className="w-full h-full min-w-[200px] min-h-[192px]">
                 <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={192}>
                   <PieChart>

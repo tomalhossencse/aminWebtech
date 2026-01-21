@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { useOutletContext } from "react-router";
+import { useOutletContext, useNavigate } from "react-router";
 import {
   PieChart,
   Pie,
@@ -34,6 +34,7 @@ import {
 
 const AnalyticsDashboard = () => {
   const { isDarkMode } = useOutletContext();
+  const navigate = useNavigate();
   const [timeRange, setTimeRange] = useState("7d");
   const [timeRangeLabel, setTimeRangeLabel] = useState("Last 7 days");
   const [isChartsReady, setIsChartsReady] = useState(false);
@@ -110,6 +111,11 @@ const AnalyticsDashboard = () => {
     overviewError || distributionError || visitorsError || pagesError,
     [overviewError, distributionError, visitorsError, pagesError]
   );
+
+  // Handle visitor detail navigation
+  const handleViewVisitorDetails = useCallback((visitorId) => {
+    navigate(`/dashboard/visitor/${visitorId}`);
+  }, [navigate]);
 
   // Enhanced memoized refetch function with loading state management
   const handleRefreshAll = useCallback(async () => {
@@ -711,7 +717,10 @@ const AnalyticsDashboard = () => {
                         </div>
                       </td>
                       <td className="py-4 px-4 text-right first:pr-0">
-                        <button className="text-blue-500 hover:text-blue-600 dark:hover:text-blue-400 font-medium text-sm">
+                        <button 
+                          onClick={() => handleViewVisitorDetails(visitor.id)}
+                          className="text-blue-500 hover:text-blue-600 dark:hover:text-blue-400 font-medium text-sm hover:underline transition-colors"
+                        >
                           Details
                         </button>
                       </td>

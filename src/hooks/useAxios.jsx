@@ -50,6 +50,17 @@ axiosInstance.interceptors.response.use(
       }
     }
 
+    // Handle 404 errors that might be authentication-related
+    if (error.response?.status === 404 && error.config?.url?.includes('/api/')) {
+      const token = localStorage.getItem("admin_token");
+      if (!token) {
+        console.warn("API 404 error - user not authenticated");
+        if (!window.location.pathname.includes("/admin")) {
+          window.location.replace("/admin");
+        }
+      }
+    }
+
     return Promise.reject(error);
   },
 );

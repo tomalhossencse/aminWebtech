@@ -19,6 +19,7 @@ import TestimonialsManagement from "../Pages/Dashboard/Components/TestimonialsMa
 import ContactsManagement from "../Pages/Dashboard/Components/ContactsManagement";
 import MediaManagement from "../Pages/Dashboard/Components/MediaManagement";
 import SettingsManagement from "../Pages/Dashboard/Components/SettingsManagement";
+import VisitorDetailPage from "../Pages/Dashboard/Components/VisitorDetailPage";
 import AdminLogin from "../Pages/Auth/AdminLogin";
 import AdminRoute from "../components/AdminRoute";
 
@@ -112,6 +113,10 @@ export const router = createBrowserRouter([
       {
         path: "settings",
         Component: SettingsManagement,
+      },
+      {
+        path: "visitor/:visitorId",
+        Component: VisitorDetailPage,
       },
     ],
   },

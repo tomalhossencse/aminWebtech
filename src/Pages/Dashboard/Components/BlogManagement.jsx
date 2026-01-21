@@ -143,8 +143,14 @@ const BlogManagement = () => {
         setIsAddModalOpen(true);
         break;
       case 'view':
-        console.log('View blog post:', postId);
-        // You can implement view functionality here
+        // Navigate to the blog detail page
+        if (postId) {
+          // Open in new tab to view the blog post
+          window.open(`https://aminwebtech.netlify.app/blog/${postId}`, '_blank');
+          info('Opening blog post in new tab...');
+        } else {
+          showError('Blog post ID not found');
+        }
         break;
       case 'edit':
         try {

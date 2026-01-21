@@ -10,7 +10,7 @@ const useDashboardAPI = () => {
   // Mock data for when server is not available
   const mockDashboardData = {
     stats: {
-      services: { total: 6, change: '+12%', changeType: 'increase', progress: 85 },
+      services: { total: 5, change: '+12%', changeType: 'increase', progress: 85 },
       projects: { total: 2, change: '+8%', changeType: 'increase', progress: 70 },
       blogs: { total: 1, change: 'New', changeType: 'new', progress: 30 },
       teamMembers: { total: 4, change: '+1', changeType: 'increase', progress: 90 },
@@ -18,7 +18,7 @@ const useDashboardAPI = () => {
       contacts: { total: 3, new: 1, change: '+3', changeType: 'increase', progress: 45 }
     },
     contentData: [
-      { name: 'Services', value: 6, color: '#3b82f6' },
+      { name: 'Services', value: 5, color: '#3b82f6' },
       { name: 'Projects', value: 2, color: '#10b981' },
       { name: 'Blog Posts', value: 1, color: '#f59e0b' },
       { name: 'Team', value: 4, color: '#8b5cf6' },
@@ -59,7 +59,7 @@ const useDashboardAPI = () => {
 
   // Get dashboard statistics
   const {
-    data: dashboardData,
+    data: dashboardData = mockDashboardData,
     isLoading: dashboardLoading,
     error: dashboardError,
     refetch: refetchDashboard
@@ -88,14 +88,7 @@ const useDashboardAPI = () => {
             results[endpoint.name] = response.data;
             console.log(`✅ ${endpoint.name}: ${response.status}`);
           } catch (error) {
-            // Only log detailed errors for non-auth issues
-            if (error.response?.status !== 401 && error.response?.status !== 403) {
-              console.log(`⚠️ ${endpoint.name}: ${error.response?.status || 'ERROR'} - Using fallback`);
-            } else if (endpoint.requiresAuth) {
-              console.log(`🔐 ${endpoint.name}: Authentication required - using fallback`);
-            } else {
-              console.log(`⚠️ ${endpoint.name}: ${error.response?.status || 'ERROR'} - Using fallback`);
-            }
+            console.log(`⚠️ ${endpoint.name}: ${error.response?.status || 'ERROR'} - Using fallback`);
             results[endpoint.name] = [];
           }
         }
@@ -302,8 +295,8 @@ const useDashboardAPI = () => {
   const clearError = () => setError(null);
 
   return {
-    // Dashboard data - use mock data as fallback only when there's an error
-    dashboardData: dashboardData || (dashboardError ? mockDashboardData : null),
+    // Dashboard data
+    dashboardData,
     loading: loading || dashboardLoading,
     error: error || dashboardError?.message,
     

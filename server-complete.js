@@ -1995,6 +1995,143 @@ async function run() {
       }
     });
 
+    // GET single visitor details (Admin only)
+    app.get("/analytics/visitor/:id", verifyAdmin, async (req, res) => {
+      try {
+        const { id } = req.params;
+        
+        console.log('🔍 Fetching visitor details for ID:', id);
+
+        // Find visitor by ID
+        const visitor = await visitorsCollection.findOne({
+          _id: new ObjectId(id)
+        });
+
+        if (!visitor) {
+          return res.status(404).send({ error: "Visitor not found" });
+        }
+
+        // Get page views for this visitor
+        const pageViews = await pageViewsCollection
+          .find({ visitorId: new ObjectId(id) })
+          .sort({ createdAt: 1 })
+          .toArray();
+
+        // Format visitor details
+        const visitorDetails = {
+          id: visitor._id,
+          sessionId: visitor.uniqueVisitorId || `session_${visitor._id}`,
+          ip: visitor.ipAddress,
+          country: visitor.country || 'Unknown',
+          city: visitor.city || 'Unknown',
+          region: visitor.region || 'Unknown',
+          countryCode: visitor.countryCode || 'XX',
+          device: visitor.device || 'Desktop',
+          browser: visitor.browser || 'Unknown',
+          browserVersion: visitor.browserVersion || 'Unknown',
+          os: visitor.os || 'Unknown',
+          osVersion: visitor.osVersion || 'Unknown',
+          screenResolution: visitor.screenResolution || 'Unknown',
+          language: visitor.language || 'en-US',
+          timezone: visitor.timezone || 'UTC',
+          referrer: visitor.referrer || 'Direct',
+          landingPage: pageViews.length > 0 ? pageViews[0].path : '/',
+          exitPage: pageViews.length > 0 ? pageViews[pageViews.length - 1].path : '/',
+          visitTime: visitor.createdAt.toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: true 
+          }),
+          duration: calculateDuration(visitor.createdAt, visitor.lastActivity),
+          pages: visitor.pageViews || pageViews.length,
+          status: visitor.isNewVisitor ? 'New Visitor' : 'Returning Visitor',
+          isBlocked: visitor.isBlocked || false,
+          firstVisit: visitor.createdAt,
+          lastActivity: visitor.lastActivity,
+          totalSessions: visitor.totalSessions || 1,
+          totalPageViews: visitor.pageViews || pageViews.length,
+          avgSessionDuration: calculateDuration(visitor.createdAt, visitor.lastActivity),
+          bounceRate: pageViews.length <= 1 ? 100 : 0,
+          pageHistory: pageViews.map((pv, index) => ({
+            id: pv._id,
+            url: pv.path,
+            title: getPageTitle(pv.path),
+            timestamp: pv.createdAt.toLocaleTimeString('en-US', { 
+              hour: '2-digit', 
+              minute: '2-digit',
+              hour12: true 
+            }),
+            timeOnPage: formatDuration(pv.timeOnPage || 0),
+            isExit: index === pageViews.length - 1
+          })),
+          technicalInfo: {
+            userAgent: visitor.userAgent || 'Unknown',
+            viewport: visitor.screenResolution || 'Unknown',
+            colorDepth: visitor.colorDepth || '24-bit',
+            cookiesEnabled: visitor.cookiesEnabled !== false,
+            javaEnabled: visitor.javaEnabled || false,
+            plugins: visitor.plugins || [],
+            connectionType: visitor.connectionType || 'unknown'
+          }
+        };
+
+        console.log('✅ Visitor details formatted:', visitorDetails.id);
+        res.send(visitorDetails);
+      } catch (error) {
+        console.error("❌ Visitor details error:", error);
+        res.status(500).send({ error: "Failed to fetch visitor details" });
+      }
+    });
+
+    // Helper function to calculate duration
+    const calculateDuration = (start, end) => {
+      if (!start || !end) return '0s';
+      const diffMs = new Date(end) - new Date(start);
+      const diffSeconds = Math.floor(diffMs / 1000);
+      const diffMinutes = Math.floor(diffSeconds / 60);
+      const diffHours = Math.floor(diffMinutes / 60);
+      
+      if (diffHours > 0) {
+        return `${diffHours}h ${diffMinutes % 60}m`;
+      } else if (diffMinutes > 0) {
+        return `${diffMinutes}m ${diffSeconds % 60}s`;
+      } else {
+        return `${diffSeconds}s`;
+      }
+    };
+
+    // Helper function to format duration from milliseconds
+    const formatDuration = (ms) => {
+      if (!ms || ms === 0) return '0s';
+      const seconds = Math.floor(ms / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours = Math.floor(minutes / 60);
+      
+      if (hours > 0) {
+        return `${hours}h ${minutes % 60}m`;
+      } else if (minutes > 0) {
+        return `${minutes}m ${seconds % 60}s`;
+      } else {
+        return `${seconds}s`;
+      }
+    };
+
+    // Helper function to get page title from path
+    const getPageTitle = (path) => {
+      const titles = {
+        '/': 'Home',
+        '/about': 'About',
+        '/services': 'Services',
+        '/projects': 'Projects',
+        '/blog': 'Blog',
+        '/contact': 'Contact',
+        '/cookie-policy': 'Cookie Policy',
+        '/privacy-policy': 'Privacy Policy',
+        '/terms': 'Terms of Service'
+      };
+      return titles[path] || path.replace('/', '').replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Unknown Page';
+    };
+
     // GET top performing pages (Admin only)
     app.get("/analytics/top-pages", verifyAdmin, async (req, res) => {
       try {
