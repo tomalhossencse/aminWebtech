@@ -76,10 +76,15 @@ const useContactsAPI = () => {
         console.log('✅ Contacts API response:', response.data);
         return response.data;
       } catch (error) {
-        console.error('❌ Error fetching contacts:', error);
-        console.error('Error details:', error.response?.data || error.message);
+        // Only log detailed errors for non-auth issues
+        if (error.response?.status !== 401 && error.response?.status !== 403) {
+          console.error('❌ Error fetching contacts:', error);
+          console.error('Error details:', error.response?.data || error.message);
+        } else {
+          console.log('🔐 Contacts API requires authentication - using mock data');
+        }
         
-        // Return mock data if server is not available
+        // Return mock data if server is not available or auth fails
         console.log('🔄 Using mock data for contacts');
         return mockData;
       }

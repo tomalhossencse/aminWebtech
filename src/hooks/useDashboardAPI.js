@@ -88,7 +88,14 @@ const useDashboardAPI = () => {
             results[endpoint.name] = response.data;
             console.log(`✅ ${endpoint.name}: ${response.status}`);
           } catch (error) {
-            console.log(`⚠️ ${endpoint.name}: ${error.response?.status || 'ERROR'} - Using fallback`);
+            // Only log detailed errors for non-auth issues
+            if (error.response?.status !== 401 && error.response?.status !== 403) {
+              console.log(`⚠️ ${endpoint.name}: ${error.response?.status || 'ERROR'} - Using fallback`);
+            } else if (endpoint.requiresAuth) {
+              console.log(`🔐 ${endpoint.name}: Authentication required - using fallback`);
+            } else {
+              console.log(`⚠️ ${endpoint.name}: ${error.response?.status || 'ERROR'} - Using fallback`);
+            }
             results[endpoint.name] = [];
           }
         }
