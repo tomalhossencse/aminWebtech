@@ -90,7 +90,63 @@ const DashboardHome = () => {
       color: 'bg-indigo-500',
       progress: stats.contacts?.progress || 0
     }
-  ] : [];
+  ] : [
+    // Loading skeleton data
+    {
+      title: 'Total Services',
+      value: '...',
+      change: 'Loading...',
+      changeType: 'stable',
+      icon: Code,
+      color: 'bg-blue-500',
+      progress: 0
+    },
+    {
+      title: 'Active Projects',
+      value: '...',
+      change: 'Loading...',
+      changeType: 'stable',
+      icon: GitBranch,
+      color: 'bg-green-500',
+      progress: 0
+    },
+    {
+      title: 'Blog Posts',
+      value: '...',
+      change: 'Loading...',
+      changeType: 'stable',
+      icon: Rss,
+      color: 'bg-yellow-500',
+      progress: 0
+    },
+    {
+      title: 'Team Members',
+      value: '...',
+      change: 'Loading...',
+      changeType: 'stable',
+      icon: Users,
+      color: 'bg-purple-500',
+      progress: 0
+    },
+    {
+      title: 'Testimonials',
+      value: '...',
+      change: 'Loading...',
+      changeType: 'stable',
+      icon: Star,
+      color: 'bg-pink-500',
+      progress: 0
+    },
+    {
+      title: 'New Contacts',
+      value: '...',
+      change: 'Loading...',
+      changeType: 'stable',
+      icon: Mail,
+      color: 'bg-indigo-500',
+      progress: 0
+    }
+  ];
 
   const getChangeColor = (type) => {
     switch (type) {
