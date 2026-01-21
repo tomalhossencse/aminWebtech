@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router";
-import { useServicesAPI } from "../../../hooks/useServicesAPI";
+import useServicesAPI from "../../../hooks/useServicesAPI";
 import AddServiceModal from "../../../components/AddServiceModal";
 import TestModal from "../../../components/TestModal";
 
@@ -11,8 +11,8 @@ const ServicesSection = () => {
   const sectionRef = useRef(null);
 
   // Fetch services from API
-  const { useActiveServices } = useServicesAPI();
-  const { data: services = [], isLoading, error } = useActiveServices();
+  const { getActiveServices, loading: isLoading, error } = useServicesAPI();
+  const services = getActiveServices();
 
   // Helper function to get service colors based on icon
   const getServiceColors = (icon) => {

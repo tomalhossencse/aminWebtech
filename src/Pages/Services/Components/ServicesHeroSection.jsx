@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router';
-import { useServicesAPI } from '../../../hooks/useServicesAPI';
+import useServicesAPI from '../../../hooks/useServicesAPI';
 import {
   Globe,
   Smartphone,
@@ -19,8 +19,8 @@ import {
 
 const ServicesHeroSection = () => {
   const [activeFilter, setActiveFilter] = useState('All Services');
-  const { useActiveServices } = useServicesAPI();
-  const { data: services = [], isLoading, error } = useActiveServices();
+  const { services, loading: isLoading, error, getActiveServices } = useServicesAPI();
+  const activeServices = getActiveServices();
 
   // Icon mapping for services
   const getIconComponent = (iconName) => {
@@ -84,7 +84,7 @@ const ServicesHeroSection = () => {
 
   // Transform backend services to match component structure
   const transformedServices = useMemo(() => {
-    return services.map((service, index) => ({
+    return activeServices.map((service, index) => ({
       id: service._id,
       title: service.name,
       description: service.shortDescription || service.description,
@@ -95,7 +95,7 @@ const ServicesHeroSection = () => {
       category: service.category || 'General',
       displayOrder: service.displayOrder || index,
     }));
-  }, [services]);
+  }, [activeServices]);
 
   // Generate filter buttons based on available services
   const filterButtons = useMemo(() => {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, Link } from 'react-router';
-import { useServicesAPI } from '../../../hooks/useServicesAPI';
+import useServicesAPI from '../../../hooks/useServicesAPI';
 import {
   ArrowLeft,
   Globe,
@@ -25,8 +25,7 @@ import {
 
 const ServiceDetailPage = () => {
   const { slug } = useParams();
-  const { useServices } = useServicesAPI();
-  const { data: services = [], isLoading, error } = useServices();
+  const { services, loading: isLoading, error } = useServicesAPI();
 
   // Find service by slug
   const service = services.find(s => 

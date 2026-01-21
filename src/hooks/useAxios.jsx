@@ -3,7 +3,7 @@ import axios from "axios";
 const getBaseURL = () => {
   // Use environment variable if available, fallback to production server
   return (
-    import.meta.env.VITE_API_BASE_URL ||
+    // import.meta.env.VITE_API_BASE_URL ||
     "https://amin-web-tech-server.vercel.app"
   );
 };

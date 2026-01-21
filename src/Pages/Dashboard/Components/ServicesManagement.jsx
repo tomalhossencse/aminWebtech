@@ -16,12 +16,10 @@ import {
 } from "lucide-react";
 import AddServiceModal from "../../../components/AddServiceModal";
 import ConfirmDialog from "../../../components/ConfirmDialog";
-import useAxios from "../../../hooks/useAxios";
-import { useQuery } from "@tanstack/react-query";
+import useServicesAPI from "../../../hooks/useServicesAPI";
 import { useToast } from "../../../Context/ToastContext";
 
 const ServicesManagement = () => {
-  const axiosSecure = useAxios();
   const navigate = useNavigate();
   const { success, error } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
@@ -32,17 +30,17 @@ const ServicesManagement = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState(null);
 
+  // Use the services API hook
   const {
-    data: services = [],
-    isLoading,
-    refetch,
-  } = useQuery({
-    queryKey: ["services"],
-    queryFn: async () => {
-      const res = await axiosSecure.get(`/services`);
-      return res.data;
-    },
-  });
+    services,
+    loading: isLoading,
+    error: servicesError,
+    createService,
+    updateService,
+    deleteService,
+    refetchServices,
+    clearError
+  } = useServicesAPI();
 
   // Helper to map string names to Lucide Components
   const getIconComponent = (iconName) => {
@@ -93,6 +91,13 @@ const ServicesManagement = () => {
   const startEntry =
     totalEntries > 0 ? (currentPage - 1) * entriesPerPage + 1 : 0;
   const endEntry = Math.min(currentPage * entriesPerPage, totalEntries);
+
+  // Clear API errors when component mounts
+  useEffect(() => {
+    if (servicesError) {
+      clearError();
+    }
+  }, [servicesError, clearError]);
 
   // Reset to first page when search or filter changes
   useEffect(() => {
@@ -154,8 +159,7 @@ const ServicesManagement = () => {
     if (!serviceToDelete) return;
 
     try {
-      await axiosSecure.delete(`/services/${serviceToDelete.id}`);
-      refetch();
+      await deleteService(serviceToDelete.id);
       success(`Service "${serviceToDelete.name}" deleted successfully!`);
     } catch (err) {
       console.error("Delete failed", err);
@@ -210,12 +214,7 @@ const ServicesManagement = () => {
         console.log("📝 Update data:", updatedService);
 
         try {
-          const response = await axiosSecure.put(
-            `/services/${editingService._id}`,
-            updatedService,
-          );
-          console.log("✅ Update successful:", response.data);
-          refetch();
+          await updateService(editingService._id, updatedService);
           setIsAddModalOpen(false);
           setEditingService(null);
           success("Service updated successfully!");
@@ -256,8 +255,7 @@ const ServicesManagement = () => {
           displayOrder: serviceData.displayOrder || 0,
         };
 
-        await axiosSecure.post("/services", newService);
-        refetch();
+        await createService(newService);
         setIsAddModalOpen(false);
         success("Service created successfully!");
       }
@@ -283,6 +281,28 @@ const ServicesManagement = () => {
   };
 
   if (isLoading) return <div className="p-10 text-center">Loading......</div>;
+
+  // Show error if services failed to load
+  if (servicesError) {
+    return (
+      <div className="max-w-7xl mx-auto px-2 sm:px-3 lg:px-4 py-4">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 text-center">
+          <h2 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">
+            Failed to Load Services
+          </h2>
+          <p className="text-red-600 dark:text-red-300 mb-4">
+            {servicesError || "Unable to connect to the server. Please check your connection."}
+          </p>
+          <button
+            onClick={() => refetchServices()}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-2 sm:px-3 lg:px-4 py-4">
