@@ -42,18 +42,68 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit, service = null }) => {
 
   const serviceIcons = [
     { icon: "code", label: "Code", color: "text-blue-600", bg: "bg-blue-100" },
-    { icon: "brush", label: "Design", color: "text-purple-600", bg: "bg-purple-100" },
-    { icon: "shopping_cart", label: "E-commerce", color: "text-green-600", bg: "bg-green-100" },
-    { icon: "language", label: "Web", color: "text-indigo-600", bg: "bg-indigo-100" },
-    { icon: "smartphone", label: "Mobile", color: "text-pink-600", bg: "bg-pink-100" },
+    {
+      icon: "brush",
+      label: "Design",
+      color: "text-purple-600",
+      bg: "bg-purple-100",
+    },
+    {
+      icon: "shopping_cart",
+      label: "E-commerce",
+      color: "text-green-600",
+      bg: "bg-green-100",
+    },
+    {
+      icon: "language",
+      label: "Web",
+      color: "text-indigo-600",
+      bg: "bg-indigo-100",
+    },
+    {
+      icon: "smartphone",
+      label: "Mobile",
+      color: "text-pink-600",
+      bg: "bg-pink-100",
+    },
     { icon: "cloud", label: "Cloud", color: "text-sky-600", bg: "bg-sky-100" },
-    { icon: "security", label: "Security", color: "text-red-600", bg: "bg-red-100" },
-    { icon: "analytics", label: "Analytics", color: "text-orange-600", bg: "bg-orange-100" },
-    { icon: "view_in_ar", label: "3D", color: "text-teal-600", bg: "bg-teal-100" },
+    {
+      icon: "security",
+      label: "Security",
+      color: "text-red-600",
+      bg: "bg-red-100",
+    },
+    {
+      icon: "analytics",
+      label: "Analytics",
+      color: "text-orange-600",
+      bg: "bg-orange-100",
+    },
+    {
+      icon: "view_in_ar",
+      label: "3D",
+      color: "text-teal-600",
+      bg: "bg-teal-100",
+    },
     { icon: "dns", label: "Server", color: "text-gray-600", bg: "bg-gray-100" },
-    { icon: "psychology", label: "AI / ML", color: "text-violet-600", bg: "bg-violet-100" },
-    { icon: "build", label: "Maintenance", color: "text-amber-600", bg: "bg-amber-100" },
-    { icon: "campaign", label: "Marketing", color: "text-rose-600", bg: "bg-rose-100" },
+    {
+      icon: "psychology",
+      label: "AI / ML",
+      color: "text-violet-600",
+      bg: "bg-violet-100",
+    },
+    {
+      icon: "build",
+      label: "Maintenance",
+      color: "text-amber-600",
+      bg: "bg-amber-100",
+    },
+    {
+      icon: "campaign",
+      label: "Marketing",
+      color: "text-rose-600",
+      bg: "bg-rose-100",
+    },
   ];
 
   // Watch title field for auto-slug generation
@@ -123,8 +173,8 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit, service = null }) => {
   useEffect(() => {
     if (service && isOpen) {
       // Handle features array properly
-      const serviceFeatures = Array.isArray(service.features) 
-        ? service.features 
+      const serviceFeatures = Array.isArray(service.features)
+        ? service.features
         : [];
 
       reset({
@@ -163,7 +213,7 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit, service = null }) => {
   return (
     <div className="modal modal-open">
       <div className="modal-box w-10/12 max-w-2xl h-[95vh] overflow-y-scroll scrollbar-hide">
-        <style jsx>{`
+        <style>{`
           .scrollbar-hide {
             -ms-overflow-style: none;
             scrollbar-width: none;
@@ -184,14 +234,13 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit, service = null }) => {
                 {isEditing ? "Edit Service" : "Add New Service"}
               </h3>
               <p className="text-sm text-base-content/60">
-                {isEditing ? "Update service information" : "Create a new service offering"}
+                {isEditing
+                  ? "Update service information"
+                  : "Create a new service offering"}
               </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="btn btn-sm btn-circle btn-ghost"
-          >
+          <button onClick={onClose} className="btn btn-sm btn-circle btn-ghost">
             ✕
           </button>
         </div>
@@ -204,11 +253,13 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit, service = null }) => {
                 <span className="material-icons text-primary">info</span>
                 <h4 className="font-semibold text-lg">Basic Information</h4>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="form-control">
                   <label className="label">
-                    <span className="label-text font-medium">Service Title *</span>
+                    <span className="label-text font-medium">
+                      Service Title *
+                    </span>
                   </label>
                   <input
                     type="text"
@@ -217,7 +268,9 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit, service = null }) => {
                     placeholder="e.g. Web Development"
                   />
                   {errors.title && (
-                    <span className="text-error text-sm mt-1">{errors.title.message}</span>
+                    <span className="text-error text-sm mt-1">
+                      {errors.title.message}
+                    </span>
                   )}
                 </div>
 
@@ -232,28 +285,38 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit, service = null }) => {
                     placeholder="web-development"
                   />
                   {errors.slug && (
-                    <span className="text-error text-sm mt-1">{errors.slug.message}</span>
+                    <span className="text-error text-sm mt-1">
+                      {errors.slug.message}
+                    </span>
                   )}
                 </div>
               </div>
 
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text font-medium">Short Description *</span>
+                  <span className="label-text font-medium">
+                    Short Description *
+                  </span>
                 </label>
                 <textarea
-                  {...register("shortDescription", { required: "Short description is required" })}
+                  {...register("shortDescription", {
+                    required: "Short description is required",
+                  })}
                   className="textarea textarea-bordered focus:textarea-primary h-24 resize-none"
                   placeholder="Brief description of the service (used in cards and previews)"
                 />
                 {errors.shortDescription && (
-                  <span className="text-error text-sm mt-1">{errors.shortDescription.message}</span>
+                  <span className="text-error text-sm mt-1">
+                    {errors.shortDescription.message}
+                  </span>
                 )}
               </div>
 
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text font-medium">Detailed Description</span>
+                  <span className="label-text font-medium">
+                    Detailed Description
+                  </span>
                 </label>
                 <textarea
                   {...register("detailedDescription")}
@@ -271,7 +334,7 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit, service = null }) => {
                 <span className="material-icons text-primary">palette</span>
                 <h4 className="font-semibold text-lg">Service Icon</h4>
               </div>
-              
+
               <div className="grid grid-cols-4 grid-rows-3 gap-4">
                 {serviceIcons.map((item) => (
                   <button
@@ -279,23 +342,29 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit, service = null }) => {
                     type="button"
                     onClick={() => setValue("selectedIcon", item.icon)}
                     className={`btn h-auto p-4 flex-col gap-2 transition-all duration-200 border-2 group w-full ${
-                      selectedIcon === item.icon 
-                        ? "btn-primary border-primary bg-primary hover:bg-primary/90" 
+                      selectedIcon === item.icon
+                        ? "btn-primary border-primary bg-primary hover:bg-primary/90"
                         : "btn-ghost border-base-300 hover:border-primary/30 hover:bg-primary/5"
                     }`}
                   >
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 ${
-                      selectedIcon === item.icon 
-                        ? "bg-white/20 text-white group-hover:text-white" 
-                        : `${item.bg} ${item.color} group-hover:scale-105`
-                    }`}>
-                      <span className="material-icons text-xl">{item.icon}</span>
+                    <div
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 ${
+                        selectedIcon === item.icon
+                          ? "bg-white/20 text-white group-hover:text-white"
+                          : `${item.bg} ${item.color} group-hover:scale-105`
+                      }`}
+                    >
+                      <span className="material-icons text-xl">
+                        {item.icon}
+                      </span>
                     </div>
-                    <span className={`text-sm font-medium transition-colors duration-200 ${
-                      selectedIcon === item.icon 
-                        ? "text-white group-hover:text-white" 
-                        : "text-base-content/70 group-hover:text-primary"
-                    }`}>
+                    <span
+                      className={`text-sm font-medium transition-colors duration-200 ${
+                        selectedIcon === item.icon
+                          ? "text-white group-hover:text-white"
+                          : "text-base-content/70 group-hover:text-primary"
+                      }`}
+                    >
                       {item.label}
                     </span>
                   </button>
@@ -312,7 +381,7 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit, service = null }) => {
                 <span className="material-icons text-primary">star</span>
                 <h4 className="font-semibold text-lg">Key Features</h4>
               </div>
-              
+
               {/* Add Feature Form */}
               <div className="card bg-base-200/50 border border-base-300">
                 <div className="card-body p-4">
@@ -358,7 +427,10 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit, service = null }) => {
               {fields.length > 0 && (
                 <div className="space-y-2 mt-4 max-h-48 overflow-y-auto">
                   {fields.map((field, index) => (
-                    <div key={field.id} className="card bg-base-50 border border-base-300">
+                    <div
+                      key={field.id}
+                      className="card bg-base-50 border border-base-300"
+                    >
                       <div className="card-body p-3">
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
@@ -366,7 +438,9 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit, service = null }) => {
                               <span className="material-icons text-sm text-primary">
                                 {field.iconClass || "check_circle"}
                               </span>
-                              <h5 className="font-medium text-sm">{field.title}</h5>
+                              <h5 className="font-medium text-sm">
+                                {field.title}
+                              </h5>
                             </div>
                             {field.description && (
                               <p className="text-xs text-base-content/70 mt-1 ml-6">
@@ -379,7 +453,9 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit, service = null }) => {
                             onClick={() => remove(index)}
                             className="btn btn-xs btn-circle btn-ghost text-error hover:bg-error/10"
                           >
-                            <span className="material-icons text-sm">close</span>
+                            <span className="material-icons text-sm">
+                              close
+                            </span>
                           </button>
                         </div>
                       </div>
@@ -397,11 +473,13 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit, service = null }) => {
                 <span className="material-icons text-primary">settings</span>
                 <h4 className="font-semibold text-lg">Service Settings</h4>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="form-control">
                   <label className="label">
-                    <span className="label-text font-medium">Display Order</span>
+                    <span className="label-text font-medium">
+                      Display Order
+                    </span>
                   </label>
                   <input
                     type="number"
@@ -411,7 +489,9 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit, service = null }) => {
                     min="0"
                   />
                   <label className="label">
-                    <span className="label-text-alt">Lower numbers appear first</span>
+                    <span className="label-text-alt">
+                      Lower numbers appear first
+                    </span>
                   </label>
                 </div>
 
@@ -423,8 +503,12 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit, service = null }) => {
                       className="checkbox checkbox-primary"
                     />
                     <div>
-                      <span className="label-text font-medium">Featured Service</span>
-                      <div className="text-xs text-base-content/60">Show in featured section</div>
+                      <span className="label-text font-medium">
+                        Featured Service
+                      </span>
+                      <div className="text-xs text-base-content/60">
+                        Show in featured section
+                      </div>
                     </div>
                   </label>
                 </div>
@@ -437,8 +521,12 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit, service = null }) => {
                       className="checkbox checkbox-primary"
                     />
                     <div>
-                      <span className="label-text font-medium">Active Service</span>
-                      <div className="text-xs text-base-content/60">Visible to users</div>
+                      <span className="label-text font-medium">
+                        Active Service
+                      </span>
+                      <div className="text-xs text-base-content/60">
+                        Visible to users
+                      </div>
                     </div>
                   </label>
                 </div>
@@ -448,11 +536,7 @@ const AddServiceModal = ({ isOpen, onClose, onSubmit, service = null }) => {
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-3 pt-4 border-t border-base-300">
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn btn-ghost"
-            >
+            <button type="button" onClick={onClose} className="btn btn-ghost">
               Cancel
             </button>
             <button

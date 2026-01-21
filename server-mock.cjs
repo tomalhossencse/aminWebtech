@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
-const port = 3000;
+const port = 3001;
 
 // JWT Secret - In production, use a strong secret from environment variables
 const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key-change-in-production";
@@ -468,23 +468,35 @@ app.put("/services/:id", verifyAdmin, async (req, res) => {
     const { id } = req.params;
     console.log(`📋 PUT /services/${id} - Update request received`);
     console.log("Request body:", req.body);
+    console.log("Current services count:", mockServices.length);
+    console.log("Available service IDs:", mockServices.map(s => s._id));
     
     const serviceIndex = mockServices.findIndex(s => s._id === id);
     
     if (serviceIndex === -1) {
       console.log(`❌ Service not found for ID: ${id}`);
+      console.log("Available services:", mockServices.map(s => ({ id: s._id, name: s.name })));
       return res.status(404).send({ error: "Service not found" });
     }
     
     // Update the service
+    const originalService = mockServices[serviceIndex];
     mockServices[serviceIndex] = {
-      ...mockServices[serviceIndex],
+      ...originalService,
       ...req.body,
+      _id: originalService._id, // Preserve the original ID
       updatedAt: new Date()
     };
     
     console.log(`✅ PUT /services/${id} - Updated: ${mockServices[serviceIndex].name}`);
-    res.send({ matchedCount: 1, modifiedCount: 1, acknowledged: true });
+    
+    // Return the updated service instead of just status
+    res.send({
+      matchedCount: 1,
+      modifiedCount: 1,
+      acknowledged: true,
+      updatedService: mockServices[serviceIndex]
+    });
   } catch (error) {
     console.error("❌ PUT /services/:id error:", error);
     res.status(500).send({ error: "Failed to update service" });
@@ -940,11 +952,279 @@ app.delete("/api/media", verifyAdmin, async (req, res) => {
   }
 });
 
+// ----------------Activities Related API -----------------
+// Mock activities data
+let mockActivities = [
+  {
+    _id: "activity-1",
+    type: "login",
+    action: "Admin logged in to dashboard",
+    user: "Admin",
+    timestamp: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
+    metadata: {
+      ip: "192.168.1.1",
+      userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    },
+    createdAt: new Date(Date.now() - 1000 * 60 * 5)
+  },
+  {
+    _id: "activity-2",
+    type: "project",
+    action: "Created new project: Healthcare App",
+    user: "Admin",
+    timestamp: new Date(Date.now() - 1000 * 60 * 15), // 15 minutes ago
+    metadata: {
+      projectId: "507f1f77bcf86cd799439012",
+      projectName: "Healthcare App"
+    },
+    createdAt: new Date(Date.now() - 1000 * 60 * 15)
+  },
+  {
+    _id: "activity-3",
+    type: "service",
+    action: "Updated service: Web Development",
+    user: "Admin",
+    timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
+    metadata: {
+      serviceId: "507f1f77bcf86cd799439021",
+      serviceName: "Web Development"
+    },
+    createdAt: new Date(Date.now() - 1000 * 60 * 30)
+  },
+  {
+    _id: "activity-4",
+    type: "blog",
+    action: "Published new blog post: Modern Web Development Trends",
+    user: "Admin",
+    timestamp: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
+    metadata: {
+      blogId: "blog-123",
+      blogTitle: "Modern Web Development Trends"
+    },
+    createdAt: new Date(Date.now() - 1000 * 60 * 60)
+  },
+  {
+    _id: "activity-5",
+    type: "contact",
+    action: "New contact message received from John Doe",
+    user: "System",
+    timestamp: new Date(Date.now() - 1000 * 60 * 90), // 1.5 hours ago
+    metadata: {
+      contactId: "contact-456",
+      contactName: "John Doe",
+      contactEmail: "john@example.com"
+    },
+    createdAt: new Date(Date.now() - 1000 * 60 * 90)
+  },
+  {
+    _id: "activity-6",
+    type: "team",
+    action: "Added new team member: Sarah Johnson",
+    user: "Admin",
+    timestamp: new Date(Date.now() - 1000 * 60 * 120), // 2 hours ago
+    metadata: {
+      teamMemberId: "team-789",
+      memberName: "Sarah Johnson",
+      position: "UI/UX Designer"
+    },
+    createdAt: new Date(Date.now() - 1000 * 60 * 120)
+  }
+];
+
+// Helper functions for activities
+const getTimeAgo = (date) => {
+  if (!date) return "Unknown";
+  const now = new Date();
+  const past = new Date(date);
+  const diffInMs = now - past;
+  const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  const diffInDays = Math.floor(diffInHours / 24);
+
+  if (diffInDays > 0) {
+    return `${diffInDays} day${diffInDays > 1 ? "s" : ""} ago`;
+  } else if (diffInHours > 0) {
+    return `${diffInHours} hour${diffInHours > 1 ? "s" : ""} ago`;
+  } else if (diffInMinutes > 0) {
+    return `${diffInMinutes} minute${diffInMinutes > 1 ? "s" : ""} ago`;
+  } else {
+    return "Just now";
+  }
+};
+
+const getActivityIcon = (type) => {
+  switch (type) {
+    case "login":
+      return "User";
+    case "create":
+      return "Plus";
+    case "update":
+      return "Edit";
+    case "delete":
+      return "Trash";
+    case "action":
+    default:
+      return "FileText";
+  }
+};
+
+// GET recent activities (for dashboard)
+app.get("/api/activities/recent", verifyAdmin, async (req, res) => {
+  try {
+    console.log("📊 GET /api/activities/recent - Request received");
+    
+    const { limit = 6 } = req.query;
+    
+    // Sort by timestamp (most recent first) and limit results
+    const recentActivities = mockActivities
+      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+      .slice(0, parseInt(limit));
+    
+    // Format activities for frontend
+    const formattedActivities = recentActivities.map((activity) => ({
+      id: activity._id,
+      user: activity.user,
+      action: activity.action,
+      timestamp: getTimeAgo(activity.createdAt),
+      date: activity.createdAt.toLocaleString("en-GB"),
+      ip: activity.metadata?.ip || "N/A",
+      type: activity.type,
+      icon: getActivityIcon(activity.type),
+      metadata: activity.metadata,
+    }));
+    
+    console.log(`✅ GET /api/activities/recent - Returned ${formattedActivities.length} activities`);
+    res.send(formattedActivities);
+  } catch (error) {
+    console.error("❌ GET /api/activities/recent error:", error);
+    res.status(500).send({ error: "Failed to fetch recent activities" });
+  }
+});
+
+// GET all activities with pagination (Admin only)
+app.get("/api/activities", verifyAdmin, async (req, res) => {
+  try {
+    console.log("📊 GET /api/activities - Request received");
+    
+    const { 
+      page = 1, 
+      limit = 10, 
+      search = "", 
+      type = "",
+      user = ""
+    } = req.query;
+    
+    let filteredActivities = [...mockActivities];
+    
+    // Apply search filter
+    if (search) {
+      filteredActivities = filteredActivities.filter(activity => 
+        activity.action.toLowerCase().includes(search.toLowerCase()) ||
+        activity.user.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+    
+    // Apply type filter
+    if (type && type !== "all") {
+      filteredActivities = filteredActivities.filter(activity => activity.type === type);
+    }
+    
+    // Apply user filter
+    if (user && user !== "all") {
+      filteredActivities = filteredActivities.filter(activity => activity.user === user);
+    }
+    
+    // Sort by timestamp (most recent first)
+    filteredActivities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
+    // Apply pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const paginatedActivities = filteredActivities.slice(skip, skip + parseInt(limit));
+    
+    // Get stats
+    const stats = {
+      total: mockActivities.length,
+      login: mockActivities.filter(a => a.type === "login").length,
+      action: mockActivities.filter(a => a.type === "action").length,
+      create: mockActivities.filter(a => a.type === "create").length,
+      update: mockActivities.filter(a => a.type === "update").length,
+      delete: mockActivities.filter(a => a.type === "delete").length,
+    };
+    
+    res.send({
+      activities: paginatedActivities,
+      total: filteredActivities.length,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil(filteredActivities.length / parseInt(limit)),
+      stats,
+    });
+    
+    console.log(`✅ GET /api/activities - Returned ${paginatedActivities.length} activities`);
+  } catch (error) {
+    console.error("❌ GET /api/activities error:", error);
+    res.status(500).send({ error: "Failed to fetch activities" });
+  }
+});
+
+// POST create activity (for manual logging)
+app.post("/api/activities", verifyAdmin, async (req, res) => {
+  try {
+    console.log("📝 POST /api/activities - Create request received");
+    
+    const { type, action, user, metadata } = req.body;
+    
+    if (!type || !action) {
+      return res.status(400).send({ 
+        error: "Missing required fields: type, action" 
+      });
+    }
+    
+    const newActivity = {
+      _id: `activity-${Date.now()}`,
+      type,
+      action,
+      user: user || "Admin",
+      timestamp: new Date(),
+      metadata: metadata || {},
+      createdAt: new Date()
+    };
+    
+    mockActivities.unshift(newActivity); // Add to beginning of array
+    
+    console.log(`✅ POST /api/activities - Created: ${action}`);
+    res.send({ insertedId: newActivity._id, acknowledged: true });
+  } catch (error) {
+    console.error("❌ POST /api/activities error:", error);
+    res.status(500).send({ error: "Failed to create activity" });
+  }
+});
+
+// DELETE clear all activities (Admin only)
+app.delete("/api/activities/clear", verifyAdmin, async (req, res) => {
+  try {
+    console.log("🗑️ DELETE /api/activities/clear - Request received");
+    
+    const clearedCount = mockActivities.length;
+    mockActivities = []; // Clear all activities
+    
+    console.log(`✅ DELETE /api/activities/clear - Cleared ${clearedCount} activities`);
+    res.send({ 
+      message: "All activities cleared successfully",
+      clearedCount 
+    });
+  } catch (error) {
+    console.error("❌ DELETE /api/activities/clear error:", error);
+    res.status(500).send({ error: "Failed to clear activities" });
+  }
+});
+
 app.listen(port, () => {
   console.log(`🚀 Mock server running on port ${port}`);
   console.log(`📋 Mock services loaded: ${mockServices.length} services`);
   console.log(`📋 Mock projects loaded: ${mockProjects.length} projects`);
   console.log(`📁 Mock media loaded: ${mockMedia.length} media files`);
+  console.log(`📊 Mock activities loaded: ${mockActivities.length} activities`);
   console.log(`🔗 Available endpoints:`);
   console.log(`   GET  /services - List all services`);
   console.log(`   GET  /services/:id - Get single service`);
@@ -960,5 +1240,9 @@ app.listen(port, () => {
   console.log(`   POST /api/media - Upload media file (Admin)`);
   console.log(`   DELETE /api/media/:id - Delete media file (Admin)`);
   console.log(`   DELETE /api/media - Delete multiple media files (Admin)`);
+  console.log(`   GET  /api/activities/recent - Get recent activities (Admin)`);
+  console.log(`   GET  /api/activities - Get all activities (Admin)`);
+  console.log(`   POST /api/activities - Create activity (Admin)`);
+  console.log(`   DELETE /api/activities/clear - Clear all activities (Admin)`);
   console.log(`   POST /api/auth/login - Admin login`);
 });

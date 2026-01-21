@@ -5,8 +5,10 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "server": "node server/server.js",
-        "dev:server": "nodemon server/server.js",
+        "server": "node server-mock.cjs",
+        "dev:server": "nodemon server-mock.cjs",
+        "start": "node server-complete.js",
+        "production": "node server-complete.js",
         "analytics:server": "node server-analytics-improved.js",
         "analytics:dev": "nodemon server-analytics-improved.js",
         "analytics:test": "node test-analytics-endpoints.js",

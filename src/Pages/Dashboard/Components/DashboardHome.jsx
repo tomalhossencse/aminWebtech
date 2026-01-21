@@ -168,10 +168,10 @@ const DashboardHome = () => {
         {/* Bar Chart */}
         <div className="xl:col-span-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4 border border-gray-100 dark:border-gray-700 overflow-hidden">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-6">Content Overview</h3>
-          <div className="w-full h-80 min-h-[320px] overflow-hidden">
+          <div className="w-full h-80 min-h-[320px] min-w-[300px] overflow-hidden">
             {contentData ? (
-              <div className="w-full h-full">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="w-full h-full min-w-[300px] min-h-[320px]">
+                <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={320}>
                   <BarChart 
                     data={contentData} 
                     margin={{ top: 20, right: 20, left: 10, bottom: 20 }}
@@ -232,10 +232,10 @@ const DashboardHome = () => {
             </span>
           </div>
           
-          <div className="w-full max-w-[200px] h-48 flex justify-center items-center overflow-hidden">
+          <div className="w-full max-w-[200px] h-48 min-w-[200px] min-h-[192px] flex justify-center items-center overflow-hidden">
             {pieData ? (
-              <div className="w-full h-full">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="w-full h-full min-w-[200px] min-h-[192px]">
+                <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={192}>
                   <PieChart>
                     <Pie
                       data={pieData}

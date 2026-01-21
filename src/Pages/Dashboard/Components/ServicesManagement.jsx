@@ -90,7 +90,8 @@ const ServicesManagement = () => {
 
   const totalEntries = filteredServices.length;
   const entriesPerPage = 5;
-  const startEntry = totalEntries > 0 ? (currentPage - 1) * entriesPerPage + 1 : 0;
+  const startEntry =
+    totalEntries > 0 ? (currentPage - 1) * entriesPerPage + 1 : 0;
   const endEntry = Math.min(currentPage * entriesPerPage, totalEntries);
 
   // Reset to first page when search or filter changes
@@ -109,7 +110,10 @@ const ServicesManagement = () => {
         setIsAddModalOpen(true);
         break;
       case "delete":
-        setServiceToDelete({ id: serviceId, name: service?.name || "this service" });
+        setServiceToDelete({
+          id: serviceId,
+          name: service?.name || "this service",
+        });
         setDeleteConfirmOpen(true);
         break;
       case "view":
@@ -120,22 +124,24 @@ const ServicesManagement = () => {
         }
 
         let slug = service.slug;
-        
+
         // If no slug exists, generate one from the service name
         if (!slug && service.name) {
           slug = service.name
             .toLowerCase()
-            .replace(/[^a-z0-9\s-]/g, '') // Remove special characters except spaces and hyphens
-            .replace(/\s+/g, '-') // Replace spaces with hyphens
-            .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
-            .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+            .replace(/[^a-z0-9\s-]/g, "") // Remove special characters except spaces and hyphens
+            .replace(/\s+/g, "-") // Replace spaces with hyphens
+            .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
+            .replace(/^-+|-+$/g, "") // Remove leading/trailing hyphens
             .trim();
         }
-        
+
         if (slug && slug.length > 0) {
           navigate(`/services/${slug}`);
         } else {
-          error(`Unable to view service details. Could not generate slug from service name: "${service.name || 'Unknown'}"`);
+          error(
+            `Unable to view service details. Could not generate slug from service name: "${service.name || "Unknown"}"`,
+          );
         }
         break;
       default:
@@ -146,7 +152,7 @@ const ServicesManagement = () => {
 
   const handleDeleteConfirm = async () => {
     if (!serviceToDelete) return;
-    
+
     try {
       await axiosSecure.delete(`/services/${serviceToDelete.id}`);
       refetch();
@@ -182,9 +188,10 @@ const ServicesManagement = () => {
         // Update existing service
         const updatedService = {
           name: serviceData.title,
-          description: serviceData.shortDescription?.length > 50 
-            ? serviceData.shortDescription.substring(0, 50) + "..." 
-            : serviceData.shortDescription,
+          description:
+            serviceData.shortDescription?.length > 50
+              ? serviceData.shortDescription.substring(0, 50) + "..."
+              : serviceData.shortDescription,
           icon: serviceData.selectedIcon,
           iconBg: "bg-blue-100 dark:bg-blue-900/30",
           iconColor: "text-blue-600 dark:text-blue-400",
@@ -199,18 +206,42 @@ const ServicesManagement = () => {
           displayOrder: serviceData.displayOrder || 0,
         };
 
-        const response = await axiosSecure.put(`/services/${editingService._id}`, updatedService);
-        refetch();
-        setIsAddModalOpen(false);
-        setEditingService(null);
-        success("Service updated successfully!");
+        console.log("🔄 Attempting to update service:", editingService._id);
+        console.log("📝 Update data:", updatedService);
+
+        try {
+          const response = await axiosSecure.put(
+            `/services/${editingService._id}`,
+            updatedService,
+          );
+          console.log("✅ Update successful:", response.data);
+          refetch();
+          setIsAddModalOpen(false);
+          setEditingService(null);
+          success("Service updated successfully!");
+        } catch (updateError) {
+          console.error(
+            "❌ PUT request failed:",
+            updateError.response?.status,
+            updateError.response?.data,
+          );
+
+          if (updateError.response?.status === 404) {
+            error(
+              "Update endpoint not available. The server needs to be updated with the latest code. For now, you can delete and recreate the service.",
+            );
+          } else {
+            throw updateError; // Re-throw other errors to be handled below
+          }
+        }
       } else {
         // Create new service
         const newService = {
           name: serviceData.title,
-          description: serviceData.shortDescription?.length > 50 
-            ? serviceData.shortDescription.substring(0, 50) + "..." 
-            : serviceData.shortDescription,
+          description:
+            serviceData.shortDescription?.length > 50
+              ? serviceData.shortDescription.substring(0, 50) + "..."
+              : serviceData.shortDescription,
           icon: serviceData.selectedIcon,
           iconBg: "bg-blue-100 dark:bg-blue-900/30",
           iconColor: "text-blue-600 dark:text-blue-400",
@@ -232,18 +263,21 @@ const ServicesManagement = () => {
       }
     } catch (err) {
       console.error(editingService ? "Update failed" : "Add failed", err);
-      
+
       // More specific error messages
       if (err.response?.status === 400) {
         error("Invalid service data. Please check all required fields.");
-      } else if (err.response?.status === 404) {
-        error("Service not found. It may have been deleted.");
+      } else if (err.response?.status === 404 && editingService) {
+        // This error is already handled above for updates
+        return;
       } else if (err.response?.status === 500) {
         error("Server error. Please try again later.");
       } else {
-        error(`Failed to ${editingService ? "update" : "create"} service. Please try again.`);
+        error(
+          `Failed to ${editingService ? "update" : "create"} service. Please try again.`,
+        );
       }
-      
+
       throw err; // Re-throw to let the modal handle the error state
     }
   };
@@ -328,13 +362,21 @@ const ServicesManagement = () => {
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {filteredServices.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
-                    {services.length === 0 ? "No services found. Create your first service!" : "No services match your search criteria."}
+                  <td
+                    colSpan="6"
+                    className="px-6 py-8 text-center text-gray-500 dark:text-gray-400"
+                  >
+                    {services.length === 0
+                      ? "No services found. Create your first service!"
+                      : "No services match your search criteria."}
                   </td>
                 </tr>
               ) : (
                 filteredServices
-                  .slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage)
+                  .slice(
+                    (currentPage - 1) * entriesPerPage,
+                    currentPage * entriesPerPage,
+                  )
                   .map((service) => {
                     const IconComponent = getIconComponent(service.icon);
                     return (
@@ -345,16 +387,17 @@ const ServicesManagement = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-start gap-4">
                             <div
-                              className={`h-10 w-10 rounded-lg ${service.iconBg || 'bg-blue-100 dark:bg-blue-900/30'} flex items-center justify-center flex-shrink-0 ${service.iconColor || 'text-blue-600 dark:text-blue-400'}`}
+                              className={`h-10 w-10 rounded-lg ${service.iconBg || "bg-blue-100 dark:bg-blue-900/30"} flex items-center justify-center flex-shrink-0 ${service.iconColor || "text-blue-600 dark:text-blue-400"}`}
                             >
                               <IconComponent className="w-5 h-5" />
                             </div>
                             <div>
                               <div className="font-medium text-gray-900 dark:text-white">
-                                {service.name || 'Untitled Service'}
+                                {service.name || "Untitled Service"}
                               </div>
                               <div className="text-sm text-gray-500 dark:text-gray-400 mt-0.5 truncate max-w-[240px]">
-                                {service.description || 'No description available'}
+                                {service.description ||
+                                  "No description available"}
                               </div>
                             </div>
                           </div>
@@ -367,42 +410,48 @@ const ServicesManagement = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusBadge(
-                              service.status
+                              service.status,
                             )}`}
                           >
-                            {service.status || 'Active'}
+                            {service.status || "Active"}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={`px-3 py-1 text-xs font-medium rounded-full ${getFeaturedBadge(
-                              service.featured
+                              service.featured,
                             )}`}
                           >
-                            {service.featured || 'No'}
+                            {service.featured || "No"}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                          {service.created || 'N/A'}
+                          {service.created || "N/A"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right">
                           <div className="flex items-center justify-end gap-3">
                             <button
-                              onClick={() => handleAction("view", service._id, service)}
+                              onClick={() =>
+                                handleAction("view", service._id, service)
+                              }
                               className="text-blue-500 hover:text-blue-700 p-1 transition-colors"
                               title="View service"
                             >
                               <Eye className="w-5 h-5" />
                             </button>
                             <button
-                              onClick={() => handleAction("edit", service._id, service)}
+                              onClick={() =>
+                                handleAction("edit", service._id, service)
+                              }
                               className="text-amber-500 hover:text-amber-700 p-1 transition-colors"
                               title="Edit service"
                             >
                               <Edit className="w-5 h-5" />
                             </button>
                             <button
-                              onClick={() => handleAction("delete", service._id, service)}
+                              onClick={() =>
+                                handleAction("delete", service._id, service)
+                              }
                               className="text-red-500 hover:text-red-700 p-1 transition-colors"
                               title="Delete service"
                             >

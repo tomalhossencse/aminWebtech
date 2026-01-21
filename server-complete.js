@@ -17,41 +17,41 @@ const generateSessionIP = (sessionId) => {
   }
 
   // Create a hash from the session ID
-  const hash = crypto.createHash('md5').update(sessionId).digest('hex');
-  
+  const hash = crypto.createHash("md5").update(sessionId).digest("hex");
+
   // Generate IP components from hash
-  const ip1 = parseInt(hash.substring(0, 2), 16) % 223 + 1; // 1-223 (avoid reserved ranges)
+  const ip1 = (parseInt(hash.substring(0, 2), 16) % 223) + 1; // 1-223 (avoid reserved ranges)
   const ip2 = parseInt(hash.substring(2, 4), 16) % 255;
   const ip3 = parseInt(hash.substring(4, 6), 16) % 255;
-  const ip4 = parseInt(hash.substring(6, 8), 16) % 254 + 1; // 1-254 (avoid .0 and .255)
-  
+  const ip4 = (parseInt(hash.substring(6, 8), 16) % 254) + 1; // 1-254 (avoid .0 and .255)
+
   const ip = `${ip1}.${ip2}.${ip3}.${ip4}`;
   sessionIPs.set(sessionId, ip);
-  
+
   return ip;
 };
 
-const generateRealisticIP = (type = 'random') => {
+const generateRealisticIP = (type = "random") => {
   switch (type) {
-    case 'us':
+    case "us":
       // US IP ranges
       const usRanges = [
         [8, 8, 8, 8], // Google DNS
         [208, 67, 222, 222], // OpenDNS
         [173, 252, 0, 0], // Facebook range
-        [199, 16, 156, 0] // Twitter range
+        [199, 16, 156, 0], // Twitter range
       ];
       const usRange = usRanges[Math.floor(Math.random() * usRanges.length)];
       return `${usRange[0]}.${usRange[1]}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 254) + 1}`;
-    
-    case 'eu':
+
+    case "eu":
       // European IP ranges
       return `${Math.floor(Math.random() * 50) + 80}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 254) + 1}`;
-    
-    case 'asia':
+
+    case "asia":
       // Asian IP ranges
       return `${Math.floor(Math.random() * 50) + 110}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 254) + 1}`;
-    
+
     default:
       // Random but realistic
       const firstOctet = Math.floor(Math.random() * 223) + 1;
@@ -63,92 +63,100 @@ const generateRealisticIP = (type = 'random') => {
 };
 
 const getIPInfo = (ip) => {
-  const hash = crypto.createHash('md5').update(ip).digest('hex');
+  const hash = crypto.createHash("md5").update(ip).digest("hex");
   const countryIndex = parseInt(hash.substring(0, 2), 16) % 10;
-  
+
   const countries = [
-    { country: 'United States', code: 'US', city: 'New York' },
-    { country: 'United Kingdom', code: 'GB', city: 'London' },
-    { country: 'Germany', code: 'DE', city: 'Berlin' },
-    { country: 'France', code: 'FR', city: 'Paris' },
-    { country: 'Japan', code: 'JP', city: 'Tokyo' },
-    { country: 'Canada', code: 'CA', city: 'Toronto' },
-    { country: 'Australia', code: 'AU', city: 'Sydney' },
-    { country: 'Netherlands', code: 'NL', city: 'Amsterdam' },
-    { country: 'Singapore', code: 'SG', city: 'Singapore' },
-    { country: 'Brazil', code: 'BR', city: 'São Paulo' }
+    { country: "United States", code: "US", city: "New York" },
+    { country: "United Kingdom", code: "GB", city: "London" },
+    { country: "Germany", code: "DE", city: "Berlin" },
+    { country: "France", code: "FR", city: "Paris" },
+    { country: "Japan", code: "JP", city: "Tokyo" },
+    { country: "Canada", code: "CA", city: "Toronto" },
+    { country: "Australia", code: "AU", city: "Sydney" },
+    { country: "Netherlands", code: "NL", city: "Amsterdam" },
+    { country: "Singapore", code: "SG", city: "Singapore" },
+    { country: "Brazil", code: "BR", city: "São Paulo" },
   ];
-  
+
   return countries[countryIndex];
 };
 
 // JWT Secret - In production, use a strong secret from environment variables
-const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key-change-in-production";
+const JWT_SECRET =
+  process.env.JWT_SECRET || "your-super-secret-jwt-key-change-in-production";
 
 // middleware
 app.use(express.json());
 app.use(cors());
 
 // Trust proxy for proper IP detection (important for production deployments)
-app.set('trust proxy', true);
+app.set("trust proxy", true);
 
 // IP detection middleware
 app.use((req, res, next) => {
   // Get real IP address from various headers
-  const forwarded = req.headers['x-forwarded-for'];
-  const realIP = req.headers['x-real-ip'];
-  const cfConnectingIP = req.headers['cf-connecting-ip']; // Cloudflare
-  const clientIP = req.headers['x-client-ip'];
-  
+  const forwarded = req.headers["x-forwarded-for"];
+  const realIP = req.headers["x-real-ip"];
+  const cfConnectingIP = req.headers["cf-connecting-ip"]; // Cloudflare
+  const clientIP = req.headers["x-client-ip"];
+
   // Priority order for IP detection
-  let detectedIP = 
-    cfConnectingIP ||                           // Cloudflare
-    clientIP ||                                 // X-Client-IP
-    (forwarded ? forwarded.split(',')[0].trim() : null) || // X-Forwarded-For (first IP)
-    realIP ||                                   // X-Real-IP
-    req.connection?.remoteAddress ||            // Direct connection
-    req.socket?.remoteAddress ||                // Socket connection
-    req.ip ||                                   // Express default
-    'Unknown';
-  
+  let detectedIP =
+    cfConnectingIP || // Cloudflare
+    clientIP || // X-Client-IP
+    (forwarded ? forwarded.split(",")[0].trim() : null) || // X-Forwarded-For (first IP)
+    realIP || // X-Real-IP
+    req.connection?.remoteAddress || // Direct connection
+    req.socket?.remoteAddress || // Socket connection
+    req.ip || // Express default
+    "Unknown";
+
   // Clean up IPv6 mapped IPv4 addresses
-  if (detectedIP && detectedIP.startsWith('::ffff:')) {
+  if (detectedIP && detectedIP.startsWith("::ffff:")) {
     detectedIP = detectedIP.substring(7);
   }
-  
+
   // For local development, generate realistic IPs
-  if (detectedIP === '::1' || detectedIP === '127.0.0.1' || detectedIP === 'localhost' || detectedIP === 'Unknown') {
+  if (
+    detectedIP === "::1" ||
+    detectedIP === "127.0.0.1" ||
+    detectedIP === "localhost" ||
+    detectedIP === "Unknown"
+  ) {
     // Try to get the actual network IP of the machine first
     const networkInterfaces = os.networkInterfaces();
     let networkIP = null;
-    
+
     for (const interfaceName in networkInterfaces) {
       const addresses = networkInterfaces[interfaceName];
       for (const address of addresses) {
-        if (address.family === 'IPv4' && !address.internal) {
+        if (address.family === "IPv4" && !address.internal) {
           networkIP = address.address;
           break;
         }
       }
       if (networkIP) break;
     }
-    
-    if (networkIP && !networkIP.startsWith('169.254')) { // Avoid APIPA addresses
+
+    if (networkIP && !networkIP.startsWith("169.254")) {
+      // Avoid APIPA addresses
       detectedIP = networkIP;
     } else {
       // Generate a consistent realistic IP based on user agent + timestamp
-      const sessionId = (req.headers['user-agent'] || 'default') + (req.headers['host'] || '');
+      const sessionId =
+        (req.headers["user-agent"] || "default") + (req.headers["host"] || "");
       detectedIP = generateSessionIP(sessionId);
     }
   }
-  
+
   req.clientIP = detectedIP;
-  
+
   // Log IP detection for debugging (only in development)
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === "development") {
     console.log(`🌐 IP: ${req.clientIP} | ${req.method} ${req.path}`);
   }
-  
+
   next();
 });
 
@@ -156,31 +164,31 @@ app.use((req, res, next) => {
 const verifyAdmin = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
-    
+
     if (!authHeader) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         error: "Access denied. No token provided.",
-        code: "NO_TOKEN" 
+        code: "NO_TOKEN",
       });
     }
 
-    const token = authHeader.split(' ')[1]; // Bearer TOKEN
-    
+    const token = authHeader.split(" ")[1]; // Bearer TOKEN
+
     if (!token) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         error: "Access denied. Invalid token format.",
-        code: "INVALID_TOKEN_FORMAT" 
+        code: "INVALID_TOKEN_FORMAT",
       });
     }
 
     // Verify JWT token
     const decoded = jwt.verify(token, JWT_SECRET);
-    
+
     // Check if user is admin
-    if (decoded.role !== 'admin') {
-      return res.status(403).json({ 
+    if (decoded.role !== "admin") {
+      return res.status(403).json({
         error: "Access denied. Admin privileges required.",
-        code: "INSUFFICIENT_PRIVILEGES" 
+        code: "INSUFFICIENT_PRIVILEGES",
       });
     }
 
@@ -188,23 +196,23 @@ const verifyAdmin = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (error) {
-    if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({ 
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({
         error: "Access denied. Invalid token.",
-        code: "INVALID_TOKEN" 
+        code: "INVALID_TOKEN",
       });
     }
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ 
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({
         error: "Access denied. Token expired.",
-        code: "TOKEN_EXPIRED" 
+        code: "TOKEN_EXPIRED",
       });
     }
-    
+
     console.error("Auth middleware error:", error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Internal server error during authentication.",
-      code: "AUTH_ERROR" 
+      code: "AUTH_ERROR",
     });
   }
 };
@@ -222,8 +230,10 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     await client.db("admin").command({ ping: 1 });
-    console.log("❤️ Pinged your deployment. You successfully connected to MongoDB!");
-    
+    console.log(
+      "❤️ Pinged your deployment. You successfully connected to MongoDB!",
+    );
+
     const db = client.db("AminWebTechDB");
     const usersCollection = db.collection("users");
     const servicesCollection = db.collection("services");
@@ -235,7 +245,7 @@ async function run() {
     const repliesCollection = db.collection("replies");
     const mediaCollection = db.collection("media");
     const activitiesCollection = db.collection("activities");
-    
+
     // Analytics Collections
     const analyticsCollection = db.collection("analytics");
     const visitorsCollection = db.collection("visitors");
@@ -246,74 +256,79 @@ async function run() {
     if (testimonialsCount === 0) {
       const sampleTestimonials = [
         {
-          name: 'Sarah Johnson',
-          company: 'Global Tech Solutions',
-          position: 'CTO',
+          name: "Sarah Johnson",
+          company: "Global Tech Solutions",
+          position: "CTO",
           rating: 5,
-          testimonial: 'Professional team with great attention to detail. Their expertise in web development exceeded our expectations. Will definitely work with them again on future projects.',
+          testimonial:
+            "Professional team with great attention to detail. Their expertise in web development exceeded our expectations. Will definitely work with them again on future projects.",
           featured: true,
           active: true,
           displayOrder: 1,
-          date: '2024-12-24',
-          createdAt: new Date('2024-12-24'),
-          updatedAt: new Date('2024-12-24')
+          date: "2024-12-24",
+          createdAt: new Date("2024-12-24"),
+          updatedAt: new Date("2024-12-24"),
         },
         {
-          name: 'David Chen',
-          company: 'Innovate Inc',
-          position: 'Product Manager',
+          name: "David Chen",
+          company: "Innovate Inc",
+          position: "Product Manager",
           rating: 4,
-          testimonial: 'The platform they built is intuitive and easy to use. The support team was very helpful throughout the development process. Great communication and timely delivery.',
+          testimonial:
+            "The platform they built is intuitive and easy to use. The support team was very helpful throughout the development process. Great communication and timely delivery.",
           featured: false,
           active: true,
           displayOrder: 2,
-          date: '2024-12-20',
-          createdAt: new Date('2024-12-20'),
-          updatedAt: new Date('2024-12-20')
+          date: "2024-12-20",
+          createdAt: new Date("2024-12-20"),
+          updatedAt: new Date("2024-12-20"),
         },
         {
-          name: 'Emily Rodriguez',
-          company: 'StartupXYZ',
-          position: 'Founder & CEO',
+          name: "Emily Rodriguez",
+          company: "StartupXYZ",
+          position: "Founder & CEO",
           rating: 5,
-          testimonial: 'Exceeded our expectations in every way. The team delivered a high-quality solution that perfectly matched our requirements. Highly recommend their services to anyone looking for professional web development.',
+          testimonial:
+            "Exceeded our expectations in every way. The team delivered a high-quality solution that perfectly matched our requirements. Highly recommend their services to anyone looking for professional web development.",
           featured: true,
           active: true,
           displayOrder: 3,
-          date: '2024-12-18',
-          createdAt: new Date('2024-12-18'),
-          updatedAt: new Date('2024-12-18')
+          date: "2024-12-18",
+          createdAt: new Date("2024-12-18"),
+          updatedAt: new Date("2024-12-18"),
         },
         {
-          name: 'Michael Thompson',
-          company: 'TechCorp Ltd',
-          position: 'Lead Developer',
+          name: "Michael Thompson",
+          company: "TechCorp Ltd",
+          position: "Lead Developer",
           rating: 5,
-          testimonial: 'Outstanding work quality and timely delivery. The code is clean, well-documented, and follows best practices. Great communication throughout the project lifecycle.',
+          testimonial:
+            "Outstanding work quality and timely delivery. The code is clean, well-documented, and follows best practices. Great communication throughout the project lifecycle.",
           featured: false,
           active: true,
           displayOrder: 4,
-          date: '2024-12-15',
-          createdAt: new Date('2024-12-15'),
-          updatedAt: new Date('2024-12-15')
+          date: "2024-12-15",
+          createdAt: new Date("2024-12-15"),
+          updatedAt: new Date("2024-12-15"),
         },
         {
-          name: 'Lisa Wang',
-          company: 'Digital Dynamics',
-          position: 'Marketing Director',
+          name: "Lisa Wang",
+          company: "Digital Dynamics",
+          position: "Marketing Director",
           rating: 4,
-          testimonial: 'Professional service and excellent results. The website they created has significantly improved our online presence and user engagement. Very satisfied with the outcome.',
+          testimonial:
+            "Professional service and excellent results. The website they created has significantly improved our online presence and user engagement. Very satisfied with the outcome.",
           featured: false,
           active: true,
           displayOrder: 5,
-          date: '2024-12-10',
-          createdAt: new Date('2024-12-10'),
-          updatedAt: new Date('2024-12-10')
-        }
+          date: "2024-12-10",
+          createdAt: new Date("2024-12-10"),
+          updatedAt: new Date("2024-12-10"),
+        },
       ];
-      
+
       await testimonialsCollection.insertMany(sampleTestimonials);
-      console.log('✅ Sample testimonials data seeded successfully');
+      console.log("✅ Sample testimonials data seeded successfully");
     }
 
     // Seed services data if collection is empty
@@ -321,74 +336,79 @@ async function run() {
     if (servicesCount === 0) {
       const sampleServices = [
         {
-          name: 'Web Development',
-          description: 'Custom web applications built with modern technologies and best practices.',
-          icon: 'code',
-          iconBg: 'bg-blue-100 dark:bg-blue-900/30',
-          iconColor: 'text-blue-600 dark:text-blue-400',
+          name: "Web Development",
+          description:
+            "Custom web applications built with modern technologies and best practices.",
+          icon: "code",
+          iconBg: "bg-blue-100 dark:bg-blue-900/30",
+          iconColor: "text-blue-600 dark:text-blue-400",
           features: 5,
-          status: 'Active',
-          featured: 'Yes',
-          created: new Date().toLocaleDateString('en-GB'),
+          status: "Active",
+          featured: "Yes",
+          created: new Date().toLocaleDateString("en-GB"),
           createdAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         },
         {
-          name: 'UI/UX Design',
-          description: 'Beautiful and intuitive user interfaces designed for optimal user experience.',
-          icon: 'brush',
-          iconBg: 'bg-purple-100 dark:bg-purple-900/30',
-          iconColor: 'text-purple-600 dark:text-purple-400',
+          name: "UI/UX Design",
+          description:
+            "Beautiful and intuitive user interfaces designed for optimal user experience.",
+          icon: "brush",
+          iconBg: "bg-purple-100 dark:bg-purple-900/30",
+          iconColor: "text-purple-600 dark:text-purple-400",
           features: 4,
-          status: 'Active',
-          featured: 'Yes',
-          created: new Date().toLocaleDateString('en-GB'),
+          status: "Active",
+          featured: "Yes",
+          created: new Date().toLocaleDateString("en-GB"),
           createdAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         },
         {
-          name: 'E-commerce Solutions',
-          description: 'Complete online store solutions with payment integration and inventory management.',
-          icon: 'shopping_cart',
-          iconBg: 'bg-green-100 dark:bg-green-900/30',
-          iconColor: 'text-green-600 dark:text-green-400',
+          name: "E-commerce Solutions",
+          description:
+            "Complete online store solutions with payment integration and inventory management.",
+          icon: "shopping_cart",
+          iconBg: "bg-green-100 dark:bg-green-900/30",
+          iconColor: "text-green-600 dark:text-green-400",
           features: 6,
-          status: 'Active',
-          featured: 'No',
-          created: new Date().toLocaleDateString('en-GB'),
+          status: "Active",
+          featured: "No",
+          created: new Date().toLocaleDateString("en-GB"),
           createdAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         },
         {
-          name: 'Mobile App Development',
-          description: 'Native and cross-platform mobile applications for iOS and Android.',
-          icon: 'smartphone',
-          iconBg: 'bg-pink-100 dark:bg-pink-900/30',
-          iconColor: 'text-pink-600 dark:text-pink-400',
+          name: "Mobile App Development",
+          description:
+            "Native and cross-platform mobile applications for iOS and Android.",
+          icon: "smartphone",
+          iconBg: "bg-pink-100 dark:bg-pink-900/30",
+          iconColor: "text-pink-600 dark:text-pink-400",
           features: 4,
-          status: 'Active',
-          featured: 'Yes',
-          created: new Date().toLocaleDateString('en-GB'),
+          status: "Active",
+          featured: "Yes",
+          created: new Date().toLocaleDateString("en-GB"),
           createdAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         },
         {
-          name: 'Cloud Solutions',
-          description: 'Scalable cloud infrastructure and deployment solutions for modern applications.',
-          icon: 'cloud',
-          iconBg: 'bg-sky-100 dark:bg-sky-900/30',
-          iconColor: 'text-sky-600 dark:text-sky-400',
+          name: "Cloud Solutions",
+          description:
+            "Scalable cloud infrastructure and deployment solutions for modern applications.",
+          icon: "cloud",
+          iconBg: "bg-sky-100 dark:bg-sky-900/30",
+          iconColor: "text-sky-600 dark:text-sky-400",
           features: 3,
-          status: 'Active',
-          featured: 'No',
-          created: new Date().toLocaleDateString('en-GB'),
+          status: "Active",
+          featured: "No",
+          created: new Date().toLocaleDateString("en-GB"),
           createdAt: new Date(),
-          updatedAt: new Date()
-        }
+          updatedAt: new Date(),
+        },
       ];
-      
+
       await servicesCollection.insertMany(sampleServices);
-      console.log('✅ Sample services data seeded successfully');
+      console.log("✅ Sample services data seeded successfully");
     }
 
     // Seed contacts data if collection is empty (for testing)
@@ -396,45 +416,48 @@ async function run() {
     if (contactsCount === 0) {
       const sampleContacts = [
         {
-          name: 'Akash Rahman',
-          email: 'akash@gmail.com',
-          phone: '01814726978',
-          subject: 'Need a website',
-          message: 'Hello, I am looking for a professional website for my business. Can you help me with this project?',
-          status: 'read',
-          createdAt: new Date('2024-12-29'),
-          updatedAt: new Date('2024-12-29'),
-          readAt: new Date('2024-12-29'),
-          repliedAt: null
+          name: "Akash Rahman",
+          email: "akash@gmail.com",
+          phone: "01814726978",
+          subject: "Need a website",
+          message:
+            "Hello, I am looking for a professional website for my business. Can you help me with this project?",
+          status: "read",
+          createdAt: new Date("2024-12-29"),
+          updatedAt: new Date("2024-12-29"),
+          readAt: new Date("2024-12-29"),
+          repliedAt: null,
         },
         {
-          name: 'Sarah Johnson',
-          email: 'sarah@example.com',
-          phone: '01712345678',
-          subject: 'Project Inquiry',
-          message: 'I would like to discuss a new project for my startup. We need a complete web solution with modern design.',
-          status: 'new',
-          createdAt: new Date('2024-12-28'),
-          updatedAt: new Date('2024-12-28'),
+          name: "Sarah Johnson",
+          email: "sarah@example.com",
+          phone: "01712345678",
+          subject: "Project Inquiry",
+          message:
+            "I would like to discuss a new project for my startup. We need a complete web solution with modern design.",
+          status: "new",
+          createdAt: new Date("2024-12-28"),
+          updatedAt: new Date("2024-12-28"),
           readAt: null,
-          repliedAt: null
+          repliedAt: null,
         },
         {
-          name: 'Mike Chen',
-          email: 'mike@company.com',
-          phone: '01987654321',
-          subject: 'Support Request',
-          message: 'Having issues with the current system. The dashboard is not loading properly and we need urgent assistance.',
-          status: 'replied',
-          createdAt: new Date('2024-12-27'),
-          updatedAt: new Date('2024-12-27'),
-          readAt: new Date('2024-12-27'),
-          repliedAt: new Date('2024-12-27')
-        }
+          name: "Mike Chen",
+          email: "mike@company.com",
+          phone: "01987654321",
+          subject: "Support Request",
+          message:
+            "Having issues with the current system. The dashboard is not loading properly and we need urgent assistance.",
+          status: "replied",
+          createdAt: new Date("2024-12-27"),
+          updatedAt: new Date("2024-12-27"),
+          readAt: new Date("2024-12-27"),
+          repliedAt: new Date("2024-12-27"),
+        },
       ];
-      
+
       await contactsCollection.insertMany(sampleContacts);
-      console.log('✅ Sample contacts data seeded successfully');
+      console.log("✅ Sample contacts data seeded successfully");
     }
 
     // -----------------------user apis---------------
@@ -490,7 +513,7 @@ async function run() {
         const service = {
           ...req.body,
           createdAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         };
         const result = await servicesCollection.insertOne(service);
         res.send(result);
@@ -504,35 +527,35 @@ async function run() {
     app.put("/services/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
-        
+
         // Validate ObjectId format
         if (!ObjectId.isValid(id)) {
           return res.status(400).send({ error: "Invalid service ID format" });
         }
-        
+
         console.log("Updating service with ID:", id);
         console.log("Update data:", req.body);
-        
+
         const updateData = {
           ...req.body,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         };
-        
+
         const result = await servicesCollection.updateOne(
           { _id: new ObjectId(id) },
-          { $set: updateData }
+          { $set: updateData },
         );
-        
+
         console.log("Update result:", result);
-        
+
         if (result.matchedCount === 0) {
           return res.status(404).send({ error: "Service not found" });
         }
-        
+
         res.send(result);
       } catch (error) {
         console.error("Update service error:", error);
-        if (error.name === 'BSONError') {
+        if (error.name === "BSONError") {
           return res.status(400).send({ error: "Invalid service ID format" });
         }
         res.status(500).send({ error: "Failed to update service" });
@@ -543,12 +566,14 @@ async function run() {
     app.delete("/services/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
-        const result = await servicesCollection.deleteOne({ _id: new ObjectId(id) });
-        
+        const result = await servicesCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
+
         if (result.deletedCount === 0) {
           return res.status(404).send({ error: "Service not found" });
         }
-        
+
         res.send({ message: "Service deleted successfully" });
       } catch (error) {
         console.error("Delete service error:", error);
@@ -560,26 +585,28 @@ async function run() {
     app.get("/services/:id", async (req, res) => {
       try {
         const { id } = req.params;
-        
+
         // Validate ObjectId format
         if (!ObjectId.isValid(id)) {
           return res.status(400).send({ error: "Invalid service ID format" });
         }
-        
+
         console.log("Fetching service with ID:", id);
-        
-        const service = await servicesCollection.findOne({ _id: new ObjectId(id) });
-        
+
+        const service = await servicesCollection.findOne({
+          _id: new ObjectId(id),
+        });
+
         if (!service) {
           console.log("Service not found for ID:", id);
           return res.status(404).send({ error: "Service not found" });
         }
-        
+
         console.log("Found service:", service.name);
         res.send(service);
       } catch (error) {
         console.error("Get service error:", error);
-        if (error.name === 'BSONError') {
+        if (error.name === "BSONError") {
           return res.status(400).send({ error: "Invalid service ID format" });
         }
         res.status(500).send({ error: "Failed to fetch service" });
@@ -590,27 +617,27 @@ async function run() {
     // GET projects with pagination and filters (Public - for frontend display)
     app.get("/projects", async (req, res) => {
       try {
-        const { 
-          page = 1, 
-          limit = 10, 
-          search = "", 
-          status = "", 
-          category = "" 
+        const {
+          page = 1,
+          limit = 10,
+          search = "",
+          status = "",
+          category = "",
         } = req.query;
-        
+
         const skip = (parseInt(page) - 1) * parseInt(limit);
-        
+
         // Build filter query
         let filter = {};
-        
+
         if (search) {
           filter.$or = [
             { title: { $regex: search, $options: "i" } },
             { description: { $regex: search, $options: "i" } },
-            { clientName: { $regex: search, $options: "i" } }
+            { clientName: { $regex: search, $options: "i" } },
           ];
         }
-        
+
         if (status && status !== "All Status") {
           if (status === "Active") {
             filter.isActive = true;
@@ -618,11 +645,11 @@ async function run() {
             filter.isActive = false;
           }
         }
-        
+
         if (category && category !== "All Categories") {
           filter.category = category;
         }
-        
+
         // Get projects with pagination
         const projects = await projectsCollection
           .find(filter)
@@ -630,16 +657,16 @@ async function run() {
           .skip(skip)
           .limit(parseInt(limit))
           .toArray();
-        
+
         // Get total count for pagination
         const total = await projectsCollection.countDocuments(filter);
-        
+
         res.send({
           projects,
           total,
           page: parseInt(page),
           limit: parseInt(limit),
-          totalPages: Math.ceil(total / parseInt(limit))
+          totalPages: Math.ceil(total / parseInt(limit)),
         });
       } catch (error) {
         console.error("Get projects error:", error);
@@ -650,27 +677,27 @@ async function run() {
     // GET projects for admin management (Admin only)
     app.get("/api/admin/projects", verifyAdmin, async (req, res) => {
       try {
-        const { 
-          page = 1, 
-          limit = 10, 
-          search = "", 
-          status = "", 
-          category = "" 
+        const {
+          page = 1,
+          limit = 10,
+          search = "",
+          status = "",
+          category = "",
         } = req.query;
-        
+
         const skip = (parseInt(page) - 1) * parseInt(limit);
-        
+
         // Build filter query
         let filter = {};
-        
+
         if (search) {
           filter.$or = [
             { title: { $regex: search, $options: "i" } },
             { description: { $regex: search, $options: "i" } },
-            { clientName: { $regex: search, $options: "i" } }
+            { clientName: { $regex: search, $options: "i" } },
           ];
         }
-        
+
         if (status && status !== "All Status") {
           if (status === "Active") {
             filter.isActive = true;
@@ -678,11 +705,11 @@ async function run() {
             filter.isActive = false;
           }
         }
-        
+
         if (category && category !== "All Categories") {
           filter.category = category;
         }
-        
+
         // Get projects with pagination
         const projects = await projectsCollection
           .find(filter)
@@ -690,16 +717,16 @@ async function run() {
           .skip(skip)
           .limit(parseInt(limit))
           .toArray();
-        
+
         // Get total count for pagination
         const total = await projectsCollection.countDocuments(filter);
-        
+
         res.send({
           projects,
           total,
           page: parseInt(page),
           limit: parseInt(limit),
-          totalPages: Math.ceil(total / parseInt(limit))
+          totalPages: Math.ceil(total / parseInt(limit)),
         });
       } catch (error) {
         console.error("Get admin projects error:", error);
@@ -711,12 +738,14 @@ async function run() {
     app.get("/projects/:id", async (req, res) => {
       try {
         const { id } = req.params;
-        const project = await projectsCollection.findOne({ _id: new ObjectId(id) });
-        
+        const project = await projectsCollection.findOne({
+          _id: new ObjectId(id),
+        });
+
         if (!project) {
           return res.status(404).send({ error: "Project not found" });
         }
-        
+
         res.send(project);
       } catch (error) {
         console.error("Get project error:", error);
@@ -730,9 +759,9 @@ async function run() {
         const project = {
           ...req.body,
           createdAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         };
-        
+
         const result = await projectsCollection.insertOne(project);
         res.send(result);
       } catch (error) {
@@ -747,18 +776,18 @@ async function run() {
         const { id } = req.params;
         const updateData = {
           ...req.body,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         };
-        
+
         const result = await projectsCollection.updateOne(
           { _id: new ObjectId(id) },
-          { $set: updateData }
+          { $set: updateData },
         );
-        
+
         if (result.matchedCount === 0) {
           return res.status(404).send({ error: "Project not found" });
         }
-        
+
         res.send(result);
       } catch (error) {
         console.error("Update project error:", error);
@@ -770,12 +799,14 @@ async function run() {
     app.delete("/projects/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
-        const result = await projectsCollection.deleteOne({ _id: new ObjectId(id) });
-        
+        const result = await projectsCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
+
         if (result.deletedCount === 0) {
           return res.status(404).send({ error: "Project not found" });
         }
-        
+
         res.send({ message: "Project deleted successfully" });
       } catch (error) {
         console.error("Delete project error:", error);
@@ -787,31 +818,26 @@ async function run() {
     // GET blogs with pagination and filters
     app.get("/blogs", async (req, res) => {
       try {
-        const { 
-          page = 1, 
-          limit = 10, 
-          search = "", 
-          status = "" 
-        } = req.query;
-        
+        const { page = 1, limit = 10, search = "", status = "" } = req.query;
+
         const skip = (parseInt(page) - 1) * parseInt(limit);
-        
+
         // Build filter query
         let filter = {};
-        
+
         if (search) {
           filter.$or = [
             { title: { $regex: search, $options: "i" } },
             { excerpt: { $regex: search, $options: "i" } },
             { author: { $regex: search, $options: "i" } },
-            { category: { $regex: search, $options: "i" } }
+            { category: { $regex: search, $options: "i" } },
           ];
         }
-        
+
         if (status && status !== "All Status") {
           filter.status = status;
         }
-        
+
         // Get blogs with pagination
         const blogs = await blogsCollection
           .find(filter)
@@ -819,16 +845,16 @@ async function run() {
           .skip(skip)
           .limit(parseInt(limit))
           .toArray();
-        
+
         // Get total count for pagination
         const total = await blogsCollection.countDocuments(filter);
-        
+
         res.send({
           blogs,
           total,
           page: parseInt(page),
           limit: parseInt(limit),
-          totalPages: Math.ceil(total / parseInt(limit))
+          totalPages: Math.ceil(total / parseInt(limit)),
         });
       } catch (error) {
         console.error("Get blogs error:", error);
@@ -841,11 +867,11 @@ async function run() {
       try {
         const { id } = req.params;
         const blog = await blogsCollection.findOne({ _id: new ObjectId(id) });
-        
+
         if (!blog) {
           return res.status(404).send({ error: "Blog post not found" });
         }
-        
+
         res.send(blog);
       } catch (error) {
         console.error("Get blog error:", error);
@@ -859,14 +885,14 @@ async function run() {
         const blog = {
           ...req.body,
           views: 0,
-          status: req.body.publishImmediately ? 'Published' : 'Draft',
+          status: req.body.publishImmediately ? "Published" : "Draft",
           createdAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         };
-        
+
         // Remove publishImmediately field as it's not needed in the database
         delete blog.publishImmediately;
-        
+
         const result = await blogsCollection.insertOne(blog);
         res.send(result);
       } catch (error) {
@@ -881,24 +907,26 @@ async function run() {
         const { id } = req.params;
         const updateData = {
           ...req.body,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         };
-        
+
         // Handle publish status
         if (req.body.publishImmediately !== undefined) {
-          updateData.status = req.body.publishImmediately ? 'Published' : 'Draft';
+          updateData.status = req.body.publishImmediately
+            ? "Published"
+            : "Draft";
           delete updateData.publishImmediately;
         }
-        
+
         const result = await blogsCollection.updateOne(
           { _id: new ObjectId(id) },
-          { $set: updateData }
+          { $set: updateData },
         );
-        
+
         if (result.matchedCount === 0) {
           return res.status(404).send({ error: "Blog post not found" });
         }
-        
+
         res.send(result);
       } catch (error) {
         console.error("Update blog error:", error);
@@ -910,12 +938,14 @@ async function run() {
     app.delete("/blogs/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
-        const result = await blogsCollection.deleteOne({ _id: new ObjectId(id) });
-        
+        const result = await blogsCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
+
         if (result.deletedCount === 0) {
           return res.status(404).send({ error: "Blog post not found" });
         }
-        
+
         res.send({ message: "Blog post deleted successfully" });
       } catch (error) {
         console.error("Delete blog error:", error);
@@ -929,13 +959,13 @@ async function run() {
         const { id } = req.params;
         const result = await blogsCollection.updateOne(
           { _id: new ObjectId(id) },
-          { $inc: { views: 1 } }
+          { $inc: { views: 1 } },
         );
-        
+
         if (result.matchedCount === 0) {
           return res.status(404).send({ error: "Blog post not found" });
         }
-        
+
         res.send({ message: "Views updated successfully" });
       } catch (error) {
         console.error("Update blog views error:", error);
@@ -947,31 +977,26 @@ async function run() {
     // GET team members with pagination and filters
     app.get("/team-members", async (req, res) => {
       try {
-        const { 
-          page = 1, 
-          limit = 10, 
-          search = "", 
-          active = "" 
-        } = req.query;
-        
+        const { page = 1, limit = 10, search = "", active = "" } = req.query;
+
         const skip = (parseInt(page) - 1) * parseInt(limit);
-        
+
         // Build filter query
         let filter = {};
-        
+
         if (search) {
           filter.$or = [
             { name: { $regex: search, $options: "i" } },
             { position: { $regex: search, $options: "i" } },
             { email: { $regex: search, $options: "i" } },
-            { expertise: { $in: [new RegExp(search, "i")] } }
+            { expertise: { $in: [new RegExp(search, "i")] } },
           ];
         }
-        
+
         if (active && active !== "all") {
           filter.isActive = active === "true";
         }
-        
+
         // Get team members with pagination
         const teamMembers = await teamMembersCollection
           .find(filter)
@@ -979,16 +1004,16 @@ async function run() {
           .skip(skip)
           .limit(parseInt(limit))
           .toArray();
-        
+
         // Get total count for pagination
         const total = await teamMembersCollection.countDocuments(filter);
-        
+
         res.send({
           teamMembers,
           total,
           page: parseInt(page),
           limit: parseInt(limit),
-          totalPages: Math.ceil(total / parseInt(limit))
+          totalPages: Math.ceil(total / parseInt(limit)),
         });
       } catch (error) {
         console.error("Get team members error:", error);
@@ -1000,12 +1025,14 @@ async function run() {
     app.get("/team-members/:id", async (req, res) => {
       try {
         const { id } = req.params;
-        const teamMember = await teamMembersCollection.findOne({ _id: new ObjectId(id) });
-        
+        const teamMember = await teamMembersCollection.findOne({
+          _id: new ObjectId(id),
+        });
+
         if (!teamMember) {
           return res.status(404).send({ error: "Team member not found" });
         }
-        
+
         res.send(teamMember);
       } catch (error) {
         console.error("Get team member error:", error);
@@ -1020,9 +1047,9 @@ async function run() {
           ...req.body,
           isActive: req.body.isActive !== undefined ? req.body.isActive : true,
           createdAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         };
-        
+
         const result = await teamMembersCollection.insertOne(teamMember);
         res.send(result);
       } catch (error) {
@@ -1037,18 +1064,18 @@ async function run() {
         const { id } = req.params;
         const updateData = {
           ...req.body,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         };
-        
+
         const result = await teamMembersCollection.updateOne(
           { _id: new ObjectId(id) },
-          { $set: updateData }
+          { $set: updateData },
         );
-        
+
         if (result.matchedCount === 0) {
           return res.status(404).send({ error: "Team member not found" });
         }
-        
+
         res.send(result);
       } catch (error) {
         console.error("Update team member error:", error);
@@ -1060,12 +1087,14 @@ async function run() {
     app.delete("/team-members/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
-        const result = await teamMembersCollection.deleteOne({ _id: new ObjectId(id) });
-        
+        const result = await teamMembersCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
+
         if (result.deletedCount === 0) {
           return res.status(404).send({ error: "Team member not found" });
         }
-        
+
         res.send({ message: "Team member deleted successfully" });
       } catch (error) {
         console.error("Delete team member error:", error);
@@ -1077,36 +1106,36 @@ async function run() {
     // GET testimonials with pagination and filters (Admin only)
     app.get("/api/testimonials", verifyAdmin, async (req, res) => {
       try {
-        const { 
-          page = 1, 
-          limit = 10, 
-          search = "", 
+        const {
+          page = 1,
+          limit = 10,
+          search = "",
           featured = "",
-          active = ""
+          active = "",
         } = req.query;
-        
+
         const skip = (parseInt(page) - 1) * parseInt(limit);
-        
+
         // Build filter query
         let filter = {};
-        
+
         if (search) {
           filter.$or = [
             { name: { $regex: search, $options: "i" } },
             { company: { $regex: search, $options: "i" } },
             { position: { $regex: search, $options: "i" } },
-            { testimonial: { $regex: search, $options: "i" } }
+            { testimonial: { $regex: search, $options: "i" } },
           ];
         }
-        
+
         if (featured && featured !== "all") {
           filter.featured = featured === "true";
         }
-        
+
         if (active && active !== "all") {
           filter.active = active === "true";
         }
-        
+
         // Get testimonials with pagination
         const testimonials = await testimonialsCollection
           .find(filter)
@@ -1114,16 +1143,16 @@ async function run() {
           .skip(skip)
           .limit(parseInt(limit))
           .toArray();
-        
+
         // Get total count for pagination
         const total = await testimonialsCollection.countDocuments(filter);
-        
+
         res.send({
           testimonials,
           total,
           page: parseInt(page),
           limit: parseInt(limit),
-          totalPages: Math.ceil(total / parseInt(limit))
+          totalPages: Math.ceil(total / parseInt(limit)),
         });
       } catch (error) {
         console.error("Get testimonials error:", error);
@@ -1135,22 +1164,22 @@ async function run() {
     app.get("/testimonials", async (req, res) => {
       try {
         const { featured = "", active = "true" } = req.query;
-        
+
         let filter = {};
-        
+
         if (featured && featured !== "all") {
           filter.featured = featured === "true";
         }
-        
+
         if (active && active !== "all") {
           filter.active = active === "true";
         }
-        
+
         const testimonials = await testimonialsCollection
           .find(filter)
           .sort({ displayOrder: 1, createdAt: -1 })
           .toArray();
-        
+
         res.send(testimonials);
       } catch (error) {
         console.error("Get testimonials error:", error);
@@ -1162,12 +1191,14 @@ async function run() {
     app.get("/api/testimonials/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
-        const testimonial = await testimonialsCollection.findOne({ _id: new ObjectId(id) });
-        
+        const testimonial = await testimonialsCollection.findOne({
+          _id: new ObjectId(id),
+        });
+
         if (!testimonial) {
           return res.status(404).send({ error: "Testimonial not found" });
         }
-        
+
         res.send(testimonial);
       } catch (error) {
         console.error("Get testimonial error:", error);
@@ -1184,15 +1215,17 @@ async function run() {
           displayOrder: parseInt(req.body.displayOrder) || 0,
           featured: req.body.featured || false,
           active: req.body.active !== undefined ? req.body.active : true,
-          date: new Date().toISOString().split('T')[0],
+          date: new Date().toISOString().split("T")[0],
           createdAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         };
-        
+
         const result = await testimonialsCollection.insertOne(testimonial);
-        
+
         // Return the created testimonial with the new ID
-        const createdTestimonial = await testimonialsCollection.findOne({ _id: result.insertedId });
+        const createdTestimonial = await testimonialsCollection.findOne({
+          _id: result.insertedId,
+        });
         res.send(createdTestimonial);
       } catch (error) {
         console.error("Create testimonial error:", error);
@@ -1208,20 +1241,22 @@ async function run() {
           ...req.body,
           rating: parseInt(req.body.rating) || 5,
           displayOrder: parseInt(req.body.displayOrder) || 0,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         };
-        
+
         const result = await testimonialsCollection.updateOne(
           { _id: new ObjectId(id) },
-          { $set: updateData }
+          { $set: updateData },
         );
-        
+
         if (result.matchedCount === 0) {
           return res.status(404).send({ error: "Testimonial not found" });
         }
-        
+
         // Return the updated testimonial
-        const updatedTestimonial = await testimonialsCollection.findOne({ _id: new ObjectId(id) });
+        const updatedTestimonial = await testimonialsCollection.findOne({
+          _id: new ObjectId(id),
+        });
         res.send(updatedTestimonial);
       } catch (error) {
         console.error("Update testimonial error:", error);
@@ -1233,12 +1268,14 @@ async function run() {
     app.delete("/api/testimonials/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
-        const result = await testimonialsCollection.deleteOne({ _id: new ObjectId(id) });
-        
+        const result = await testimonialsCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
+
         if (result.deletedCount === 0) {
           return res.status(404).send({ error: "Testimonial not found" });
         }
-        
+
         res.send({ message: "Testimonial deleted successfully" });
       } catch (error) {
         console.error("Delete testimonial error:", error);
@@ -1251,25 +1288,29 @@ async function run() {
       try {
         const { id } = req.params;
         const { featured } = req.body;
-        
+
         const result = await testimonialsCollection.updateOne(
           { _id: new ObjectId(id) },
-          { 
-            $set: { 
+          {
+            $set: {
               featured: featured,
-              updatedAt: new Date()
-            }
-          }
+              updatedAt: new Date(),
+            },
+          },
         );
-        
+
         if (result.matchedCount === 0) {
           return res.status(404).send({ error: "Testimonial not found" });
         }
-        
-        res.send({ message: "Testimonial featured status updated successfully" });
+
+        res.send({
+          message: "Testimonial featured status updated successfully",
+        });
       } catch (error) {
         console.error("Update testimonial featured status error:", error);
-        res.status(500).send({ error: "Failed to update testimonial featured status" });
+        res
+          .status(500)
+          .send({ error: "Failed to update testimonial featured status" });
       }
     });
 
@@ -1278,25 +1319,27 @@ async function run() {
       try {
         const { id } = req.params;
         const { active } = req.body;
-        
+
         const result = await testimonialsCollection.updateOne(
           { _id: new ObjectId(id) },
-          { 
-            $set: { 
+          {
+            $set: {
               active: active,
-              updatedAt: new Date()
-            }
-          }
+              updatedAt: new Date(),
+            },
+          },
         );
-        
+
         if (result.matchedCount === 0) {
           return res.status(404).send({ error: "Testimonial not found" });
         }
-        
+
         res.send({ message: "Testimonial active status updated successfully" });
       } catch (error) {
         console.error("Update testimonial active status error:", error);
-        res.status(500).send({ error: "Failed to update testimonial active status" });
+        res
+          .status(500)
+          .send({ error: "Failed to update testimonial active status" });
       }
     });
 
@@ -1310,40 +1353,35 @@ async function run() {
     app.get("/api/contacts", verifyAdmin, async (req, res) => {
       try {
         console.log("📞 GET /api/contacts - Request received");
-        
-        const { 
-          page = 1, 
-          limit = 10, 
-          search = "", 
-          status = ""
-        } = req.query;
-        
+
+        const { page = 1, limit = 10, search = "", status = "" } = req.query;
+
         console.log("Query params:", { page, limit, search, status });
-        
+
         const skip = (parseInt(page) - 1) * parseInt(limit);
-        
+
         // Build filter query
         let filter = {};
-        
+
         if (search) {
           filter.$or = [
             { name: { $regex: search, $options: "i" } },
             { email: { $regex: search, $options: "i" } },
             { subject: { $regex: search, $options: "i" } },
-            { message: { $regex: search, $options: "i" } }
+            { message: { $regex: search, $options: "i" } },
           ];
         }
-        
+
         if (status && status !== "all") {
           filter.status = status;
         }
-        
+
         console.log("Filter:", filter);
-        
+
         // Check if collection exists and has data
         const collectionExists = await contactsCollection.countDocuments();
         console.log("Contacts collection document count:", collectionExists);
-        
+
         // Get contacts with pagination
         const contacts = await contactsCollection
           .find(filter)
@@ -1351,41 +1389,44 @@ async function run() {
           .skip(skip)
           .limit(parseInt(limit))
           .toArray();
-        
+
         console.log("Found contacts:", contacts.length);
-        
+
         // Get total count for pagination
         const total = await contactsCollection.countDocuments(filter);
-        
+
         // Get stats
         const stats = {
           total: await contactsCollection.countDocuments(),
-          new: await contactsCollection.countDocuments({ status: 'new' }),
-          read: await contactsCollection.countDocuments({ status: 'read' }),
-          replied: await contactsCollection.countDocuments({ status: 'replied' }),
-          spam: await contactsCollection.countDocuments({ status: 'spam' })
+          new: await contactsCollection.countDocuments({ status: "new" }),
+          read: await contactsCollection.countDocuments({ status: "read" }),
+          replied: await contactsCollection.countDocuments({
+            status: "replied",
+          }),
+          spam: await contactsCollection.countDocuments({ status: "spam" }),
         };
-        
+
         console.log("Stats:", stats);
-        
+
         const response = {
           contacts,
           total,
           page: parseInt(page),
           limit: parseInt(limit),
           totalPages: Math.ceil(total / parseInt(limit)),
-          stats
+          stats,
         };
-        
+
         console.log("✅ Sending response:", response);
         res.send(response);
       } catch (error) {
         console.error("❌ Get contacts error:", error);
         console.error("Error stack:", error.stack);
-        res.status(500).send({ 
-          error: "Failed to fetch contacts", 
+        res.status(500).send({
+          error: "Failed to fetch contacts",
           details: error.message,
-          stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+          stack:
+            process.env.NODE_ENV === "development" ? error.stack : undefined,
         });
       }
     });
@@ -1394,12 +1435,14 @@ async function run() {
     app.get("/api/contacts/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
-        const contact = await contactsCollection.findOne({ _id: new ObjectId(id) });
-        
+        const contact = await contactsCollection.findOne({
+          _id: new ObjectId(id),
+        });
+
         if (!contact) {
           return res.status(404).send({ error: "Contact not found" });
         }
-        
+
         res.send(contact);
       } catch (error) {
         console.error("Get contact error:", error);
@@ -1412,40 +1455,49 @@ async function run() {
       try {
         console.log("📝 POST /api/contacts - Request received");
         console.log("Request body:", req.body);
-        
+
         const contact = {
           ...req.body,
-          status: 'new',
+          status: "new",
           createdAt: new Date(),
           updatedAt: new Date(),
           readAt: null,
-          repliedAt: null
+          repliedAt: null,
         };
-        
+
         console.log("Contact to insert:", contact);
-        
+
         const result = await contactsCollection.insertOne(contact);
         console.log("Insert result:", result);
-        
+
         // Log activity
-        await logActivity('create', `New contact received from ${contact.name}`, 'System', {
-          contactId: result.insertedId,
-          contactEmail: contact.email,
-          contactSubject: contact.subject
-        }, req);
-        
+        await logActivity(
+          "create",
+          `New contact received from ${contact.name}`,
+          "System",
+          {
+            contactId: result.insertedId,
+            contactEmail: contact.email,
+            contactSubject: contact.subject,
+          },
+          req,
+        );
+
         // Return the created contact with the new ID
-        const createdContact = await contactsCollection.findOne({ _id: result.insertedId });
+        const createdContact = await contactsCollection.findOne({
+          _id: result.insertedId,
+        });
         console.log("✅ Created contact:", createdContact);
-        
+
         res.send(createdContact);
       } catch (error) {
         console.error("❌ Create contact error:", error);
         console.error("Error stack:", error.stack);
-        res.status(500).send({ 
-          error: "Failed to create contact", 
+        res.status(500).send({
+          error: "Failed to create contact",
           details: error.message,
-          stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+          stack:
+            process.env.NODE_ENV === "development" ? error.stack : undefined,
         });
       }
     });
@@ -1455,40 +1507,56 @@ async function run() {
       try {
         const { id } = req.params;
         const { status } = req.body;
-        
+
         const updateData = {
           status: status,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         };
-        
+
         // Add timestamp for specific status changes
-        if (status === 'read' && !await contactsCollection.findOne({ _id: new ObjectId(id), readAt: { $exists: true } })) {
+        if (
+          status === "read" &&
+          !(await contactsCollection.findOne({
+            _id: new ObjectId(id),
+            readAt: { $exists: true },
+          }))
+        ) {
           updateData.readAt = new Date();
         }
-        if (status === 'replied') {
+        if (status === "replied") {
           updateData.repliedAt = new Date();
         }
-        
+
         const result = await contactsCollection.updateOne(
           { _id: new ObjectId(id) },
-          { $set: updateData }
+          { $set: updateData },
         );
-        
+
         if (result.matchedCount === 0) {
           return res.status(404).send({ error: "Contact not found" });
         }
-        
+
         // Log activity
-        const contact = await contactsCollection.findOne({ _id: new ObjectId(id) });
-        await logActivity('update', `Updated contact status to ${status}`, req.user?.username || 'Admin', {
-          contactId: id,
-          contactName: contact?.name,
-          oldStatus: contact?.status,
-          newStatus: status
-        }, req);
-        
+        const contact = await contactsCollection.findOne({
+          _id: new ObjectId(id),
+        });
+        await logActivity(
+          "update",
+          `Updated contact status to ${status}`,
+          req.user?.username || "Admin",
+          {
+            contactId: id,
+            contactName: contact?.name,
+            oldStatus: contact?.status,
+            newStatus: status,
+          },
+          req,
+        );
+
         // Return the updated contact
-        const updatedContact = await contactsCollection.findOne({ _id: new ObjectId(id) });
+        const updatedContact = await contactsCollection.findOne({
+          _id: new ObjectId(id),
+        });
         res.send(updatedContact);
       } catch (error) {
         console.error("Update contact status error:", error);
@@ -1500,12 +1568,14 @@ async function run() {
     app.delete("/api/contacts/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
-        const result = await contactsCollection.deleteOne({ _id: new ObjectId(id) });
-        
+        const result = await contactsCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
+
         if (result.deletedCount === 0) {
           return res.status(404).send({ error: "Contact not found" });
         }
-        
+
         res.send({ message: "Contact deleted successfully" });
       } catch (error) {
         console.error("Delete contact error:", error);
@@ -1518,12 +1588,14 @@ async function run() {
       try {
         const stats = {
           total: await contactsCollection.countDocuments(),
-          new: await contactsCollection.countDocuments({ status: 'new' }),
-          read: await contactsCollection.countDocuments({ status: 'read' }),
-          replied: await contactsCollection.countDocuments({ status: 'replied' }),
-          spam: await contactsCollection.countDocuments({ status: 'spam' })
+          new: await contactsCollection.countDocuments({ status: "new" }),
+          read: await contactsCollection.countDocuments({ status: "read" }),
+          replied: await contactsCollection.countDocuments({
+            status: "replied",
+          }),
+          spam: await contactsCollection.countDocuments({ status: "spam" }),
         };
-        
+
         res.send(stats);
       } catch (error) {
         console.error("Get contact stats error:", error);
@@ -1536,17 +1608,23 @@ async function run() {
       try {
         console.log("📧 POST /api/contacts/:id/reply - Request received");
         const { id } = req.params;
-        const { message, adminEmail = "admin@aminwebtech.com", trackingId } = req.body;
-        
+        const {
+          message,
+          adminEmail = "admin@aminwebtech.com",
+          trackingId,
+        } = req.body;
+
         console.log("Reply data:", { id, message, adminEmail, trackingId });
-        
+
         // Get the contact first
-        const contact = await contactsCollection.findOne({ _id: new ObjectId(id) });
-        
+        const contact = await contactsCollection.findOne({
+          _id: new ObjectId(id),
+        });
+
         if (!contact) {
           return res.status(404).send({ error: "Contact not found" });
         }
-        
+
         // Create reply record
         const replyData = {
           contactId: id,
@@ -1557,43 +1635,49 @@ async function run() {
           recipientName: contact.name,
           originalSubject: contact.subject,
           trackingId: trackingId || `TRACK_${id}_${Date.now()}`,
-          method: trackingId ? 'email_client' : 'quick_reply',
-          status: 'sent'
+          method: trackingId ? "email_client" : "quick_reply",
+          status: "sent",
         };
-        
+
         // Store the reply in replies collection
         await repliesCollection.insertOne(replyData);
-        
+
         // Log activity
-        await logActivity('action', `Replied to contact from ${contact.name}`, req.user?.username || 'Admin', {
-          contactId: id,
-          contactName: contact.name,
-          contactEmail: contact.email,
-          replyMethod: replyData.method,
-          trackingId: replyData.trackingId
-        }, req);
-        
+        await logActivity(
+          "action",
+          `Replied to contact from ${contact.name}`,
+          req.user?.username || "Admin",
+          {
+            contactId: id,
+            contactName: contact.name,
+            contactEmail: contact.email,
+            replyMethod: replyData.method,
+            trackingId: replyData.trackingId,
+          },
+          req,
+        );
+
         // Update the contact status to 'replied' and add reply timestamp
         await contactsCollection.updateOne(
           { _id: new ObjectId(id) },
-          { 
-            $set: { 
-              status: 'replied',
+          {
+            $set: {
+              status: "replied",
               repliedAt: new Date(),
               lastReply: {
                 message,
                 sentAt: new Date(),
                 adminEmail,
                 trackingId: replyData.trackingId,
-                method: replyData.method
+                method: replyData.method,
               },
-              updatedAt: new Date()
-            }
-          }
+              updatedAt: new Date(),
+            },
+          },
         );
-        
+
         console.log("✅ Reply tracked and contact updated");
-        
+
         res.send({
           success: true,
           message: "Reply tracked successfully",
@@ -1601,16 +1685,17 @@ async function run() {
           replyData: {
             ...replyData,
             // Don't send sensitive data back
-            adminEmail: undefined
-          }
+            adminEmail: undefined,
+          },
         });
       } catch (error) {
         console.error("❌ Reply to contact error:", error);
         console.error("Error stack:", error.stack);
-        res.status(500).send({ 
-          error: "Failed to track reply", 
+        res.status(500).send({
+          error: "Failed to track reply",
           details: error.message,
-          stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+          stack:
+            process.env.NODE_ENV === "development" ? error.stack : undefined,
         });
       }
     });
@@ -1619,30 +1704,32 @@ async function run() {
     app.post("/api/contacts/email-webhook", async (req, res) => {
       try {
         console.log("📨 Email webhook received:", req.body);
-        
-        const { 
-          from, 
-          to, 
-          subject, 
-          text, 
-          html, 
+
+        const {
+          from,
+          to,
+          subject,
+          text,
+          html,
           messageId,
           inReplyTo,
-          references 
+          references,
         } = req.body;
-        
+
         // Extract tracking ID from subject
         const trackingMatch = subject.match(/\[TRACK_([a-f0-9]+)_(\d+)\]/);
-        
+
         if (trackingMatch) {
           const contactId = trackingMatch[1];
           const timestamp = trackingMatch[2];
-          
+
           console.log("📧 Processing email reply for contact:", contactId);
-          
+
           // Find the contact
-          const contact = await contactsCollection.findOne({ _id: new ObjectId(contactId) });
-          
+          const contact = await contactsCollection.findOne({
+            _id: new ObjectId(contactId),
+          });
+
           if (contact) {
             // Create reply record for received email
             const emailReplyData = {
@@ -1656,32 +1743,32 @@ async function run() {
               inReplyTo,
               references,
               trackingId: `TRACK_${contactId}_${timestamp}`,
-              method: 'email_received',
-              status: 'received'
+              method: "email_received",
+              status: "received",
             };
-            
+
             // Store the received email reply
             await repliesCollection.insertOne(emailReplyData);
-            
+
             // Update contact with received reply info
             await contactsCollection.updateOne(
               { _id: new ObjectId(contactId) },
-              { 
-                $set: { 
-                  status: 'replied',
+              {
+                $set: {
+                  status: "replied",
                   lastEmailReply: {
                     from,
                     subject,
                     receivedAt: new Date(),
-                    messageId
+                    messageId,
                   },
-                  updatedAt: new Date()
-                }
-              }
+                  updatedAt: new Date(),
+                },
+              },
             );
-            
+
             console.log("✅ Email reply processed and stored");
-            
+
             res.send({ success: true, message: "Email reply processed" });
           } else {
             console.log("❌ Contact not found for tracking ID");
@@ -1701,12 +1788,12 @@ async function run() {
     app.get("/api/contacts/:id/replies", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
-        
+
         const replies = await repliesCollection
           .find({ contactId: id })
           .sort({ sentAt: -1, receivedAt: -1 })
           .toArray();
-        
+
         res.send(replies);
       } catch (error) {
         console.error("Get replies error:", error);
@@ -1720,11 +1807,11 @@ async function run() {
     app.get("/analytics/overview", verifyAdmin, async (req, res) => {
       try {
         const { timeRange = "7d" } = req.query;
-        
+
         // Calculate date range
         const now = new Date();
         let startDate;
-        
+
         switch (timeRange) {
           case "1d":
             startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -1741,37 +1828,40 @@ async function run() {
 
         // Get total visitors
         const totalVisitors = await visitorsCollection.countDocuments({
-          createdAt: { $gte: startDate }
+          createdAt: { $gte: startDate },
         });
 
         // Get new visitors (first time visitors)
         const newVisitors = await visitorsCollection.countDocuments({
           createdAt: { $gte: startDate },
-          isNewVisitor: true
+          isNewVisitor: true,
         });
 
         // Get active visitors (last 5 minutes)
         const activeNow = await visitorsCollection.countDocuments({
-          lastActivity: { $gte: new Date(now.getTime() - 5 * 60 * 1000) }
+          lastActivity: { $gte: new Date(now.getTime() - 5 * 60 * 1000) },
         });
 
         // Calculate bounce rate
         const totalSessions = await visitorsCollection.countDocuments({
-          createdAt: { $gte: startDate }
-        });
-        
-        const bouncedSessions = await visitorsCollection.countDocuments({
           createdAt: { $gte: startDate },
-          pageViews: { $lte: 1 }
         });
 
-        const bounceRate = totalSessions > 0 ? ((bouncedSessions / totalSessions) * 100).toFixed(1) : 0;
+        const bouncedSessions = await visitorsCollection.countDocuments({
+          createdAt: { $gte: startDate },
+          pageViews: { $lte: 1 },
+        });
+
+        const bounceRate =
+          totalSessions > 0
+            ? ((bouncedSessions / totalSessions) * 100).toFixed(1)
+            : 0;
 
         res.send({
           totalVisitors,
           newVisitors,
           activeNow,
-          bounceRate: `${bounceRate}%`
+          bounceRate: `${bounceRate}%`,
         });
       } catch (error) {
         console.error("Analytics overview error:", error);
@@ -1780,93 +1870,112 @@ async function run() {
     });
 
     // GET visitor distribution by country (Admin only)
-    app.get("/analytics/visitor-distribution", verifyAdmin, async (req, res) => {
-      try {
-        const { timeRange = "7d" } = req.query;
-        
-        const now = new Date();
-        let startDate;
-        
-        switch (timeRange) {
-          case "1d":
-            startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-            break;
-          case "7d":
-            startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-            break;
-          case "30d":
-            startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-            break;
-          default:
-            startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        }
+    app.get(
+      "/analytics/visitor-distribution",
+      verifyAdmin,
+      async (req, res) => {
+        try {
+          const { timeRange = "7d" } = req.query;
 
-        const distribution = await visitorsCollection.aggregate([
-          {
-            $match: {
-              createdAt: { $gte: startDate }
-            }
-          },
-          {
-            $group: {
-              _id: "$country",
-              count: { $sum: 1 },
-              countryCode: { $first: "$countryCode" }
-            }
-          },
-          {
-            $sort: { count: -1 }
-          },
-          {
-            $limit: 10
+          const now = new Date();
+          let startDate;
+
+          switch (timeRange) {
+            case "1d":
+              startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+              break;
+            case "7d":
+              startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+              break;
+            case "30d":
+              startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+              break;
+            default:
+              startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
           }
-        ]).toArray();
 
-        // Calculate total for percentages
-        const total = distribution.reduce((sum, item) => sum + item.count, 0);
+          const distribution = await visitorsCollection
+            .aggregate([
+              {
+                $match: {
+                  createdAt: { $gte: startDate },
+                },
+              },
+              {
+                $group: {
+                  _id: "$country",
+                  count: { $sum: 1 },
+                  countryCode: { $first: "$countryCode" },
+                },
+              },
+              {
+                $sort: { count: -1 },
+              },
+              {
+                $limit: 10,
+              },
+            ])
+            .toArray();
 
-        // Format data with colors and percentages
-        const colors = ["#3B82F6", "#10B981", "#FBBF24", "#EF4444", "#8B5CF6", "#F59E0B", "#06B6D4", "#84CC16", "#F97316", "#EC4899"];
-        const countryFlags = {
-          "Bangladesh": "🇧🇩",
-          "United States": "🇺🇸",
-          "Taiwan": "🇹🇼",
-          "India": "🇮🇳",
-          "United Kingdom": "🇬🇧",
-          "Canada": "🇨🇦",
-          "Germany": "🇩🇪",
-          "France": "🇫🇷",
-          "Japan": "🇯🇵",
-          "Australia": "🇦🇺"
-        };
+          // Calculate total for percentages
+          const total = distribution.reduce((sum, item) => sum + item.count, 0);
 
-        const formattedData = distribution.map((item, index) => ({
-          name: item._id,
-          value: item.count,
-          color: colors[index % colors.length],
-          flag: countryFlags[item._id] || "🌍",
-          percentage: total > 0 ? Math.round((item.count / total) * 100) : 0
-        }));
+          // Format data with colors and percentages
+          const colors = [
+            "#3B82F6",
+            "#10B981",
+            "#FBBF24",
+            "#EF4444",
+            "#8B5CF6",
+            "#F59E0B",
+            "#06B6D4",
+            "#84CC16",
+            "#F97316",
+            "#EC4899",
+          ];
+          const countryFlags = {
+            Bangladesh: "🇧🇩",
+            "United States": "🇺🇸",
+            Taiwan: "🇹🇼",
+            India: "🇮🇳",
+            "United Kingdom": "🇬🇧",
+            Canada: "🇨🇦",
+            Germany: "🇩🇪",
+            France: "🇫🇷",
+            Japan: "🇯🇵",
+            Australia: "🇦🇺",
+          };
 
-        res.send(formattedData);
-      } catch (error) {
-        console.error("Visitor distribution error:", error);
-        res.status(500).send({ error: "Failed to fetch visitor distribution" });
-      }
-    });
+          const formattedData = distribution.map((item, index) => ({
+            name: item._id,
+            value: item.count,
+            color: colors[index % colors.length],
+            flag: countryFlags[item._id] || "🌍",
+            percentage: total > 0 ? Math.round((item.count / total) * 100) : 0,
+          }));
+
+          res.send(formattedData);
+        } catch (error) {
+          console.error("Visitor distribution error:", error);
+          res
+            .status(500)
+            .send({ error: "Failed to fetch visitor distribution" });
+        }
+      },
+    );
 
     // GET recent visitors (Admin only)
     app.get("/analytics/recent-visitors", verifyAdmin, async (req, res) => {
       try {
         const { limit = 10 } = req.query;
-        
+
         const recentVisitors = await visitorsCollection
           .find({})
           .sort({ lastActivity: -1 })
           .limit(parseInt(limit))
           .toArray();
 
-        const formattedVisitors = recentVisitors.map(visitor => ({
+        const formattedVisitors = recentVisitors.map((visitor) => ({
           id: visitor._id,
           ip: visitor.ipAddress,
           country: visitor.country,
@@ -1876,7 +1985,7 @@ async function run() {
           pages: visitor.pageViews || 1,
           lastActivity: visitor.lastActivity,
           uniqueVisitorId: visitor.uniqueVisitorId,
-          deviceId: visitor.deviceId
+          deviceId: visitor.deviceId,
         }));
 
         res.send(formattedVisitors);
@@ -1890,10 +1999,10 @@ async function run() {
     app.get("/analytics/top-pages", verifyAdmin, async (req, res) => {
       try {
         const { timeRange = "7d", limit = 10 } = req.query;
-        
+
         const now = new Date();
         let startDate;
-        
+
         switch (timeRange) {
           case "1d":
             startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -1908,45 +2017,53 @@ async function run() {
             startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         }
 
-        const topPages = await pageViewsCollection.aggregate([
-          {
-            $match: {
-              createdAt: { $gte: startDate }
-            }
-          },
-          {
-            $group: {
-              _id: "$path",
-              views: { $sum: 1 },
-              visitors: { $addToSet: "$visitorId" },
-              totalTime: { $sum: "$timeOnPage" }
-            }
-          },
-          {
-            $project: {
-              path: "$_id",
-              views: 1,
-              visitors: { $size: "$visitors" },
-              avgTime: { 
-                $cond: {
-                  if: { $gt: ["$views", 0] },
-                  then: { $divide: ["$totalTime", "$views"] },
-                  else: 0
-                }
-              }
-            }
-          },
-          {
-            $sort: { views: -1 }
-          },
-          {
-            $limit: parseInt(limit)
-          }
-        ]).toArray();
+        const topPages = await pageViewsCollection
+          .aggregate([
+            {
+              $match: {
+                createdAt: { $gte: startDate },
+              },
+            },
+            {
+              $group: {
+                _id: "$path",
+                views: { $sum: 1 },
+                visitors: { $addToSet: "$visitorId" },
+                totalTime: { $sum: "$timeOnPage" },
+              },
+            },
+            {
+              $project: {
+                path: "$_id",
+                views: 1,
+                visitors: { $size: "$visitors" },
+                avgTime: {
+                  $cond: {
+                    if: { $gt: ["$views", 0] },
+                    then: { $divide: ["$totalTime", "$views"] },
+                    else: 0,
+                  },
+                },
+              },
+            },
+            {
+              $sort: { views: -1 },
+            },
+            {
+              $limit: parseInt(limit),
+            },
+          ])
+          .toArray();
 
         // Format the data
-        const colors = ["bg-yellow-400", "bg-blue-400", "bg-green-400", "bg-purple-400", "bg-red-400"];
-        
+        const colors = [
+          "bg-yellow-400",
+          "bg-blue-400",
+          "bg-green-400",
+          "bg-purple-400",
+          "bg-red-400",
+        ];
+
         const formattedPages = topPages.map((page, index) => ({
           id: index + 1,
           url: page.path,
@@ -1955,7 +2072,7 @@ async function run() {
           visitors: page.visitors,
           avgTime: `${Math.round(page.avgTime / 60)}m`,
           bounceRate: "N/A", // Calculate if needed
-          color: colors[index % colors.length]
+          color: colors[index % colors.length],
         }));
 
         res.send(formattedPages);
@@ -1978,21 +2095,21 @@ async function run() {
           browser,
           deviceId,
           path,
-          referrer
+          referrer,
         } = req.body;
 
         // Create unique visitor identifier using IP + deviceId combination
         const uniqueVisitorId = `${ipAddress}_${deviceId}`;
-        
+
         // Check if visitor exists using the unique identifier
-        let visitor = await visitorsCollection.findOne({ 
+        let visitor = await visitorsCollection.findOne({
           $or: [
             { uniqueVisitorId },
             // Fallback for old records without deviceId
-            { ipAddress, deviceId: { $exists: false } }
-          ]
+            { ipAddress, deviceId: { $exists: false } },
+          ],
         });
-        
+
         if (!visitor) {
           // New visitor
           visitor = {
@@ -2008,13 +2125,15 @@ async function run() {
             isNewVisitor: true,
             pageViews: 1,
             createdAt: new Date(),
-            lastActivity: new Date()
+            lastActivity: new Date(),
           };
-          
+
           const result = await visitorsCollection.insertOne(visitor);
           visitor._id = result.insertedId;
-          
-          console.log(`📱 New visitor tracked: ${device} device with ID ${deviceId} from IP ${ipAddress}`);
+
+          console.log(
+            `📱 New visitor tracked: ${device} device with ID ${deviceId} from IP ${ipAddress}`,
+          );
         } else {
           // Existing visitor - update
           await visitorsCollection.updateOne(
@@ -2024,13 +2143,16 @@ async function run() {
                 lastActivity: new Date(),
                 isNewVisitor: false,
                 // Update deviceId if it was missing (for old records)
-                ...(deviceId && !visitor.deviceId && { deviceId, uniqueVisitorId })
+                ...(deviceId &&
+                  !visitor.deviceId && { deviceId, uniqueVisitorId }),
               },
-              $inc: { pageViews: 1 }
-            }
+              $inc: { pageViews: 1 },
+            },
           );
-          
-          console.log(`🔄 Existing visitor updated: ${device} device with ID ${deviceId} from IP ${ipAddress}`);
+
+          console.log(
+            `🔄 Existing visitor updated: ${device} device with ID ${deviceId} from IP ${ipAddress}`,
+          );
         }
 
         // Track page view
@@ -2040,17 +2162,17 @@ async function run() {
           path: path || "/",
           referrer: referrer || "",
           createdAt: new Date(),
-          timeOnPage: 0 // Will be updated when user leaves
+          timeOnPage: 0, // Will be updated when user leaves
         });
 
-        res.send({ 
-          success: true, 
+        res.send({
+          success: true,
           visitorId: visitor._id,
           uniqueVisitorId,
-          isNewDevice: !visitor || visitor.isNewVisitor
+          isNewDevice: !visitor || visitor.isNewVisitor,
         });
       } catch (error) {
-        console.error('❌ Error tracking visitor:', error);
+        console.error("❌ Error tracking visitor:", error);
         res.status(500).send({ error: "Failed to track visitor" });
       }
     });
@@ -2059,16 +2181,16 @@ async function run() {
     app.put("/analytics/update-page-time", async (req, res) => {
       try {
         const { visitorId, path, timeOnPage } = req.body;
-        
+
         await pageViewsCollection.updateOne(
-          { 
+          {
             visitorId: new ObjectId(visitorId),
             path: path,
-            timeOnPage: 0
+            timeOnPage: 0,
           },
           {
-            $set: { timeOnPage: timeOnPage }
-          }
+            $set: { timeOnPage: timeOnPage },
+          },
         );
 
         res.send({ success: true });
@@ -2082,9 +2204,9 @@ async function run() {
     app.post("/api/auth/login", async (req, res) => {
       try {
         const { username, password } = req.body;
-        
+
         console.log("🔐 Login attempt for username:", username);
-        
+
         // Simple authentication - replace with proper authentication in production
         if (username === "admin" && password === "admin123") {
           // Generate JWT token
@@ -2093,46 +2215,58 @@ async function run() {
             username: username,
             role: "admin",
             iat: Math.floor(Date.now() / 1000), // Issued at
-            exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // Expires in 24 hours
+            exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60, // Expires in 24 hours
           };
-          
+
           const token = jwt.sign(tokenPayload, JWT_SECRET);
-          
+
           // Log login activity
-          await logActivity('login', 'User logged in', username, {
-            loginTime: new Date()
-          }, req);
-          
+          await logActivity(
+            "login",
+            "User logged in",
+            username,
+            {
+              loginTime: new Date(),
+            },
+            req,
+          );
+
           console.log("✅ Login successful for admin");
-          
+
           res.send({
             success: true,
             token: token,
-            user: { 
-              id: 1, 
-              username: username, 
-              role: "admin" 
+            user: {
+              id: 1,
+              username: username,
+              role: "admin",
             },
-            expiresIn: "24h"
+            expiresIn: "24h",
           });
         } else {
           console.log("❌ Invalid credentials for username:", username);
-          
+
           // Log failed login attempt
-          await logActivity('login', 'Failed login attempt', username || 'Unknown', {
-            reason: 'Invalid credentials'
-          }, req);
-          
-          res.status(401).send({ 
+          await logActivity(
+            "login",
+            "Failed login attempt",
+            username || "Unknown",
+            {
+              reason: "Invalid credentials",
+            },
+            req,
+          );
+
+          res.status(401).send({
             error: "Invalid credentials",
-            code: "INVALID_CREDENTIALS" 
+            code: "INVALID_CREDENTIALS",
           });
         }
       } catch (error) {
         console.error("Authentication error:", error);
-        res.status(500).send({ 
+        res.status(500).send({
           error: "Authentication failed",
-          code: "AUTH_FAILED" 
+          code: "AUTH_FAILED",
         });
       }
     });
@@ -2140,72 +2274,81 @@ async function run() {
     // Test endpoint for IP detection
     app.get("/api/test/ip", (req, res) => {
       const networkInterfaces = os.networkInterfaces();
-      
+
       // Get all network interfaces
       const allIPs = [];
       for (const interfaceName in networkInterfaces) {
         const addresses = networkInterfaces[interfaceName];
         for (const address of addresses) {
-          if (address.family === 'IPv4') {
+          if (address.family === "IPv4") {
             allIPs.push({
               interface: interfaceName,
               address: address.address,
-              internal: address.internal
+              internal: address.internal,
             });
           }
         }
       }
-      
+
       // Get IP info if using generated IP
       const ipInfo = getIPInfo(req.clientIP);
-      
+
       res.send({
         message: "IP Detection Test",
         detectedIP: req.clientIP,
         ipInfo: ipInfo,
-        isGenerated: req.clientIP.match(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/) && 
-                     !allIPs.some(ip => ip.address === req.clientIP),
+        isGenerated:
+          req.clientIP.match(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/) &&
+          !allIPs.some((ip) => ip.address === req.clientIP),
         headers: {
-          'x-forwarded-for': req.headers['x-forwarded-for'],
-          'x-real-ip': req.headers['x-real-ip'],
-          'cf-connecting-ip': req.headers['cf-connecting-ip'],
-          'x-client-ip': req.headers['x-client-ip'],
-          'user-agent': req.headers['user-agent']?.substring(0, 50) + '...'
+          "x-forwarded-for": req.headers["x-forwarded-for"],
+          "x-real-ip": req.headers["x-real-ip"],
+          "cf-connecting-ip": req.headers["cf-connecting-ip"],
+          "x-client-ip": req.headers["x-client-ip"],
+          "user-agent": req.headers["user-agent"]?.substring(0, 50) + "...",
         },
         expressIP: req.ip,
         connectionIP: req.connection?.remoteAddress,
         socketIP: req.socket?.remoteAddress,
         networkInterfaces: allIPs,
         sampleIPs: {
-          us: generateRealisticIP('us'),
-          eu: generateRealisticIP('eu'),
-          asia: generateRealisticIP('asia'),
-          random: generateRealisticIP('random')
+          us: generateRealisticIP("us"),
+          eu: generateRealisticIP("eu"),
+          asia: generateRealisticIP("asia"),
+          random: generateRealisticIP("random"),
         },
-        timestamp: new Date()
+        timestamp: new Date(),
       });
     });
 
     // ----------------Activities Related API -----------------
-    
+
     // Helper function to log activity
-    const logActivity = async (type, action, user = 'System', metadata = {}, req = null) => {
+    const logActivity = async (
+      type,
+      action,
+      user = "System",
+      metadata = {},
+      req = null,
+    ) => {
       try {
         const activity = {
           type, // 'login', 'action', 'create', 'update', 'delete'
           action,
           user,
           metadata,
-          ipAddress: req?.clientIP || metadata.ipAddress || 'N/A',
-          userAgent: req?.get('User-Agent') || metadata.userAgent || 'N/A',
+          ipAddress: req?.clientIP || metadata.ipAddress || "N/A",
+          userAgent: req?.get("User-Agent") || metadata.userAgent || "N/A",
           createdAt: new Date(),
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
-        
+
         await activitiesCollection.insertOne(activity);
-        console.log(`📝 Activity logged: ${user} - ${action} (IP: ${activity.ipAddress})`);
+        console.log(
+          `📝 Activity logged: ${user} - ${action} (IP: ${activity.ipAddress})`,
+        );
       } catch (error) {
-        console.error('❌ Failed to log activity:', error);
+        console.error("❌ Failed to log activity:", error);
       }
     };
 
@@ -2213,47 +2356,47 @@ async function run() {
     app.get("/api/activities", verifyAdmin, async (req, res) => {
       try {
         console.log("📊 GET /api/activities - Request received");
-        
-        const { 
-          page = 1, 
-          limit = 20, 
-          search = "", 
+
+        const {
+          page = 1,
+          limit = 20,
+          search = "",
           type = "",
           user = "",
           startDate = "",
-          endDate = ""
+          endDate = "",
         } = req.query;
-        
+
         const skip = (parseInt(page) - 1) * parseInt(limit);
-        
+
         // Build filter query
         let filter = {};
-        
+
         if (search) {
           filter.$or = [
             { action: { $regex: search, $options: "i" } },
             { user: { $regex: search, $options: "i" } },
-            { type: { $regex: search, $options: "i" } }
+            { type: { $regex: search, $options: "i" } },
           ];
         }
-        
+
         if (type && type !== "all") {
           filter.type = type;
         }
-        
+
         if (user && user !== "all") {
           filter.user = user;
         }
-        
+
         if (startDate && endDate) {
           filter.createdAt = {
             $gte: new Date(startDate),
-            $lte: new Date(endDate)
+            $lte: new Date(endDate),
           };
         }
-        
+
         console.log("Activities filter:", filter);
-        
+
         // Get activities with pagination
         const activities = await activitiesCollection
           .find(filter)
@@ -2261,29 +2404,29 @@ async function run() {
           .skip(skip)
           .limit(parseInt(limit))
           .toArray();
-        
+
         // Get total count for pagination
         const total = await activitiesCollection.countDocuments(filter);
-        
+
         // Get stats
         const stats = {
           total: await activitiesCollection.countDocuments(),
-          login: await activitiesCollection.countDocuments({ type: 'login' }),
-          action: await activitiesCollection.countDocuments({ type: 'action' }),
-          create: await activitiesCollection.countDocuments({ type: 'create' }),
-          update: await activitiesCollection.countDocuments({ type: 'update' }),
-          delete: await activitiesCollection.countDocuments({ type: 'delete' })
+          login: await activitiesCollection.countDocuments({ type: "login" }),
+          action: await activitiesCollection.countDocuments({ type: "action" }),
+          create: await activitiesCollection.countDocuments({ type: "create" }),
+          update: await activitiesCollection.countDocuments({ type: "update" }),
+          delete: await activitiesCollection.countDocuments({ type: "delete" }),
         };
-        
+
         console.log("✅ Activities fetched:", activities.length);
-        
+
         res.send({
           activities,
           total,
           page: parseInt(page),
           limit: parseInt(limit),
           totalPages: Math.ceil(total / parseInt(limit)),
-          stats
+          stats,
         });
       } catch (error) {
         console.error("❌ Get activities error:", error);
@@ -2295,30 +2438,33 @@ async function run() {
     app.get("/api/activities/recent", verifyAdmin, async (req, res) => {
       try {
         console.log("📊 GET /api/activities/recent - Request received");
-        
+
         const { limit = 6 } = req.query;
-        
+
         const activities = await activitiesCollection
           .find({})
           .sort({ createdAt: -1 })
           .limit(parseInt(limit))
           .toArray();
-        
+
         // Format activities for frontend
-        const formattedActivities = activities.map(activity => ({
+        const formattedActivities = activities.map((activity) => ({
           id: activity._id,
           user: activity.user,
           action: activity.action,
           timestamp: getTimeAgo(activity.createdAt),
-          date: activity.createdAt.toLocaleString('en-GB'),
-          ip: activity.ipAddress || 'N/A',
+          date: activity.createdAt.toLocaleString("en-GB"),
+          ip: activity.ipAddress || "N/A",
           type: activity.type,
           icon: getActivityIcon(activity.type),
-          metadata: activity.metadata
+          metadata: activity.metadata,
         }));
-        
-        console.log("✅ Recent activities fetched:", formattedActivities.length);
-        
+
+        console.log(
+          "✅ Recent activities fetched:",
+          formattedActivities.length,
+        );
+
         res.send(formattedActivities);
       } catch (error) {
         console.error("❌ Get recent activities error:", error);
@@ -2330,13 +2476,21 @@ async function run() {
     app.post("/api/activities", verifyAdmin, async (req, res) => {
       try {
         const { type, action, user, metadata } = req.body;
-        
+
         if (!type || !action) {
-          return res.status(400).send({ error: "Type and action are required" });
+          return res
+            .status(400)
+            .send({ error: "Type and action are required" });
         }
-        
-        await logActivity(type, action, user || req.user?.username || 'Admin', metadata, req);
-        
+
+        await logActivity(
+          type,
+          action,
+          user || req.user?.username || "Admin",
+          metadata,
+          req,
+        );
+
         res.send({ message: "Activity logged successfully" });
       } catch (error) {
         console.error("❌ Create activity error:", error);
@@ -2348,19 +2502,25 @@ async function run() {
     app.delete("/api/activities/clear", verifyAdmin, async (req, res) => {
       try {
         console.log("🗑️ Clearing all activities...");
-        
+
         const result = await activitiesCollection.deleteMany({});
-        
+
         // Log the clear action
-        await logActivity('action', 'Cleared all activities', req.user?.username || 'Admin', {
-          deletedCount: result.deletedCount
-        }, req);
-        
+        await logActivity(
+          "action",
+          "Cleared all activities",
+          req.user?.username || "Admin",
+          {
+            deletedCount: result.deletedCount,
+          },
+          req,
+        );
+
         console.log("✅ Activities cleared:", result.deletedCount);
-        
-        res.send({ 
+
+        res.send({
           message: "All activities cleared successfully",
-          deletedCount: result.deletedCount
+          deletedCount: result.deletedCount,
         });
       } catch (error) {
         console.error("❌ Clear activities error:", error);
@@ -2372,13 +2532,15 @@ async function run() {
     app.delete("/api/activities/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
-        
-        const result = await activitiesCollection.deleteOne({ _id: new ObjectId(id) });
-        
+
+        const result = await activitiesCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
+
         if (result.deletedCount === 0) {
           return res.status(404).send({ error: "Activity not found" });
         }
-        
+
         res.send({ message: "Activity deleted successfully" });
       } catch (error) {
         console.error("❌ Delete activity error:", error);
@@ -2388,8 +2550,8 @@ async function run() {
 
     // Helper functions for activities
     const getTimeAgo = (date) => {
-      if (!date) return 'Unknown';
-      
+      if (!date) return "Unknown";
+
       const now = new Date();
       const past = new Date(date);
       const diffInMs = now - past;
@@ -2398,72 +2560,72 @@ async function run() {
       const diffInDays = Math.floor(diffInHours / 24);
 
       if (diffInDays > 0) {
-        return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+        return `${diffInDays} day${diffInDays > 1 ? "s" : ""} ago`;
       } else if (diffInHours > 0) {
-        return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+        return `${diffInHours} hour${diffInHours > 1 ? "s" : ""} ago`;
       } else if (diffInMinutes > 0) {
-        return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
+        return `${diffInMinutes} minute${diffInMinutes > 1 ? "s" : ""} ago`;
       } else {
-        return 'Just now';
+        return "Just now";
       }
     };
 
     const getActivityIcon = (type) => {
       switch (type) {
-        case 'login':
-          return 'User';
-        case 'create':
-          return 'Plus';
-        case 'update':
-          return 'Edit';
-        case 'delete':
-          return 'Trash';
-        case 'action':
+        case "login":
+          return "User";
+        case "create":
+          return "Plus";
+        case "update":
+          return "Edit";
+        case "delete":
+          return "Trash";
+        case "action":
         default:
-          return 'FileText';
+          return "FileText";
       }
     };
 
     // ----------------Media Management API -----------------
-    
+
     // GET all media files with pagination and filters (Admin only)
     app.get("/api/media", verifyAdmin, async (req, res) => {
       try {
         console.log("📁 GET /api/media - Request received");
-        
-        const { 
-          page = 1, 
-          limit = 20, 
-          search = "", 
+
+        const {
+          page = 1,
+          limit = 20,
+          search = "",
           type = "",
           sortBy = "createdAt",
-          sortOrder = "desc"
+          sortOrder = "desc",
         } = req.query;
-        
+
         const skip = (parseInt(page) - 1) * parseInt(limit);
-        
+
         // Build filter query
         let filter = {};
-        
+
         if (search) {
           filter.$or = [
             { name: { $regex: search, $options: "i" } },
             { originalName: { $regex: search, $options: "i" } },
-            { alt: { $regex: search, $options: "i" } }
+            { alt: { $regex: search, $options: "i" } },
           ];
         }
-        
+
         if (type && type !== "All Types") {
           filter.type = type;
         }
-        
+
         // Build sort query
         const sort = {};
         sort[sortBy] = sortOrder === "desc" ? -1 : 1;
-        
+
         console.log("Media filter:", filter);
         console.log("Media sort:", sort);
-        
+
         const [media, total] = await Promise.all([
           mediaCollection
             .find(filter)
@@ -2471,58 +2633,62 @@ async function run() {
             .skip(skip)
             .limit(parseInt(limit))
             .toArray(),
-          mediaCollection.countDocuments(filter)
+          mediaCollection.countDocuments(filter),
         ]);
-        
+
         // Calculate stats
-        const stats = await mediaCollection.aggregate([
-          {
-            $group: {
-              _id: "$type",
-              count: { $sum: 1 },
-              totalSize: { $sum: "$size" }
-            }
-          }
-        ]).toArray();
-        
+        const stats = await mediaCollection
+          .aggregate([
+            {
+              $group: {
+                _id: "$type",
+                count: { $sum: 1 },
+                totalSize: { $sum: "$size" },
+              },
+            },
+          ])
+          .toArray();
+
         const statsObj = {
           total: total,
           images: 0,
           documents: 0,
           videos: 0,
           audio: 0,
-          totalSize: 0
+          totalSize: 0,
         };
-        
-        stats.forEach(stat => {
+
+        stats.forEach((stat) => {
           statsObj.totalSize += stat.totalSize;
-          switch(stat._id) {
-            case 'Image':
+          switch (stat._id) {
+            case "Image":
               statsObj.images = stat.count;
               break;
-            case 'Document':
+            case "Document":
               statsObj.documents = stat.count;
               break;
-            case 'Video':
+            case "Video":
               statsObj.videos = stat.count;
               break;
-            case 'Audio':
+            case "Audio":
               statsObj.audio = stat.count;
               break;
           }
         });
-        
-        console.log("✅ Media fetched successfully:", { total, mediaCount: media.length });
-        
+
+        console.log("✅ Media fetched successfully:", {
+          total,
+          mediaCount: media.length,
+        });
+
         res.send({
           media,
           stats: statsObj,
           total,
           page: parseInt(page),
           limit: parseInt(limit),
-          totalPages: Math.ceil(total / parseInt(limit))
+          totalPages: Math.ceil(total / parseInt(limit)),
         });
-        
       } catch (error) {
         console.error("❌ Get media error:", error);
         res.status(500).send({ error: "Failed to fetch media files" });
@@ -2533,8 +2699,8 @@ async function run() {
     app.post("/api/media", verifyAdmin, async (req, res) => {
       try {
         console.log("📤 POST /api/media - Upload request received");
-        
-        const { 
+
+        const {
           name,
           originalName,
           type,
@@ -2550,16 +2716,16 @@ async function run() {
           height,
           imgbb_id,
           imgbb_filename,
-          storage_provider
+          storage_provider,
         } = req.body;
-        
+
         // Validate required fields
         if (!name || !type || !size) {
-          return res.status(400).send({ 
-            error: "Missing required fields: name, type, size" 
+          return res.status(400).send({
+            error: "Missing required fields: name, type, size",
           });
         }
-        
+
         const mediaData = {
           name: name.trim(),
           originalName: originalName || name,
@@ -2576,27 +2742,26 @@ async function run() {
           height: height ? parseInt(height) : null,
           imgbb_id: imgbb_id || null,
           imgbb_filename: imgbb_filename || null,
-          storage_provider: storage_provider || 'local',
+          storage_provider: storage_provider || "local",
           createdAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         };
-        
+
         console.log("Creating media file:", {
           ...mediaData,
           storage_provider: mediaData.storage_provider,
-          imgbb_id: mediaData.imgbb_id ? 'Present' : 'None'
+          imgbb_id: mediaData.imgbb_id ? "Present" : "None",
         });
-        
+
         const result = await mediaCollection.insertOne(mediaData);
-        
+
         console.log("✅ Media file created:", result.insertedId);
-        
+
         res.status(201).send({
           _id: result.insertedId,
           ...mediaData,
-          message: `Media file uploaded successfully${storage_provider === 'imgbb' ? ' to ImgBB' : ''}`
+          message: `Media file uploaded successfully${storage_provider === "imgbb" ? " to ImgBB" : ""}`,
         });
-        
       } catch (error) {
         console.error("❌ Upload media error:", error);
         res.status(500).send({ error: "Failed to upload media file" });
@@ -2610,21 +2775,20 @@ async function run() {
         const updateData = { ...req.body };
         delete updateData._id;
         updateData.updatedAt = new Date();
-        
+
         console.log("📝 Updating media file:", id, updateData);
-        
+
         const result = await mediaCollection.updateOne(
           { _id: new ObjectId(id) },
-          { $set: updateData }
+          { $set: updateData },
         );
-        
+
         if (result.matchedCount === 0) {
           return res.status(404).send({ error: "Media file not found" });
         }
-        
+
         console.log("✅ Media file updated:", id);
         res.send({ message: "Media file updated successfully" });
-        
       } catch (error) {
         console.error("❌ Update media error:", error);
         res.status(500).send({ error: "Failed to update media file" });
@@ -2635,18 +2799,19 @@ async function run() {
     app.delete("/api/media/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
-        
+
         console.log("🗑️ Deleting media file:", id);
-        
-        const result = await mediaCollection.deleteOne({ _id: new ObjectId(id) });
-        
+
+        const result = await mediaCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
+
         if (result.deletedCount === 0) {
           return res.status(404).send({ error: "Media file not found" });
         }
-        
+
         console.log("✅ Media file deleted:", id);
         res.send({ message: "Media file deleted successfully" });
-        
       } catch (error) {
         console.error("❌ Delete media error:", error);
         res.status(500).send({ error: "Failed to delete media file" });
@@ -2657,25 +2822,24 @@ async function run() {
     app.delete("/api/media", verifyAdmin, async (req, res) => {
       try {
         const { ids } = req.body;
-        
+
         if (!ids || !Array.isArray(ids) || ids.length === 0) {
           return res.status(400).send({ error: "Invalid or empty ids array" });
         }
-        
+
         console.log("🗑️ Deleting multiple media files:", ids);
-        
-        const objectIds = ids.map(id => new ObjectId(id));
-        const result = await mediaCollection.deleteMany({ 
-          _id: { $in: objectIds } 
+
+        const objectIds = ids.map((id) => new ObjectId(id));
+        const result = await mediaCollection.deleteMany({
+          _id: { $in: objectIds },
         });
-        
+
         console.log("✅ Media files deleted:", result.deletedCount);
-        
-        res.send({ 
+
+        res.send({
           message: `${result.deletedCount} media files deleted successfully`,
-          deletedCount: result.deletedCount
+          deletedCount: result.deletedCount,
         });
-        
       } catch (error) {
         console.error("❌ Delete multiple media error:", error);
         res.status(500).send({ error: "Failed to delete media files" });
@@ -2686,18 +2850,17 @@ async function run() {
     app.get("/api/media/:id", verifyAdmin, async (req, res) => {
       try {
         const { id } = req.params;
-        
+
         console.log("📁 Getting media file:", id);
-        
+
         const media = await mediaCollection.findOne({ _id: new ObjectId(id) });
-        
+
         if (!media) {
           return res.status(404).send({ error: "Media file not found" });
         }
-        
+
         console.log("✅ Media file found:", media.name);
         res.send(media);
-        
       } catch (error) {
         console.error("❌ Get media by ID error:", error);
         res.status(500).send({ error: "Failed to fetch media file" });
@@ -2708,7 +2871,6 @@ async function run() {
     app.get("/api/media/test", (req, res) => {
       res.send({ message: "Media API is working!", timestamp: new Date() });
     });
-
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();

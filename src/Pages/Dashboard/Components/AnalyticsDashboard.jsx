@@ -523,8 +523,8 @@ const AnalyticsDashboard = () => {
           <div className="flex-grow flex items-center justify-center relative mb-6 min-h-[320px]">
             <div className="w-full max-w-sm h-80 relative">
               {visitorDistribution && visitorDistribution.length > 0 ? (
-                <div className="w-full h-full">
-                  <ResponsiveContainer width="100%" height="100%" aspect={1}>
+                <div className="w-full h-full min-w-[300px] min-h-[320px]">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={320}>
                     <PieChart>
                       <Pie
                         data={visitorDistribution}

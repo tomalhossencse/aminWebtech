@@ -69,33 +69,44 @@ const useDashboardAPI = () => {
       try {
         console.log('📊 Fetching dashboard statistics...');
         
-        // Fetch data from multiple endpoints
-        const [
-          servicesRes,
-          projectsRes,
-          blogsRes,
-          teamRes,
-          testimonialsRes,
-          contactsRes,
-          mediaRes
-        ] = await Promise.allSettled([
-          axios.get('/services'),
-          axios.get('/projects'),
-          axios.get('/blogs'),
-          axios.get('/team-members'),
-          axios.get('/api/testimonials'),
-          axios.get('/api/contacts'),
-          axios.get('/api/media')
-        ]);
+        // Fetch data from multiple endpoints with better error handling
+        const endpoints = [
+          { name: 'services', url: '/services', requiresAuth: false },
+          { name: 'projects', url: '/projects', requiresAuth: false },
+          { name: 'blogs', url: '/blogs', requiresAuth: false },
+          { name: 'teamMembers', url: '/team-members', requiresAuth: false },
+          { name: 'testimonials', url: '/api/testimonials', requiresAuth: true },
+          { name: 'contacts', url: '/api/contacts', requiresAuth: true },
+          { name: 'media', url: '/api/media', requiresAuth: true }
+        ];
 
-        // Extract data from successful responses
-        const services = servicesRes.status === 'fulfilled' ? servicesRes.value.data : [];
-        const projects = projectsRes.status === 'fulfilled' ? projectsRes.value.data.projects || projectsRes.value.data : [];
-        const blogs = blogsRes.status === 'fulfilled' ? blogsRes.value.data.blogs || blogsRes.value.data : [];
-        const teamMembers = teamRes.status === 'fulfilled' ? teamRes.value.data.teamMembers || teamRes.value.data : [];
-        const testimonials = testimonialsRes.status === 'fulfilled' ? testimonialsRes.value.data.testimonials || testimonialsRes.value.data : [];
-        const contacts = contactsRes.status === 'fulfilled' ? contactsRes.value.data.contacts || contactsRes.value.data : [];
-        const media = mediaRes.status === 'fulfilled' ? mediaRes.value.data.media || mediaRes.value.data : [];
+        const results = {};
+        
+        for (const endpoint of endpoints) {
+          try {
+            const response = await axios.get(endpoint.url);
+            results[endpoint.name] = response.data;
+            console.log(`✅ ${endpoint.name}: ${response.status}`);
+          } catch (error) {
+            console.log(`⚠️ ${endpoint.name}: ${error.response?.status || 'ERROR'} - Using fallback`);
+            results[endpoint.name] = [];
+          }
+        }
+
+        // Extract data from results
+        const services = Array.isArray(results.services) ? results.services : [];
+        const projects = Array.isArray(results.projects?.projects) ? results.projects.projects : 
+                        Array.isArray(results.projects) ? results.projects : [];
+        const blogs = Array.isArray(results.blogs?.blogs) ? results.blogs.blogs : 
+                     Array.isArray(results.blogs) ? results.blogs : [];
+        const teamMembers = Array.isArray(results.teamMembers?.teamMembers) ? results.teamMembers.teamMembers : 
+                           Array.isArray(results.teamMembers) ? results.teamMembers : [];
+        const testimonials = Array.isArray(results.testimonials?.testimonials) ? results.testimonials.testimonials : 
+                            Array.isArray(results.testimonials) ? results.testimonials : [];
+        const contacts = Array.isArray(results.contacts?.contacts) ? results.contacts.contacts : 
+                        Array.isArray(results.contacts) ? results.contacts : [];
+        const media = Array.isArray(results.media?.media) ? results.media.media : 
+                     Array.isArray(results.media) ? results.media : [];
 
         // Calculate statistics
         const stats = {

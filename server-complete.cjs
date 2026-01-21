@@ -275,6 +275,89 @@ async function run() {
       }
     });
 
+    // PUT update service (Admin only)
+    app.put("/services/:id", verifyAdmin, async (req, res) => {
+      try {
+        const { id } = req.params;
+        
+        // Validate ObjectId format
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).send({ error: "Invalid service ID format" });
+        }
+        
+        console.log("Updating service with ID:", id);
+        console.log("Update data:", req.body);
+        
+        const updateData = {
+          ...req.body,
+          updatedAt: new Date()
+        };
+        
+        const result = await servicesCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: updateData }
+        );
+        
+        console.log("Update result:", result);
+        
+        if (result.matchedCount === 0) {
+          return res.status(404).send({ error: "Service not found" });
+        }
+        
+        res.send(result);
+      } catch (error) {
+        console.error("Update service error:", error);
+        if (error.name === 'BSONError') {
+          return res.status(400).send({ error: "Invalid service ID format" });
+        }
+        res.status(500).send({ error: "Failed to update service" });
+      }
+    });
+
+    // DELETE service (Admin only)
+    app.delete("/services/:id", verifyAdmin, async (req, res) => {
+      try {
+        const { id } = req.params;
+        
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).send({ error: "Invalid service ID format" });
+        }
+        
+        const result = await servicesCollection.deleteOne({ _id: new ObjectId(id) });
+        
+        if (result.deletedCount === 0) {
+          return res.status(404).send({ error: "Service not found" });
+        }
+        
+        res.send({ message: "Service deleted successfully" });
+      } catch (error) {
+        console.error("Delete service error:", error);
+        res.status(500).send({ error: "Failed to delete service" });
+      }
+    });
+
+    // GET single service by ID
+    app.get("/services/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
+        
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).send({ error: "Invalid service ID format" });
+        }
+        
+        const service = await servicesCollection.findOne({ _id: new ObjectId(id) });
+        
+        if (!service) {
+          return res.status(404).send({ error: "Service not found" });
+        }
+        
+        res.send(service);
+      } catch (error) {
+        console.error("Get service error:", error);
+        res.status(500).send({ error: "Failed to fetch service" });
+      }
+    });
+
     // ----------------Projects Related API -----------------
     // GET projects with pagination and filters
     app.get("/projects", async (req, res) => {
