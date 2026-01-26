@@ -62,7 +62,7 @@ const StatsSection = () => {
   return (
     <section
       ref={ref}
-      className="relative w-full px-4 py-12 md:py-20 lg:py-24 bg-base-100 overflow-hidden"
+      className="relative w-full px-6 py-12 md:py-20 lg:py-24 bg-base-100 overflow-hidden"
     >
       {/* Background Elements */}
       <div className="absolute inset-0 z-0">
@@ -98,7 +98,7 @@ const StatsSection = () => {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
           {stats.map((stat, index) => (
             <div
               key={stat.id}

@@ -303,7 +303,7 @@ html {
 }
 
 .nav-link {
-    @apply text-black dark:text-white hover:text-white transition-colors
+    @apply text-black md:text-white dark:text-white hover:text-white transition-colors
 }
 
 .nav-link .active {

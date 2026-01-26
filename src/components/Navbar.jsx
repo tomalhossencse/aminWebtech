@@ -116,7 +116,7 @@ const Navbar = ({ isDark, toggleTheme }) => {
             </Link>
 
             {/* Mobile Menu Button */}
-            <div className="dropdown dropdown-end lg:hidden">
+            <div className="dropdown dropdown-end lg:hidden mr-4">
               <div
                 tabIndex={0}
                 role="button"
