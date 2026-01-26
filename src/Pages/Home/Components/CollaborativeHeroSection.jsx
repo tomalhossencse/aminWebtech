@@ -32,7 +32,7 @@ const CollaborativeHeroSection = () => {
       {
         threshold: 0.1,
         rootMargin: "50px",
-      }
+      },
     );
 
     if (sectionRef.current) {
@@ -49,7 +49,7 @@ const CollaborativeHeroSection = () => {
   return (
     <section
       ref={sectionRef}
-      className="relative w-full min-h-screen flex items-center justify-center overflow-hidden"
+      className="relative w-full min-h-screen flex items-center px-6 justify-center overflow-hidden"
     >
       {/* Enhanced Background Layers */}
       <div className="absolute inset-0 z-0 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:bg-gradient-to-br dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 transition-all duration-500"></div>
