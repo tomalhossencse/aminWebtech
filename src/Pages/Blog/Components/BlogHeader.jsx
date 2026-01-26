@@ -34,7 +34,7 @@ const BlogHeader = ({ onSearch }) => {
 
   return (
     <header 
-      className="relative bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 pt-20 pb-32 px-4 sm:px-6 lg:px-8 text-center shadow-2xl overflow-hidden"
+      className="relative bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 pt-16 pb-24 sm:pt-20 sm:pb-32 px-4 sm:px-6 lg:px-8 text-center shadow-2xl overflow-hidden"
       onMouseMove={handleMouseMove}
     >
       {/* Enhanced Background Elements */}
@@ -108,7 +108,7 @@ const BlogHeader = ({ onSearch }) => {
         </div>
 
         {/* Enhanced Main Title with Dynamic Text */}
-        <h1 className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tight animate-fade-in-up">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white mb-4 sm:mb-6 tracking-tight animate-fade-in-up">
           <span className="text-white">Our </span>
           <span className="bg-gradient-to-r from-yellow-300 via-pink-300 to-cyan-300 bg-clip-text text-transparent">
             Blog
@@ -116,9 +116,9 @@ const BlogHeader = ({ onSearch }) => {
         </h1>
         
         {/* Dynamic Subtitle */}
-        <div className="text-blue-100 text-xl md:text-2xl mb-4 font-light max-w-2xl mx-auto leading-relaxed">
+        <div className="text-blue-100 text-base sm:text-lg md:text-xl lg:text-2xl mb-3 sm:mb-4 font-light max-w-2xl mx-auto leading-relaxed px-2">
           <span>Latest </span>
-          <span className="inline-block min-w-[120px] text-left">
+          <span className="inline-block min-w-[100px] sm:min-w-[120px] text-left">
             <span 
               key={currentWordIndex}
               className="bg-gradient-to-r from-yellow-300 to-pink-300 bg-clip-text text-transparent font-semibold animate-fade-in-up"
@@ -130,35 +130,35 @@ const BlogHeader = ({ onSearch }) => {
         </div>
 
         {/* Typing Indicator */}
-        <div className="flex justify-center items-center gap-2 mb-12">
+        <div className="flex justify-center items-center gap-2 mb-8 sm:mb-12">
           <div className="flex gap-1">
             {[...Array(3)].map((_, i) => (
               <div
                 key={i}
-                className="w-2 h-2 bg-white/60 rounded-full animate-bounce"
+                className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white/60 rounded-full animate-bounce"
                 style={{ animationDelay: `${i * 0.2}s` }}
               />
             ))}
           </div>
-          <span className="text-blue-200 text-sm font-medium">Discover amazing content</span>
+          <span className="text-blue-200 text-xs sm:text-sm font-medium">Discover amazing content</span>
         </div>
         
         {/* Ultra Enhanced Search Bar */}
-        <div className="relative max-w-2xl mx-auto group">
+        <div className="relative max-w-xl sm:max-w-2xl mx-auto group px-2">
           {/* Animated Border Glow */}
-          <div className={`absolute inset-0 bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 rounded-2xl blur-lg transition-all duration-500 ${
+          <div className={`absolute inset-0 bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 rounded-xl sm:rounded-2xl blur-lg transition-all duration-500 ${
             isSearchFocused ? 'opacity-60 scale-105' : 'opacity-0 group-hover:opacity-30'
           }`}></div>
           
           {/* Pulsing Ring Effect */}
-          <div className={`absolute inset-0 rounded-2xl border-2 border-white/30 transition-all duration-500 ${
+          <div className={`absolute inset-0 rounded-xl sm:rounded-2xl border-2 border-white/30 transition-all duration-500 ${
             isSearchFocused ? 'animate-ping' : ''
           }`}></div>
           
-          <div className="relative bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl overflow-hidden hover:bg-white/15 transition-all duration-500">
+          <div className="relative bg-white/10 backdrop-blur-xl rounded-xl sm:rounded-2xl border border-white/20 shadow-2xl overflow-hidden hover:bg-white/15 transition-all duration-500">
             {/* Search Icon with Animation */}
-            <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
-              <span className={`material-icons transition-all duration-500 ${
+            <div className="absolute inset-y-0 left-0 pl-4 sm:pl-6 flex items-center pointer-events-none">
+              <span className={`material-icons transition-all duration-500 text-base sm:text-lg ${
                 isSearchFocused ? 'text-blue-400 scale-110 animate-pulse' : 
                 isTyping ? 'text-green-400' : 'text-gray-400'
               }`}>
@@ -173,16 +173,16 @@ const BlogHeader = ({ onSearch }) => {
               onChange={handleSearch}
               onFocus={() => setIsSearchFocused(true)}
               onBlur={() => setIsSearchFocused(false)}
-              className="block w-full pl-16 pr-20 py-5 bg-transparent text-white placeholder-blue-200 focus:outline-none focus:ring-0 text-lg font-medium transition-all duration-300"
+              className="block w-full pl-12 sm:pl-16 pr-16 sm:pr-20 py-3 sm:py-5 bg-transparent text-white placeholder-blue-200 focus:outline-none focus:ring-0 text-sm sm:text-lg font-medium transition-all duration-300"
               placeholder="Search articles, tutorials, guides..."
             />
             
             {/* Enhanced Search Button */}
-            <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-              <button className={`bg-gradient-to-r from-blue-500 to-purple-500 text-white p-3 rounded-xl transition-all duration-500 shadow-lg hover:shadow-2xl group/btn ${
+            <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:pr-3">
+              <button className={`bg-gradient-to-r from-blue-500 to-purple-500 text-white p-2 sm:p-3 rounded-lg sm:rounded-xl transition-all duration-500 shadow-lg hover:shadow-2xl group/btn ${
                 isSearchFocused ? 'scale-110 from-blue-400 to-purple-400' : 'hover:scale-105 hover:from-blue-600 hover:to-purple-600'
               }`}>
-                <span className="material-icons text-lg group-hover/btn:rotate-12 transition-transform duration-300">
+                <span className="material-icons text-base sm:text-lg group-hover/btn:rotate-12 transition-transform duration-300">
                   {isTyping ? 'send' : 'arrow_forward'}
                 </span>
               </button>
@@ -206,34 +206,34 @@ const BlogHeader = ({ onSearch }) => {
         </div>
 
         {/* Enhanced Quick Stats with Animations */}
-        <div className="flex justify-center items-center gap-8 mt-16 text-white/80">
+        <div className="flex justify-center items-center gap-4 sm:gap-6 lg:gap-8 mt-12 sm:mt-16 text-white/80 px-4">
           <div className="text-center group cursor-pointer">
-            <div className="text-3xl font-black text-white mb-1 group-hover:scale-110 transition-transform duration-300 bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text group-hover:text-transparent">
+            <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1 group-hover:scale-110 transition-transform duration-300 bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text group-hover:text-transparent">
               50+
             </div>
-            <div className="text-sm font-medium tracking-wide">Articles</div>
-            <div className="w-8 h-0.5 bg-gradient-to-r from-yellow-400 to-orange-400 mx-auto mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="text-xs sm:text-sm font-medium tracking-wide">Articles</div>
+            <div className="w-6 sm:w-8 h-0.5 bg-gradient-to-r from-yellow-400 to-orange-400 mx-auto mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           </div>
           
-          <div className="w-px h-12 bg-gradient-to-b from-transparent via-white/30 to-transparent"></div>
+          <div className="w-px h-8 sm:h-10 lg:h-12 bg-gradient-to-b from-transparent via-white/30 to-transparent"></div>
           
           <div className="text-center group cursor-pointer">
-            <div className="text-3xl font-black text-white mb-1 group-hover:scale-110 transition-transform duration-300 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text group-hover:text-transparent">
+            <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1 group-hover:scale-110 transition-transform duration-300 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text group-hover:text-transparent">
               10k+
             </div>
-            <div className="text-sm font-medium tracking-wide">Readers</div>
-            <div className="w-8 h-0.5 bg-gradient-to-r from-blue-400 to-purple-400 mx-auto mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="text-xs sm:text-sm font-medium tracking-wide">Readers</div>
+            <div className="w-6 sm:w-8 h-0.5 bg-gradient-to-r from-blue-400 to-purple-400 mx-auto mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           </div>
           
-          <div className="w-px h-12 bg-gradient-to-b from-transparent via-white/30 to-transparent"></div>
+          <div className="w-px h-8 sm:h-10 lg:h-12 bg-gradient-to-b from-transparent via-white/30 to-transparent"></div>
           
           <div className="text-center group cursor-pointer">
-            <div className="text-3xl font-black text-white mb-1 group-hover:scale-110 transition-transform duration-300 bg-gradient-to-r from-pink-400 to-red-400 bg-clip-text group-hover:text-transparent flex items-center justify-center gap-1">
+            <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-1 group-hover:scale-110 transition-transform duration-300 bg-gradient-to-r from-pink-400 to-red-400 bg-clip-text group-hover:text-transparent flex items-center justify-center gap-1">
               5
-              <span className="material-icons text-yellow-400 text-lg animate-pulse">star</span>
+              <span className="material-icons text-yellow-400 text-sm sm:text-base lg:text-lg animate-pulse">star</span>
             </div>
-            <div className="text-sm font-medium tracking-wide">Rating</div>
-            <div className="w-8 h-0.5 bg-gradient-to-r from-pink-400 to-red-400 mx-auto mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="text-xs sm:text-sm font-medium tracking-wide">Rating</div>
+            <div className="w-6 sm:w-8 h-0.5 bg-gradient-to-r from-pink-400 to-red-400 mx-auto mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           </div>
         </div>
 

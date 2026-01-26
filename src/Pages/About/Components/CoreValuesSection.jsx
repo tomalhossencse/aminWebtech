@@ -14,8 +14,8 @@ const CoreValuesSection = () => {
       },
       {
         threshold: 0.1,
-        rootMargin: '50px'
-      }
+        rootMargin: "50px",
+      },
     );
 
     if (sectionRef.current) {
@@ -69,7 +69,7 @@ const CoreValuesSection = () => {
   ];
 
   return (
-    <section 
+    <section
       ref={sectionRef}
       className="flex-grow py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 transition-colors duration-300"
     >
@@ -81,9 +81,13 @@ const CoreValuesSection = () => {
 
       <div className="max-w-7xl mx-auto">
         {/* Section Header */}
-        <div className={`text-center max-w-3xl mx-auto mb-16 md:mb-24 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+        <div
+          className={`text-center max-w-3xl mx-auto mb-16 md:mb-24 transition-all duration-1000 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
+        >
           {/* Badge */}
-          <div className={`badge badge-lg px-5 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-none shadow-lg shadow-blue-500/30 transform hover:scale-105 transition-all duration-300 cursor-default mb-8 gap-2 ${isVisible ? 'animate-bounce-in' : ''}`}>
+          <div
+            className={`badge badge-lg px-5 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-none shadow-lg shadow-blue-500/30 transform hover:scale-105 transition-all duration-300 cursor-default mb-8 gap-2 ${isVisible ? "animate-bounce-in" : ""}`}
+          >
             <span className="material-icons-round text-sm">favorite</span>
             <span className="text-sm font-semibold tracking-wide">
               Our Principles
@@ -91,7 +95,9 @@ const CoreValuesSection = () => {
           </div>
 
           {/* Main Heading */}
-          <h1 className={`text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-6 leading-tight transition-all duration-1000 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+          <h1
+            className={`text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-6 leading-tight transition-all duration-1000 delay-200 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
+          >
             Core Values That <br className="hidden sm:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 animate-gradient-x">
               Drive Us
@@ -99,23 +105,25 @@ const CoreValuesSection = () => {
           </h1>
 
           {/* Description */}
-          <p className={`text-lg md:text-xl text-gray-500 dark:text-gray-400 font-medium leading-relaxed max-w-2xl mx-auto transition-all duration-1000 delay-400 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+          <p
+            className={`text-lg md:text-xl text-gray-500 dark:text-gray-400 font-medium leading-relaxed max-w-2xl mx-auto transition-all duration-1000 delay-400 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
+          >
             These principles guide our decisions and define our company culture
           </p>
         </div>
 
         {/* Values Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid px-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {values.map((value, index) => (
             <div
               key={value.id}
               className={`transition-all duration-1000 ${
-                isVisible 
-                  ? 'opacity-100 translate-y-0' 
-                  : 'opacity-0 translate-y-10'
+                isVisible
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-10"
               }`}
               style={{
-                transitionDelay: `${600 + index * 150}ms`
+                transitionDelay: `${600 + index * 150}ms`,
               }}
             >
               <ValueCard {...value} />

@@ -66,7 +66,7 @@ const Hero = () => {
             </p>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
+            <div className="grid grid-cols-2  lg:grid-cols-4 gap-6 w-full">
               {statsData.map((stat, index) => (
                 <StatsCard key={index} {...stat} />
               ))}

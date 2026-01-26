@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 
 const DigitalExcellenceHero = () => {
   return (
-    <section className="relative w-full min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 overflow-hidden">
+    <section className="relative w-full min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 overflow-hidden px-4">
       {/* Background Image */}
       <div
         className="absolute inset-0 opacity-10 pointer-events-none bg-cover bg-center bg-no-repeat"
