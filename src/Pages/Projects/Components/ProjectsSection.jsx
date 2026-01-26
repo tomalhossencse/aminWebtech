@@ -122,52 +122,52 @@ const ProjectsSection = () => {
   }
 
   return (
-    <section className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <section className="max-w-7xl mx-auto py-6 sm:py-8 lg:py-12 px-3 sm:px-4 lg:px-8">
       {/* Header */}
-      <div className="text-center mb-12">
-        <div className="inline-flex items-center px-4 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-sm font-medium mb-4">
-          <Star className="w-4 h-4 mr-2" />
+      <div className="text-center mb-8 sm:mb-10 lg:mb-12">
+        <div className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-xs sm:text-sm font-medium mb-3 sm:mb-4">
+          <Star className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
           Portfolio Showcase
         </div>
-        <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent px-2">
           Our Projects
         </h1>
-        <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed">
+        <p className="text-base sm:text-lg lg:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed px-4">
           Discover our portfolio of successful projects that have helped businesses transform their digital presence and achieve remarkable growth.
         </p>
-        <div className="flex items-center justify-center gap-8 mt-8 text-sm text-gray-500 dark:text-gray-400">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 lg:gap-8 mt-6 sm:mt-8 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
           <div className="flex items-center">
             <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
             {projects.filter(p => p.isActive).length} Active Projects
           </div>
           <div className="flex items-center">
-            <Star className="w-4 h-4 text-yellow-500 mr-2" />
+            <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500 mr-2" />
             {projects.filter(p => p.isFeatured).length} Featured
           </div>
           <div className="flex items-center">
-            <ExternalLink className="w-4 h-4 mr-2" />
+            <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
             {projects.filter(p => p.hasLiveDemo).length} Live Demos
           </div>
         </div>
       </div>
 
       {/* Search Bar */}
-      <div className="max-w-2xl mx-auto mb-10">
+      <div className="max-w-2xl mx-auto mb-8 sm:mb-10 px-2">
         <div className="relative group">
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+          <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
+            <Search className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
           </div>
           <input
             type="text"
-            placeholder="Search projects by name, client, or technology..."
+            placeholder="Search projects..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="block w-full pl-12 pr-4 py-4 bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all outline-none text-lg"
+            className="block w-full pl-10 sm:pl-12 pr-10 sm:pr-4 py-3 sm:py-4 bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg sm:rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all outline-none text-sm sm:text-base lg:text-lg"
           />
           {searchTerm && (
             <button
               onClick={() => setSearchTerm('')}
-              className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600"
+              className="absolute inset-y-0 right-0 pr-3 sm:pr-4 flex items-center text-gray-400 hover:text-gray-600 text-lg sm:text-xl"
             >
               ×
             </button>
@@ -176,25 +176,26 @@ const ProjectsSection = () => {
       </div>
 
       {/* Filter Buttons */}
-      <div className="flex flex-wrap justify-center gap-3 mb-12">
+      <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-8 sm:mb-10 lg:mb-12 px-2">
         {filterButtons.map((button) => {
           const IconComponent = typeof button.icon === 'string' ? 
-            () => <span className="material-icons-outlined text-lg">{button.icon}</span> : 
+            () => <span className="material-icons-outlined text-base sm:text-lg">{button.icon}</span> : 
             button.icon;
           
           return (
             <button
               key={button.label}
               onClick={() => setActiveFilter(button.label)}
-              className={`inline-flex items-center px-6 py-3 rounded-xl font-medium transition-all duration-200 transform hover:scale-105 ${
+              className={`inline-flex items-center px-3 sm:px-4 lg:px-6 py-2 sm:py-2.5 lg:py-3 rounded-lg sm:rounded-xl font-medium transition-all duration-200 transform hover:scale-105 text-xs sm:text-sm lg:text-base ${
                 activeFilter === button.label
                   ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25 hover:bg-blue-700'
                   : 'bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 border-2 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600'
               }`}
             >
-              <IconComponent className="w-5 h-5 mr-2" />
-              {button.label}
-              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-bold ${
+              <IconComponent className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">{button.label}</span>
+              <span className="sm:hidden">{button.label.split(' ')[0]}</span>
+              <span className={`ml-1 sm:ml-2 px-1.5 sm:px-2 py-0.5 rounded-full text-xs font-bold ${
                 activeFilter === button.label
                   ? 'bg-white/20 text-white'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
@@ -207,28 +208,28 @@ const ProjectsSection = () => {
       </div>
 
       {/* Projects Stats */}
-      <div className="text-center mb-8">
-        <p className="text-gray-600 dark:text-gray-400">
+      <div className="text-center mb-6 sm:mb-8 px-2">
+        <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
           Showing <span className="font-semibold text-blue-600">{filteredProjects.length}</span> of <span className="font-semibold">{projects.length}</span> projects
           {searchTerm && (
-            <span> matching "<span className="font-semibold text-blue-600">{searchTerm}</span>"</span>
+            <span className="block sm:inline"> matching "<span className="font-semibold text-blue-600">{searchTerm}</span>"</span>
           )}
         </p>
       </div>
 
       {/* Projects Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 max-w-6xl mx-auto px-2">
         {filteredProjects.length > 0 ? (
           filteredProjects.map((project, index) => (
             <ProjectCard key={project.id} project={project} index={index} />
           ))
         ) : (
-          <div className="col-span-full text-center py-16">
-            <div className="text-gray-400 dark:text-gray-500 mb-6">
-              <Search className="w-16 h-16 mx-auto mb-4 opacity-50" />
+          <div className="col-span-full text-center py-12 sm:py-16">
+            <div className="text-gray-400 dark:text-gray-500 mb-4 sm:mb-6">
+              <Search className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 opacity-50" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">No projects found</h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2 sm:mb-3">No projects found</h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-4 sm:mb-6 max-w-md mx-auto text-sm sm:text-base px-4">
               We couldn't find any projects matching your search criteria. Try adjusting your filters or search terms.
             </p>
             <button
@@ -236,9 +237,9 @@ const ProjectsSection = () => {
                 setSearchTerm('');
                 setActiveFilter('All Projects');
               }}
-              className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base"
             >
-              <Filter className="w-4 h-4 mr-2" />
+              <Filter className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
               Clear Filters
             </button>
           </div>
@@ -272,7 +273,7 @@ const ProjectCard = ({ project, index }) => {
 
   return (
     <div 
-      className={`bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 flex flex-col group h-full ${
+      className={`bg-white dark:bg-slate-800 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1 sm:hover:-translate-y-2 flex flex-col group h-full ${
         index % 2 === 0 ? 'animate-fade-in-up' : 'animate-fade-in-up'
       }`}
       style={{ animationDelay: `${index * 100}ms` }}
@@ -280,23 +281,25 @@ const ProjectCard = ({ project, index }) => {
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Project Header with Gradient */}
-      <div className={`h-48 bg-gradient-to-br ${project.gradient} relative flex items-center justify-center overflow-hidden`}>
+      <div className={`h-32 sm:h-40 lg:h-48 bg-gradient-to-br ${project.gradient} relative flex items-center justify-center overflow-hidden`}>
         {/* Featured Badge */}
         {project.isFeatured && (
-          <div className="absolute top-4 right-4 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full flex items-center">
-            <Star className="w-3 h-3 mr-1" />
-            Featured
+          <div className="absolute top-2 sm:top-4 right-2 sm:right-4 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 sm:px-3 py-1 rounded-full flex items-center">
+            <Star className="w-2 h-2 sm:w-3 sm:h-3 mr-1" />
+            <span className="hidden sm:inline">Featured</span>
+            <span className="sm:hidden">★</span>
           </div>
         )}
         
         {/* Category Badge */}
-        <span className="absolute top-4 left-4 bg-white/20 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1 rounded-full border border-white/30">
-          {project.category}
+        <span className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-white/20 backdrop-blur-sm text-white text-xs font-semibold px-2 sm:px-3 py-1 rounded-full border border-white/30">
+          <span className="hidden sm:inline">{project.category}</span>
+          <span className="sm:hidden">{project.category.split(' ')[0]}</span>
         </span>
         
         {/* Project Letter/Logo */}
         <div className="relative">
-          <h2 className={`text-6xl font-bold text-white drop-shadow-lg transition-transform duration-300 ${
+          <h2 className={`text-4xl sm:text-5xl lg:text-6xl font-bold text-white drop-shadow-lg transition-transform duration-300 ${
             isHovered ? 'scale-110 rotate-3' : ''
           }`}>
             {project.letter}
@@ -309,16 +312,16 @@ const ProjectCard = ({ project, index }) => {
         </div>
 
         {/* Status Indicator */}
-        <div className={`absolute bottom-4 right-4 w-3 h-3 rounded-full ${
+        <div className={`absolute bottom-2 sm:bottom-4 right-2 sm:right-4 w-2 h-2 sm:w-3 sm:h-3 rounded-full ${
           project.isActive ? 'bg-green-400' : 'bg-gray-400'
         } shadow-lg`}></div>
       </div>
 
       {/* Project Content */}
-      <div className="p-6 flex-1 flex flex-col">
+      <div className="p-4 sm:p-5 lg:p-6 flex-1 flex flex-col">
         {/* Title and Description */}
-        <div className="mb-4">
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+        <div className="mb-3 sm:mb-4">
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
             {project.title}
           </h3>
           <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed line-clamp-2">
@@ -327,31 +330,31 @@ const ProjectCard = ({ project, index }) => {
         </div>
 
         {/* Project Meta Information */}
-        <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 mb-3 sm:mb-4 text-xs sm:text-sm">
           <div className="flex items-center text-gray-500 dark:text-gray-400">
-            <User className="w-4 h-4 mr-2 text-blue-500" />
+            <User className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 text-blue-500 flex-shrink-0" />
             <span className="truncate">{project.client}</span>
           </div>
           <div className="flex items-center text-gray-500 dark:text-gray-400">
-            <Calendar className="w-4 h-4 mr-2 text-green-500" />
+            <Calendar className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 text-green-500 flex-shrink-0" />
             <span>{project.year}</span>
           </div>
           {projectDuration() && (
-            <div className="flex items-center text-gray-500 dark:text-gray-400 col-span-2">
-              <Clock className="w-4 h-4 mr-2 text-purple-500" />
-              <span>Duration: {projectDuration()}</span>
+            <div className="flex items-center text-gray-500 dark:text-gray-400 col-span-1 sm:col-span-2">
+              <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 text-purple-500 flex-shrink-0" />
+              <span className="text-xs sm:text-sm">Duration: {projectDuration()}</span>
             </div>
           )}
         </div>
 
         {/* Technologies */}
-        <div className="mb-4">
+        <div className="mb-3 sm:mb-4">
           <div className="flex items-center mb-2">
-            <Code className="w-4 h-4 mr-2 text-indigo-500" />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Technologies</span>
+            <Code className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 text-indigo-500" />
+            <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">Technologies</span>
           </div>
           <div className="flex flex-wrap gap-1">
-            {project.technologies.slice(0, 4).map((tech, index) => (
+            {project.technologies.slice(0, window.innerWidth < 640 ? 3 : 4).map((tech, index) => (
               <span
                 key={index}
                 className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs rounded-md font-medium hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
@@ -359,9 +362,9 @@ const ProjectCard = ({ project, index }) => {
                 {tech}
               </span>
             ))}
-            {project.technologies.length > 4 && (
+            {project.technologies.length > (window.innerWidth < 640 ? 3 : 4) && (
               <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs rounded-md font-medium">
-                +{project.technologies.length - 4} more
+                +{project.technologies.length - (window.innerWidth < 640 ? 3 : 4)} more
               </span>
             )}
           </div>
@@ -369,13 +372,13 @@ const ProjectCard = ({ project, index }) => {
 
         {/* Key Features Preview */}
         {project.keyFeatures && project.keyFeatures.length > 0 && (
-          <div className="mb-4">
-            <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Key Features</div>
+          <div className="mb-3 sm:mb-4">
+            <div className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Key Features</div>
             <div className="space-y-1">
               {project.keyFeatures.slice(0, 2).map((feature, index) => (
                 <div key={index} className="flex items-center text-xs text-gray-600 dark:text-gray-400">
-                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></div>
-                  {feature}
+                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2 flex-shrink-0"></div>
+                  <span className="line-clamp-1">{feature}</span>
                 </div>
               ))}
               {project.keyFeatures.length > 2 && (
@@ -388,11 +391,11 @@ const ProjectCard = ({ project, index }) => {
         )}
 
         {/* Action Buttons */}
-        <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-700">
-          <div className="flex items-center justify-between gap-3">
+        <div className="mt-auto pt-3 sm:pt-4 border-t border-gray-100 dark:border-gray-700">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3">
             <button
               onClick={() => setShowDetails(!showDetails)}
-              className="flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold text-sm transition-colors group"
+              className="flex items-center justify-center sm:justify-start text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold text-sm transition-colors group py-2 sm:py-0"
             >
               <Eye className="w-4 h-4 mr-1 group-hover:scale-110 transition-transform" />
               View Details
@@ -404,10 +407,11 @@ const ProjectCard = ({ project, index }) => {
                 href={project.demoUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-lg"
+                className="flex items-center justify-center px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-lg"
               >
                 <ExternalLink className="w-4 h-4 mr-1" />
-                Live Demo
+                <span className="hidden sm:inline">Live Demo</span>
+                <span className="sm:hidden">Demo</span>
               </a>
             )}
           </div>
@@ -415,23 +419,23 @@ const ProjectCard = ({ project, index }) => {
 
         {/* Expandable Details */}
         {showDetails && (
-          <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 animate-fade-in">
+          <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-100 dark:border-gray-700 animate-fade-in">
             <div className="space-y-3 text-sm">
               {project.challenge && (
                 <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Challenge</h4>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-1 text-sm">Challenge</h4>
                   <p className="text-gray-600 dark:text-gray-400 text-xs leading-relaxed">{project.challenge}</p>
                 </div>
               )}
               {project.solution && (
                 <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Solution</h4>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-1 text-sm">Solution</h4>
                   <p className="text-gray-600 dark:text-gray-400 text-xs leading-relaxed">{project.solution}</p>
                 </div>
               )}
               {project.result && (
                 <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Result</h4>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-1 text-sm">Result</h4>
                   <p className="text-gray-600 dark:text-gray-400 text-xs leading-relaxed">{project.result}</p>
                 </div>
               )}
@@ -439,10 +443,10 @@ const ProjectCard = ({ project, index }) => {
               {/* Project Timeline */}
               {project.startDate && project.endDate && (
                 <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Project Timeline</h4>
-                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-2 text-sm">Project Timeline</h4>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs text-gray-500 dark:text-gray-400 gap-2">
                     <span>Started: {formatDate(project.startDate)}</span>
-                    <div className="flex-1 mx-3 h-px bg-gradient-to-r from-blue-500 to-purple-500"></div>
+                    <div className="hidden sm:flex flex-1 mx-3 h-px bg-gradient-to-r from-blue-500 to-purple-500"></div>
                     <span>Completed: {formatDate(project.endDate)}</span>
                   </div>
                 </div>

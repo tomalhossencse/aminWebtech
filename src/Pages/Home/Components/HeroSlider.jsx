@@ -120,10 +120,6 @@ const HeroSlider = () => {
 
       {/* Header */}
       <header className="relative z-10 w-full p-6 flex justify-between items-center text-white">
-        <button className="md:hidden text-white hover:text-blue-200 transition-colors">
-          <i className="fas fa-bars text-xl"></i>
-        </button>
-
         {/* Navigation arrows */}
         {/* <div className="hidden md:flex items-center gap-4 ml-auto">
           <button
