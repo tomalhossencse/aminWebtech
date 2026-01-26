@@ -13,7 +13,7 @@ const TransformReady = () => {
       {
         threshold: 0.1,
         rootMargin: "50px",
-      }
+      },
     );
 
     if (sectionRef.current) {
@@ -29,7 +29,7 @@ const TransformReady = () => {
   return (
     <section
       ref={sectionRef}
-      className="pb-16 px-4 md:px-8 max-w-7xl mx-auto bg-base-100"
+      className="pb-16 px-6 md:px-8 max-w-7xl mx-auto bg-base-100"
     >
       <div
         className={`text-center mt-12 transition-all duration-1000 delay-1000 ${
