@@ -14,7 +14,7 @@ const Footer = () => {
       {
         threshold: 0.1,
         rootMargin: "50px",
-      }
+      },
     );
 
     if (footerRef.current) {
@@ -58,7 +58,7 @@ const Footer = () => {
   return (
     <footer
       ref={footerRef}
-      className="max-w-7xl mx-auto  border-t border-base-300 pt-16 pb-8 transition-colors duration-300"
+      className="max-w-7xl mx-auto px-6 md:px-0  border-t border-base-300 pt-16 pb-8 transition-colors duration-300"
     >
       <div className="container mx-auto px-4 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8 mb-12">
