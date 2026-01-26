@@ -58,14 +58,6 @@ const Navbar = ({ isDark, toggleTheme }) => {
           Contact
         </NavLink>
       </li>
-      {/* <li>
-        <NavLink
-          className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
-          to="/dashboard"
-        >
-          Dashboard
-        </NavLink>
-      </li> */}
     </>
   );
 
@@ -78,7 +70,7 @@ const Navbar = ({ isDark, toggleTheme }) => {
             <div className="w-10 h-10 border-2 border-cyan-400 rounded-lg flex items-center justify-center relative shadow-[0_0_10px_rgba(34,211,238,0.5)]">
               <img src="/logo.png" className="p-1" alt="" />
             </div>
-            <div className="flex flex-col">
+            <div className="md:flex hidden flex-col">
               <span className="text-2xl font-bold">
                 Amin<span className="text-primary">WebTech</span>
               </span>

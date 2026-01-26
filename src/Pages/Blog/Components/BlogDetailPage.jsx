@@ -227,11 +227,11 @@ const BlogDetailPage = () => {
 
             {/* Featured Image */}
             {blog.featuredImage && (
-              <div className="mb-6 sm:mb-8 rounded-xl sm:rounded-2xl overflow-hidden shadow-lg">
+              <div className="mb-8 rounded-2xl overflow-hidden shadow-lg">
                 <img 
                   src={blog.featuredImage} 
                   alt={blog.title}
-                  className="w-full h-48 sm:h-64 md:h-80 lg:h-96 object-cover"
+                  className="w-full h-64 md:h-96 object-cover"
                 />
               </div>
             )}
@@ -265,12 +265,12 @@ const BlogDetailPage = () => {
             )}
 
             {/* Social Actions */}
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-6 sm:pt-8 mb-6 sm:mb-8">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-2 sm:gap-4">
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-8 mb-8">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
                   <button
                     onClick={handleLike}
-                    className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-sm sm:text-base ${
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
                       isLiked 
                         ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' 
                         : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
@@ -284,38 +284,36 @@ const BlogDetailPage = () => {
                   
                   <button
                     onClick={copyToClipboard}
-                    className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm sm:text-base"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     <span className="material-icons text-base">link</span>
-                    <span className="hidden sm:inline">Copy Link</span>
+                    <span>Copy Link</span>
                   </button>
                 </div>
 
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                  <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mr-2">Share:</span>
-                  <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-                    <button
-                      onClick={() => handleShare('twitter')}
-                      className="p-2 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors"
-                      title="Share on Twitter"
-                    >
-                      <span className="material-icons text-base">share</span>
-                    </button>
-                    <button
-                      onClick={() => handleShare('facebook')}
-                      className="p-2 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors"
-                      title="Share on Facebook"
-                    >
-                      <span className="material-icons text-base">facebook</span>
-                    </button>
-                    <button
-                      onClick={() => handleShare('linkedin')}
-                      className="p-2 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors"
-                      title="Share on LinkedIn"
-                    >
-                      <span className="material-icons text-base">business</span>
-                    </button>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600 dark:text-gray-400 mr-2">Share:</span>
+                  <button
+                    onClick={() => handleShare('twitter')}
+                    className="p-2 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors"
+                    title="Share on Twitter"
+                  >
+                    <span className="material-icons text-base">share</span>
+                  </button>
+                  <button
+                    onClick={() => handleShare('facebook')}
+                    className="p-2 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors"
+                    title="Share on Facebook"
+                  >
+                    <span className="material-icons text-base">facebook</span>
+                  </button>
+                  <button
+                    onClick={() => handleShare('linkedin')}
+                    className="p-2 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors"
+                    title="Share on LinkedIn"
+                  >
+                    <span className="material-icons text-base">business</span>
+                  </button>
                 </div>
               </div>
             </div>
