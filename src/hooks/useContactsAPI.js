@@ -8,86 +8,24 @@ const useContactsAPI = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Mock data for when server is not available
-  const mockData = {
-    contacts: [
-      {
-        _id: 'mock-1',
-        name: 'Akash Rahman',
-        email: 'akash@gmail.com',
-        phone: '01814726978',
-        subject: 'Need a website',
-        message: 'Hello, I am looking for a professional website for my business. Can you help me with this project?',
-        status: 'read',
-        createdAt: new Date('2024-12-29'),
-        updatedAt: new Date('2024-12-29'),
-        readAt: new Date('2024-12-29'),
-        repliedAt: null
-      },
-      {
-        _id: 'mock-2',
-        name: 'Sarah Johnson',
-        email: 'sarah@example.com',
-        phone: '01712345678',
-        subject: 'Project Inquiry',
-        message: 'I would like to discuss a new project for my startup. We need a complete web solution with modern design.',
-        status: 'new',
-        createdAt: new Date('2024-12-28'),
-        updatedAt: new Date('2024-12-28'),
-        readAt: null,
-        repliedAt: null
-      },
-      {
-        _id: 'mock-3',
-        name: 'Mike Chen',
-        email: 'mike@company.com',
-        phone: '01987654321',
-        subject: 'Support Request',
-        message: 'Having issues with the current system. The dashboard is not loading properly and we need urgent assistance.',
-        status: 'replied',
-        createdAt: new Date('2024-12-27'),
-        updatedAt: new Date('2024-12-27'),
-        readAt: new Date('2024-12-27'),
-        repliedAt: new Date('2024-12-27')
-      }
-    ],
-    stats: {
-      total: 3,
-      new: 1,
-      read: 1,
-      replied: 1,
-      spam: 0
-    },
-    total: 3
-  };
-
   // Get all contacts with pagination and filters
   const {
-    data: contactsData = mockData,
+    data: contactsData,
     isLoading: contactsLoading,
     error: contactsError,
     refetch: refetchContacts
   } = useQuery({
     queryKey: ['contacts'],
     queryFn: async () => {
-      try {
-        console.log('🔍 Fetching contacts from API...');
-        const response = await axios.get('/api/contacts');
-        console.log('✅ Contacts API response:', response.data);
-        return response.data;
-      } catch (error) {
-        console.error('❌ Error fetching contacts:', error);
-        console.error('Error details:', error.response?.data || error.message);
-        
-        // Return mock data if server is not available
-        console.log('🔄 Using mock data for contacts');
-        return mockData;
-      }
+      console.log('🔍 Fetching contacts from API...');
+      const response = await axios.get('/api/contacts');
+      console.log('✅ Contacts API response:', response.data);
+      return response.data;
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
     cacheTime: 5 * 60 * 1000, // 5 minutes
-    retry: 1,
-    retryDelay: 1000,
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   // Create contact mutation (from contact form)
@@ -96,31 +34,17 @@ const useContactsAPI = () => {
       setLoading(true);
       setError(null);
       
-      try {
-        console.log('📝 Creating contact:', contactData);
-        const response = await axios.post('/api/contacts', contactData);
-        console.log('✅ Contact created:', response.data);
-        return response.data;
-      } catch (error) {
-        console.error('❌ Error creating contact:', error);
-        console.error('Error details:', error.response?.data || error.message);
-        
-        // Simulate success for development if server is not available
-        console.log('🔄 Simulating contact creation');
-        return {
-          _id: 'mock-' + Date.now(),
-          ...contactData,
-          status: 'new',
-          createdAt: new Date(),
-          updatedAt: new Date()
-        };
-      }
+      console.log('📝 Creating contact:', contactData);
+      const response = await axios.post('/api/contacts', contactData);
+      console.log('✅ Contact created:', response.data);
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['contacts']);
       setLoading(false);
     },
     onError: (error) => {
+      console.error('❌ Error creating contact:', error);
       setError(error.response?.data?.error || error.message || 'Failed to submit contact form');
       setLoading(false);
     }
@@ -132,22 +56,15 @@ const useContactsAPI = () => {
       setLoading(true);
       setError(null);
       
-      try {
-        const response = await axios.put(`/api/contacts/${id}/status`, { status });
-        return response.data;
-      } catch (error) {
-        console.error('Error updating contact status:', error);
-        
-        // Simulate success for development
-        console.log('🔄 Simulating status update');
-        return { _id: id, status };
-      }
+      const response = await axios.put(`/api/contacts/${id}/status`, { status });
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['contacts']);
       setLoading(false);
     },
     onError: (error) => {
+      console.error('❌ Error updating contact status:', error);
       setError(error.response?.data?.error || error.message || 'Failed to update contact status');
       setLoading(false);
     }
@@ -159,22 +76,15 @@ const useContactsAPI = () => {
       setLoading(true);
       setError(null);
       
-      try {
-        await axios.delete(`/api/contacts/${id}`);
-        return id;
-      } catch (error) {
-        console.error('Error deleting contact:', error);
-        
-        // Simulate success for development
-        console.log('🔄 Simulating contact deletion');
-        return id;
-      }
+      await axios.delete(`/api/contacts/${id}`);
+      return id;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['contacts']);
       setLoading(false);
     },
     onError: (error) => {
+      console.error('❌ Error deleting contact:', error);
       setError(error.response?.data?.error || error.message || 'Failed to delete contact');
       setLoading(false);
     }
@@ -186,32 +96,20 @@ const useContactsAPI = () => {
       setLoading(true);
       setError(null);
       
-      try {
-        console.log('📧 Sending reply to contact:', { id, message, trackingId });
-        const response = await axios.post(`/api/contacts/${id}/reply`, { 
-          message, 
-          trackingId 
-        });
-        console.log('✅ Reply sent:', response.data);
-        return response.data;
-      } catch (error) {
-        console.error('❌ Error sending reply:', error);
-        console.error('Error details:', error.response?.data || error.message);
-        
-        // Simulate success for development
-        console.log('🔄 Simulating reply sending');
-        return {
-          success: true,
-          message: 'Reply sent successfully (simulated)',
-          trackingId
-        };
-      }
+      console.log('📧 Sending reply to contact:', { id, message, trackingId });
+      const response = await axios.post(`/api/contacts/${id}/reply`, { 
+        message, 
+        trackingId 
+      });
+      console.log('✅ Reply sent:', response.data);
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['contacts']);
       setLoading(false);
     },
     onError: (error) => {
+      console.error('❌ Error sending reply:', error);
       setError(error.response?.data?.error || error.message || 'Failed to send reply');
       setLoading(false);
     }
@@ -254,9 +152,15 @@ const useContactsAPI = () => {
 
   return {
     // Data
-    contacts: contactsData.contacts || [],
-    stats: contactsData.stats || {},
-    total: contactsData.total || 0,
+    contacts: contactsData?.contacts || [],
+    stats: contactsData?.stats || {
+      total: 0,
+      new: 0,
+      read: 0,
+      replied: 0,
+      spam: 0
+    },
+    total: contactsData?.total || 0,
     loading: loading || contactsLoading ||
              createContactMutation.isPending || 
              updateContactStatusMutation.isPending || 

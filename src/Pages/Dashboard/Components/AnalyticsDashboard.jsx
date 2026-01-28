@@ -79,60 +79,80 @@ const AnalyticsDashboard = () => {
   ];
 
   // Handle time range change with useCallback to prevent unnecessary re-renders
-  const handleTimeRangeChange = useCallback(async (value, label) => {
-    setTimeRange(value);
-    setTimeRangeLabel(label);
-    setShowTimeRangeDropdown(false);
-    setIsRefreshing(true);
-    
-    try {
-      // Auto-refetch data when time range changes
-      await Promise.all([
-        refetchOverview(),
-        refetchDistribution(),
-        refetchPages()
-      ]);
-      
-      console.log(`✅ Data refreshed for time range: ${label}`);
-    } catch (error) {
-      console.error('❌ Error refreshing data after time range change:', error);
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [refetchOverview, refetchDistribution, refetchPages]);
+  const handleTimeRangeChange = useCallback(
+    async (value, label) => {
+      setTimeRange(value);
+      setTimeRangeLabel(label);
+      setShowTimeRangeDropdown(false);
+      setIsRefreshing(true);
+
+      try {
+        // Auto-refetch data when time range changes
+        await Promise.all([
+          refetchOverview(),
+          refetchDistribution(),
+          refetchPages(),
+        ]);
+
+        console.log(`✅ Data refreshed for time range: ${label}`);
+      } catch (error) {
+        console.error(
+          "❌ Error refreshing data after time range change:",
+          error,
+        );
+      } finally {
+        setIsRefreshing(false);
+      }
+    },
+    [refetchOverview, refetchDistribution, refetchPages],
+  );
 
   // Memoize loading and error states
-  const isLoading = useMemo(() => 
-    overviewLoading || distributionLoading || visitorsLoading || pagesLoading || isRefreshing,
-    [overviewLoading, distributionLoading, visitorsLoading, pagesLoading, isRefreshing]
+  const isLoading = useMemo(
+    () =>
+      overviewLoading ||
+      distributionLoading ||
+      visitorsLoading ||
+      pagesLoading ||
+      isRefreshing,
+    [
+      overviewLoading,
+      distributionLoading,
+      visitorsLoading,
+      pagesLoading,
+      isRefreshing,
+    ],
   );
-  
-  const hasError = useMemo(() => 
-    overviewError || distributionError || visitorsError || pagesError,
-    [overviewError, distributionError, visitorsError, pagesError]
+
+  const hasError = useMemo(
+    () => overviewError || distributionError || visitorsError || pagesError,
+    [overviewError, distributionError, visitorsError, pagesError],
   );
 
   // Handle visitor detail navigation
-  const handleViewVisitorDetails = useCallback((visitorId) => {
-    navigate(`/dashboard/visitor/${visitorId}`);
-  }, [navigate]);
+  const handleViewVisitorDetails = useCallback(
+    (visitorId) => {
+      navigate(`/dashboard/visitor/${visitorId}`);
+    },
+    [navigate],
+  );
 
   // Enhanced memoized refetch function with loading state management
   const handleRefreshAll = useCallback(async () => {
     setIsRefreshing(true);
-    
+
     try {
       // Trigger all refetch functions simultaneously
       await Promise.all([
         refetchOverview(),
         refetchDistribution(),
         refetchVisitors(),
-        refetchPages()
+        refetchPages(),
       ]);
-      
-      console.log('✅ All analytics data refreshed successfully');
+
+      console.log("✅ All analytics data refreshed successfully");
     } catch (error) {
-      console.error('❌ Error refreshing analytics data:', error);
+      console.error("❌ Error refreshing analytics data:", error);
     } finally {
       setIsRefreshing(false);
     }
@@ -142,7 +162,9 @@ const AnalyticsDashboard = () => {
   useEffect(() => {
     // Skip initial render to avoid double fetch
     if (timeRange !== "7d") {
-      console.log(`🔄 Time range changed to: ${timeRange}, triggering data refresh...`);
+      console.log(
+        `🔄 Time range changed to: ${timeRange}, triggering data refresh...`,
+      );
     }
   }, [timeRange]);
 
@@ -151,7 +173,7 @@ const AnalyticsDashboard = () => {
     const intervalId = setInterval(() => {
       if (!isRefreshing && !visitorsLoading) {
         refetchVisitors();
-        console.log('🔄 Auto-refreshing recent visitors...');
+        console.log("🔄 Auto-refreshing recent visitors...");
       }
     }, 30000); // Refetch every 30 seconds
 
@@ -163,7 +185,7 @@ const AnalyticsDashboard = () => {
     const intervalId = setInterval(() => {
       if (!isRefreshing && !overviewLoading) {
         refetchOverview();
-        console.log('🔄 Auto-refreshing overview data...');
+        console.log("🔄 Auto-refreshing overview data...");
       }
     }, 60000); // Refetch every minute
 
@@ -179,33 +201,33 @@ const AnalyticsDashboard = () => {
     };
 
     if (showTimeRangeDropdown) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchstart', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("touchstart", handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
     };
   }, [showTimeRangeDropdown]);
 
   // Debug logging with proper cleanup
   useEffect(() => {
     if (overviewData) {
-      console.log('📊 Dashboard received overview data:', overviewData);
+      console.log("📊 Dashboard received overview data:", overviewData);
     }
   }, [overviewData]);
 
   useEffect(() => {
     if (overviewError) {
-      console.error('❌ Dashboard overview error:', overviewError);
+      console.error("❌ Dashboard overview error:", overviewError);
     }
   }, [overviewError]);
 
   // Optimized chart rendering with proper cleanup
   useEffect(() => {
     let timeoutId;
-    
+
     if (visitorDistribution) {
       setIsChartsReady(false);
       timeoutId = setTimeout(() => {
@@ -223,22 +245,22 @@ const AnalyticsDashboard = () => {
   // Optimized resize handler with debouncing
   useEffect(() => {
     let resizeTimeoutId;
-    
+
     const handleResize = () => {
       if (resizeTimeoutId) {
         clearTimeout(resizeTimeoutId);
       }
-      
+
       setIsChartsReady(false);
       resizeTimeoutId = setTimeout(() => {
         setIsChartsReady(true);
       }, 150);
     };
 
-    window.addEventListener('resize', handleResize, { passive: true });
-    
+    window.addEventListener("resize", handleResize, { passive: true });
+
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
       if (resizeTimeoutId) {
         clearTimeout(resizeTimeoutId);
       }
@@ -299,7 +321,11 @@ const AnalyticsDashboard = () => {
         icon: Eye,
         color: "bg-green-500",
         shadowColor: "shadow-green-500/30",
-        progress: Math.min((overviewData.newVisitors / overviewData.totalVisitors) * 100, 100) || 0,
+        progress:
+          Math.min(
+            (overviewData.newVisitors / overviewData.totalVisitors) * 100,
+            100,
+          ).toFixed(2) || 0,
       },
       {
         title: "Active Now",
@@ -315,18 +341,26 @@ const AnalyticsDashboard = () => {
         icon: Mouse,
         color: "bg-emerald-500",
         shadowColor: "shadow-emerald-500/30",
-        progress: parseFloat(overviewData.bounceRate?.replace('%', '')) || 0,
+        progress: parseFloat(overviewData.bounceRate?.replace("%", "")) || 0,
       },
     ];
   }, [overviewData]);
 
   // Memoized formatted recent visitors
   const formattedRecentVisitors = useMemo(() => {
-    return recentVisitors?.map(visitor => ({
-      ...visitor,
-      deviceIcon: visitor.device === 'Mobile' || visitor.device === 'Tablet' ? Smartphone : Monitor,
-      deviceColor: visitor.device === 'Mobile' || visitor.device === 'Tablet' ? "text-green-500" : "text-blue-500",
-    })) || [];
+    return (
+      recentVisitors?.map((visitor) => ({
+        ...visitor,
+        deviceIcon:
+          visitor.device === "Mobile" || visitor.device === "Tablet"
+            ? Smartphone
+            : Monitor,
+        deviceColor:
+          visitor.device === "Mobile" || visitor.device === "Tablet"
+            ? "text-green-500"
+            : "text-blue-500",
+      })) || []
+    );
   }, [recentVisitors]);
 
   // Memoized custom tooltip component
@@ -348,33 +382,29 @@ const AnalyticsDashboard = () => {
   }, []);
 
   // Memoized label renderer
-  const renderCustomizedLabel = useCallback(({
-    cx,
-    cy,
-    midAngle,
-    innerRadius,
-    outerRadius,
-    percent,
-  }) => {
-    const RADIAN = Math.PI / 180;
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+  const renderCustomizedLabel = useCallback(
+    ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
+      const RADIAN = Math.PI / 180;
+      const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+      const x = cx + radius * Math.cos(-midAngle * RADIAN);
+      const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-    return (
-      <text
-        x={x}
-        y={y}
-        fill="white"
-        textAnchor={x > cx ? "start" : "end"}
-        dominantBaseline="central"
-        fontSize="12"
-        fontWeight="bold"
-      >
-        {`${(percent * 100).toFixed(0)}%`}
-      </text>
-    );
-  }, []);
+      return (
+        <text
+          x={x}
+          y={y}
+          fill="white"
+          textAnchor={x > cx ? "start" : "end"}
+          dominantBaseline="central"
+          fontSize="12"
+          fontWeight="bold"
+        >
+          {`${(percent * 100).toFixed(0)}%`}
+        </text>
+      );
+    },
+    [],
+  );
 
   return (
     <div className="max-w-7xl mx-auto px-2 sm:px-3 lg:px-4 py-4">
@@ -389,7 +419,9 @@ const AnalyticsDashboard = () => {
             {isRefreshing && (
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                <span className="text-sm text-blue-500 font-medium">Refreshing...</span>
+                <span className="text-sm text-blue-500 font-medium">
+                  Refreshing...
+                </span>
               </div>
             )}
             {hasError ? (
@@ -401,7 +433,9 @@ const AnalyticsDashboard = () => {
           <p className="text-gray-500 dark:text-gray-400 mt-1">
             Real-time insights and visitor analytics for your website
             {isRefreshing && (
-              <span className="ml-2 text-blue-500 text-xs">• Updating data...</span>
+              <span className="ml-2 text-blue-500 text-xs">
+                • Updating data...
+              </span>
             )}
           </p>
           {hasError && (
@@ -417,11 +451,13 @@ const AnalyticsDashboard = () => {
             disabled={isLoading || isRefreshing}
             aria-label="Refresh all analytics data"
           >
-            <RefreshCw className={`w-4 h-4 ${isLoading || isRefreshing ? 'animate-spin' : ''}`} />
-            <span>{isRefreshing ? 'Refreshing...' : 'Refresh All'}</span>
+            <RefreshCw
+              className={`w-4 h-4 ${isLoading || isRefreshing ? "animate-spin" : ""}`}
+            />
+            <span>{isRefreshing ? "Refreshing..." : "Refresh All"}</span>
           </button>
           <div className="relative" ref={dropdownRef}>
-            <button 
+            <button
               onClick={() => setShowTimeRangeDropdown(!showTimeRangeDropdown)}
               className="flex items-center space-x-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2 text-sm font-medium shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
               aria-label="Select time range"
@@ -431,13 +467,13 @@ const AnalyticsDashboard = () => {
             >
               <Calendar className="w-4 h-4 text-gray-500 dark:text-gray-400" />
               <span className="text-gray-700 dark:text-gray-200">
-                {isRefreshing ? 'Updating...' : timeRangeLabel}
+                {isRefreshing ? "Updating..." : timeRangeLabel}
               </span>
               <ChevronDown className="w-4 h-4 text-gray-500 dark:text-gray-400" />
             </button>
-            
+
             {showTimeRangeDropdown && (
-              <div 
+              <div
                 className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10"
                 role="listbox"
                 aria-label="Time range options"
@@ -445,11 +481,13 @@ const AnalyticsDashboard = () => {
                 {timeRangeOptions.map((option) => (
                   <button
                     key={option.value}
-                    onClick={() => handleTimeRangeChange(option.value, option.label)}
+                    onClick={() =>
+                      handleTimeRangeChange(option.value, option.label)
+                    }
                     className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors first:rounded-t-lg last:rounded-b-lg ${
-                      timeRange === option.value 
-                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' 
-                        : 'text-gray-700 dark:text-gray-200'
+                      timeRange === option.value
+                        ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                        : "text-gray-700 dark:text-gray-200"
                     }`}
                     role="option"
                     aria-selected={timeRange === option.value}
@@ -530,7 +568,12 @@ const AnalyticsDashboard = () => {
             <div className="w-full max-w-sm h-80 relative">
               {visitorDistribution && visitorDistribution.length > 0 ? (
                 <div className="w-full h-full min-w-[300px] min-h-[320px]">
-                  <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={320}>
+                  <ResponsiveContainer
+                    width="100%"
+                    height="100%"
+                    minWidth={300}
+                    minHeight={320}
+                  >
                     <PieChart>
                       <Pie
                         data={visitorDistribution}
@@ -616,7 +659,9 @@ const AnalyticsDashboard = () => {
               ))
             ) : (
               <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                {distributionLoading ? "Loading countries..." : "No visitor data available"}
+                {distributionLoading
+                  ? "Loading countries..."
+                  : "No visitor data available"}
               </div>
             )}
           </div>
@@ -662,7 +707,10 @@ const AnalyticsDashboard = () => {
               <tbody className="text-sm divide-y divide-gray-100 dark:divide-gray-700">
                 {visitorsLoading ? (
                   <tr>
-                    <td colSpan="6" className="py-8 text-center text-gray-500 dark:text-gray-400">
+                    <td
+                      colSpan="6"
+                      className="py-8 text-center text-gray-500 dark:text-gray-400"
+                    >
                       Loading visitors...
                     </td>
                   </tr>
@@ -674,7 +722,10 @@ const AnalyticsDashboard = () => {
                   </tr>
                 ) : formattedRecentVisitors.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="py-8 text-center text-gray-500 dark:text-gray-400">
+                    <td
+                      colSpan="6"
+                      className="py-8 text-center text-gray-500 dark:text-gray-400"
+                    >
                       No recent visitors
                     </td>
                   </tr>
@@ -717,7 +768,7 @@ const AnalyticsDashboard = () => {
                         </div>
                       </td>
                       <td className="py-4 px-4 text-right first:pr-0">
-                        <button 
+                        <button
                           onClick={() => handleViewVisitorDetails(visitor.id)}
                           className="text-blue-500 hover:text-blue-600 dark:hover:text-blue-400 font-medium text-sm hover:underline transition-colors"
                         >
@@ -771,7 +822,10 @@ const AnalyticsDashboard = () => {
             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
               {pagesLoading ? (
                 <tr>
-                  <td colSpan="5" className="py-8 text-center text-gray-500 dark:text-gray-400">
+                  <td
+                    colSpan="5"
+                    className="py-8 text-center text-gray-500 dark:text-gray-400"
+                  >
                     Loading pages data...
                   </td>
                 </tr>
@@ -783,7 +837,10 @@ const AnalyticsDashboard = () => {
                 </tr>
               ) : !topPages || topPages.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="py-8 text-center text-gray-500 dark:text-gray-400">
+                  <td
+                    colSpan="5"
+                    className="py-8 text-center text-gray-500 dark:text-gray-400"
+                  >
                     No page data available
                   </td>
                 </tr>
