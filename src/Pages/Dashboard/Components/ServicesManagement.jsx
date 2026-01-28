@@ -176,7 +176,7 @@ const ServicesManagement = () => {
   };
 
   const handleAddService = async (serviceData) => {
-    // Validate required fields
+    // Validate required fields on frontend
     if (!serviceData.title?.trim()) {
       error("Service title is required");
       throw new Error("Service title is required");
@@ -185,6 +185,17 @@ const ServicesManagement = () => {
     if (!serviceData.shortDescription?.trim()) {
       error("Service description is required");
       throw new Error("Service description is required");
+    }
+
+    // Validate field lengths
+    if (serviceData.title.length < 3 || serviceData.title.length > 200) {
+      error("Service title must be between 3 and 200 characters");
+      throw new Error("Service title must be between 3 and 200 characters");
+    }
+
+    if (serviceData.shortDescription.length < 10 || serviceData.shortDescription.length > 2000) {
+      error("Service description must be between 10 and 2000 characters");
+      throw new Error("Service description must be between 10 and 2000 characters");
     }
 
     try {
@@ -229,6 +240,9 @@ const ServicesManagement = () => {
             error(
               "Update endpoint not available. The server needs to be updated with the latest code. For now, you can delete and recreate the service.",
             );
+          } else if (updateError.response?.status === 400) {
+            const errorMessage = updateError.response?.data?.error || "Invalid service data";
+            error(`Validation error: ${errorMessage}`);
           } else {
             throw updateError; // Re-throw other errors to be handled below
           }
@@ -255,6 +269,7 @@ const ServicesManagement = () => {
           displayOrder: serviceData.displayOrder || 0,
         };
 
+        console.log("📝 Creating new service:", newService);
         await createService(newService);
         setIsAddModalOpen(false);
         success("Service created successfully!");
@@ -264,12 +279,16 @@ const ServicesManagement = () => {
 
       // More specific error messages
       if (err.response?.status === 400) {
-        error("Invalid service data. Please check all required fields.");
+        const errorMessage = err.response?.data?.error || "Invalid service data. Please check all required fields.";
+        error(`Validation error: ${errorMessage}`);
       } else if (err.response?.status === 404 && editingService) {
         // This error is already handled above for updates
         return;
       } else if (err.response?.status === 500) {
-        error("Server error. Please try again later.");
+        error("Server error. Please configure backend environment variables.");
+      } else if (err.message && err.message.includes("required")) {
+        // Handle frontend validation errors
+        return; // Error already shown above
       } else {
         error(
           `Failed to ${editingService ? "update" : "create"} service. Please try again.`,

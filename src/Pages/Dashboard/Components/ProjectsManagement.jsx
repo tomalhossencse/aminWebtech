@@ -16,10 +16,12 @@ import {
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import useAxios from '../../../hooks/useAxios';
+import { useToast } from '../../../Context/ToastContext';
 
 const ProjectsManagement = () => {
   const axios = useAxios();
   const queryClient = useQueryClient();
+  const { success, error: showError, warning, info } = useToast();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Status');
@@ -67,65 +69,117 @@ const ProjectsManagement = () => {
   } = useQuery({
     queryKey: ['projects', { page: currentPage, search: searchTerm, status: statusFilter, category: categoryFilter }],
     queryFn: async () => {
-      const params = new URLSearchParams({
-        page: currentPage,
-        limit: 10,
-        ...(searchTerm && { search: searchTerm }),
-        ...(statusFilter !== 'All Status' && { status: statusFilter }),
-        ...(categoryFilter !== 'All Categories' && { category: categoryFilter })
-      });
-      
-      const response = await axios.get(`/projects?${params}`);
-      return response.data;
+      try {
+        const params = new URLSearchParams({
+          page: currentPage,
+          limit: 10,
+          ...(searchTerm && { search: searchTerm }),
+          ...(statusFilter !== 'All Status' && { status: statusFilter }),
+          ...(categoryFilter !== 'All Categories' && { category: categoryFilter })
+        });
+        
+        const response = await axios.get(`/api/projects?${params}`);
+        return response.data;
+      } catch (err) {
+        console.error('❌ Error fetching projects:', err);
+        showError('Failed to load projects. Please check your connection.');
+        throw err;
+      }
     },
-    keepPreviousData: true
+    keepPreviousData: true,
+    retry: (failureCount, error) => {
+      // Don't retry on 500 errors (server configuration issues)
+      if (error.response?.status === 500) return false;
+      return failureCount < 2;
+    },
   });
 
   // Delete project mutation
   const deleteProjectMutation = useMutation({
     mutationFn: async (projectId) => {
-      await axios.delete(`/projects/${projectId}`);
+      await axios.delete(`/api/projects/${projectId}`);
     },
-    onSuccess: () => {
+    onSuccess: (data, projectId) => {
       queryClient.invalidateQueries(['projects']);
       setDeleteConfirm(null);
+      const projectName = deleteConfirm?.title || 'Project';
+      success(`${projectName} deleted successfully!`);
       console.log('✅ Project deleted successfully');
     },
-    onError: (error) => {
+    onError: (error, projectId) => {
       console.error('❌ Error deleting project:', error);
+      const projectName = deleteConfirm?.title || 'project';
+      
+      if (error.response?.status === 404) {
+        showError(`${projectName} not found. It may have already been deleted.`);
+      } else if (error.response?.status === 403) {
+        showError('You do not have permission to delete this project.');
+      } else if (error.response?.status === 500) {
+        showError('Server error. Please configure backend environment variables.');
+      } else {
+        showError(`Failed to delete ${projectName}. Please try again.`);
+      }
     }
   });
 
   // Create project mutation
   const createProjectMutation = useMutation({
     mutationFn: async (projectData) => {
-      await axios.post('/projects', projectData);
+      const response = await axios.post('/api/projects', projectData);
+      return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries(['projects']);
       setIsAddModalOpen(false);
       resetForm();
+      success(`Project "${formData.title}" created successfully!`);
       console.log('✅ Project created successfully');
     },
     onError: (error) => {
       console.error('❌ Error creating project:', error);
+      
+      if (error.response?.status === 400) {
+        const errorMessage = error.response?.data?.error || 'Invalid project data';
+        showError(`Validation error: ${errorMessage}`);
+      } else if (error.response?.status === 403) {
+        showError('You do not have permission to create projects.');
+      } else if (error.response?.status === 500) {
+        showError('Server error. Please configure backend environment variables.');
+      } else {
+        showError('Failed to create project. Please try again.');
+      }
     }
   });
 
   // Update project mutation
   const updateProjectMutation = useMutation({
     mutationFn: async ({ id, projectData }) => {
-      await axios.put(`/projects/${id}`, projectData);
+      const response = await axios.put(`/api/projects/${id}`, projectData);
+      return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries(['projects']);
       setIsEditModalOpen(false);
       setEditingProject(null);
       resetForm();
+      success(`Project "${formData.title}" updated successfully!`);
       console.log('✅ Project updated successfully');
     },
     onError: (error) => {
       console.error('❌ Error updating project:', error);
+      
+      if (error.response?.status === 400) {
+        const errorMessage = error.response?.data?.error || 'Invalid project data';
+        showError(`Validation error: ${errorMessage}`);
+      } else if (error.response?.status === 404) {
+        showError('Project not found. It may have been deleted.');
+      } else if (error.response?.status === 403) {
+        showError('You do not have permission to update this project.');
+      } else if (error.response?.status === 500) {
+        showError('Server error. Please configure backend environment variables.');
+      } else {
+        showError('Failed to update project. Please try again.');
+      }
     }
   });
 
@@ -162,6 +216,7 @@ const ProjectsManagement = () => {
     switch (action) {
       case 'add':
         setIsAddModalOpen(true);
+        info('Fill in the project details to create a new project.');
         break;
       case 'view':
         setSelectedProject(project);
@@ -171,13 +226,18 @@ const ProjectsManagement = () => {
         setEditingProject(project);
         populateFormWithProject(project);
         setIsEditModalOpen(true);
+        info(`Editing project: ${project?.title || 'Unknown'}`);
         break;
       case 'delete':
         setDeleteConfirm(project);
+        warning(`You are about to delete "${project?.title || 'this project'}". This action cannot be undone.`);
         break;
       case 'demo':
         if (project?.projectUrl) {
           window.open(project.projectUrl, '_blank');
+          info(`Opening live demo for ${project.title}`);
+        } else {
+          showError('No demo URL available for this project.');
         }
         break;
       default:
@@ -210,6 +270,8 @@ const ProjectsManagement = () => {
     setNewTechnology('');
     setNewFeature('');
     setNewGalleryImage('');
+    
+    info('Form has been reset.');
   };
 
   const populateFormWithProject = (project) => {
@@ -238,6 +300,8 @@ const ProjectsManagement = () => {
     setNewTechnology('');
     setNewFeature('');
     setNewGalleryImage('');
+    
+    success(`Project "${project.title}" loaded for editing.`);
   };
 
   const handleInputChange = (field, value) => {
@@ -267,14 +331,21 @@ const ProjectsManagement = () => {
         technologies: [...prev.technologies, { name: newTechnology.trim() }]
       }));
       setNewTechnology('');
+      success(`Added technology: ${newTechnology.trim()}`);
+    } else {
+      showError('Please enter a technology name.');
     }
   };
 
   const removeTechnology = (index) => {
+    const techName = formData.technologies[index]?.name;
     setFormData(prev => ({
       ...prev,
       technologies: prev.technologies.filter((_, i) => i !== index)
     }));
+    if (techName) {
+      info(`Removed technology: ${techName}`);
+    }
   };
 
   const addFeature = () => {
@@ -284,51 +355,100 @@ const ProjectsManagement = () => {
         keyFeatures: [...prev.keyFeatures, { name: newFeature.trim() }]
       }));
       setNewFeature('');
+      success(`Added feature: ${newFeature.trim()}`);
+    } else {
+      showError('Please enter a feature description.');
     }
   };
 
   const removeFeature = (index) => {
+    const featureName = formData.keyFeatures[index]?.name;
     setFormData(prev => ({
       ...prev,
       keyFeatures: prev.keyFeatures.filter((_, i) => i !== index)
     }));
+    if (featureName) {
+      info(`Removed feature: ${featureName}`);
+    }
   };
 
   const addGalleryImage = () => {
     if (newGalleryImage.trim()) {
-      setFormData(prev => ({
-        ...prev,
-        galleryImages: [...prev.galleryImages, newGalleryImage.trim()]
-      }));
-      setNewGalleryImage('');
+      if (isValidUrl(newGalleryImage.trim())) {
+        setFormData(prev => ({
+          ...prev,
+          galleryImages: [...prev.galleryImages, newGalleryImage.trim()]
+        }));
+        setNewGalleryImage('');
+        success('Gallery image added successfully!');
+      } else {
+        showError('Please enter a valid image URL.');
+      }
+    } else {
+      showError('Please enter an image URL.');
     }
   };
 
   const removeGalleryImage = (index) => {
+    const imageUrl = formData.galleryImages[index];
     setFormData(prev => ({
       ...prev,
       galleryImages: prev.galleryImages.filter((_, i) => i !== index)
     }));
+    info('Gallery image removed.');
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Basic validation
+    // Basic validation with toast feedback
     if (!formData.title || !formData.clientName || !formData.description || !formData.category) {
-      alert('Please fill in all required fields');
+      showError('Please fill in all required fields (Title, Client Name, Description, and Category).');
+      return;
+    }
+
+    // Additional validation
+    if (formData.title.length < 3) {
+      showError('Project title must be at least 3 characters long.');
+      return;
+    }
+
+    if (formData.description.length < 10) {
+      showError('Project description must be at least 10 characters long.');
+      return;
+    }
+
+    if (formData.projectUrl && !isValidUrl(formData.projectUrl)) {
+      showError('Please enter a valid project URL.');
+      return;
+    }
+
+    if (formData.coverImageUrl && !isValidUrl(formData.coverImageUrl)) {
+      showError('Please enter a valid cover image URL.');
       return;
     }
     
     if (editingProject) {
       // Update existing project
+      info(`Updating project "${formData.title}"...`);
       updateProjectMutation.mutate({ 
         id: editingProject._id, 
         projectData: formData 
       });
     } else {
       // Create new project
+      info(`Creating project "${formData.title}"...`);
       createProjectMutation.mutate(formData);
+    }
+  };
+
+  // Helper function to validate URLs
+  const isValidUrl = (string) => {
+    try {
+      new URL(string);
+      return true;
+    } catch (_) {
+      return false;
     }
   };
 
@@ -339,6 +459,7 @@ const ProjectsManagement = () => {
 
   const handleDeleteConfirm = () => {
     if (deleteConfirm) {
+      info(`Deleting project "${deleteConfirm.title}"...`);
       deleteProjectMutation.mutate(deleteConfirm._id);
     }
   };
@@ -353,10 +474,19 @@ const ProjectsManagement = () => {
     return (
       <div className="max-w-7xl mx-auto px-2 sm:px-3 lg:px-4 py-4">
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-md">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mb-3">
             <AlertTriangle className="w-5 h-5" />
             <span>Failed to load projects. Please try again.</span>
           </div>
+          <button
+            onClick={() => {
+              info('Retrying to load projects...');
+              refetch();
+            }}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );

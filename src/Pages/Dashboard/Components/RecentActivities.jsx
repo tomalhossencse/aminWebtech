@@ -4,6 +4,25 @@ import useActivitiesAPI from '../../../hooks/useActivitiesAPI';
 import { useToast } from '../../../Context/ToastContext';
 import ConfirmDialog from '../../../components/ConfirmDialog';
 
+// Loading skeleton for activities
+const ActivitySkeleton = () => (
+  <li className="p-5 animate-pulse">
+    <div className="flex items-start gap-4">
+      <div className="flex-shrink-0 w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+      <div className="flex-1 min-w-0">
+        <div className="flex justify-between items-baseline mb-1">
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
+          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
+        </div>
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full mb-2"></div>
+        <div className="flex gap-4">
+          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+        </div>
+      </div>
+    </div>
+  </li>
+);
+
 const RecentActivities = () => {
   const { activities, loading, clearActivities } = useActivitiesAPI();
   const { success, error } = useToast();
@@ -56,7 +75,14 @@ const RecentActivities = () => {
         <div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recent Activities</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {loading ? 'Loading activities...' : 'Latest actions performed in the system'}
+            {loading ? (
+              <span className="flex items-center">
+                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 dark:border-blue-400 mr-2"></div>
+                Loading activities...
+              </span>
+            ) : (
+              'Latest actions performed in the system'
+            )}
           </p>
         </div>
         <button 
@@ -71,15 +97,17 @@ const RecentActivities = () => {
       
       <div className="flex-1 overflow-y-auto">
         {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-pulse text-gray-500 dark:text-gray-400">Loading activities...</div>
-          </div>
+          <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <ActivitySkeleton key={index} />
+            ))}
+          </ul>
         ) : activities.length > 0 ? (
           <ul className="divide-y divide-gray-200 dark:divide-gray-700">
             {activities.map((activity, index) => {
               const IconComponent = getIconComponent(activity.icon);
               return (
-                <li key={activity.id} className="p-5 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                <li key={activity.id || index} className="p-5 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                   <div className="flex items-start gap-4">
                     <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${getIconBgColor(activity.type)}`}>
                       <IconComponent className="w-5 h-5" />
@@ -112,7 +140,8 @@ const RecentActivities = () => {
         ) : (
           <div className="flex flex-col items-center justify-center py-8 text-gray-500 dark:text-gray-400">
             <FileText className="w-12 h-12 mb-3 opacity-50" />
-            <p className="text-sm">No recent activities</p>
+            <p className="text-sm font-medium">No recent activities</p>
+            <p className="text-xs mt-1">Activities will appear here when actions are performed</p>
           </div>
         )}
       </div>

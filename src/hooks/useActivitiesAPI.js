@@ -8,34 +8,106 @@ const useActivitiesAPI = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Helper function to format timestamp
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return 'Unknown time';
+    
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffInMs = now - date;
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInHours / 24);
+
+    if (diffInDays > 0) {
+      return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+    } else if (diffInHours > 0) {
+      return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+    } else {
+      const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+      if (diffInMinutes > 0) {
+        return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
+      } else {
+        return 'Just now';
+      }
+    }
+  };
+
+  // Helper function to format date
+  const formatDate = (timestamp) => {
+    if (!timestamp) return 'Unknown date';
+    
+    const date = new Date(timestamp);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  // Helper function to get icon from activity type
+  const getIconFromType = (type) => {
+    switch (type) {
+      case 'project_created':
+      case 'project_updated':
+        return 'FileText';
+      case 'blog_published':
+      case 'blog_updated':
+        return 'FileText';
+      case 'service_updated':
+        return 'FileText';
+      case 'contact_received':
+        return 'User';
+      case 'media_uploaded':
+        return 'FileText';
+      case 'testimonial_added':
+        return 'User';
+      case 'user_login':
+      case 'user_logout':
+        return 'User';
+      default:
+        return 'FileText';
+    }
+  };
+
   // Get recent activities from backend
   const {
-    data: activities = [],
+    data: activitiesData,
     isLoading: activitiesLoading,
     error: activitiesError,
     refetch: refetchActivities
   } = useQuery({
     queryKey: ['recent-activities'],
     queryFn: async () => {
-      try {
-        console.log('📊 Fetching recent activities from backend...');
-        const response = await axios.get('/api/activities/recent?limit=6');
-        console.log('✅ Activities API response:', response.data);
+      console.log('📊 Fetching recent activities from backend...');
+      const response = await axios.get('/api/activities/recent?limit=6');
+      console.log('✅ Activities API response:', response.data);
+      
+      // Handle different response formats
+      if (response.data?.success && response.data?.data) {
+        return response.data.data;
+      } else if (Array.isArray(response.data)) {
         return response.data;
-      } catch (error) {
-        console.error('❌ Error fetching activities:', error);
-        console.error('Error details:', error.response?.data || error.message);
-        
-        // Return empty array if server is not available
-        console.log('🔄 Using empty array for activities');
+      } else {
         return [];
       }
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
     cacheTime: 5 * 60 * 1000, // 5 minutes
-    retry: 1,
-    retryDelay: 1000,
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
+
+  // Process activities data to ensure proper format
+  const activities = activitiesData ? activitiesData.map(activity => ({
+    id: activity.id,
+    type: activity.type || 'action',
+    user: activity.user || 'System',
+    action: activity.title || activity.description || 'Unknown action',
+    timestamp: formatTimestamp(activity.timestamp),
+    date: formatDate(activity.timestamp),
+    icon: getIconFromType(activity.type),
+    ip: 'N/A' // IP not provided by current backend
+  })) : [];
 
   // Clear activities mutation
   const clearActivitiesMutation = useMutation({
